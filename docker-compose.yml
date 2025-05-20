@@ -1,0 +1,123 @@
+services:
+  guest-microservice:
+    build:
+      context: ./Microservices
+      dockerfile: ./Guest.Microservice/Dockerfile
+      args:
+        SERVICE_NAME: Guest.Microservice
+    image: guest-microservice
+    container_name: guest-microservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      DATABASE_HOST: 
+      DATABASE_PORT: 
+      DATABASE_NAME: 
+      DATABASE_USERNAME: YOUR_USERNAME
+      DATABASE_PASSWORD: YOUR_PASSWORD
+      ASPNETCORE_URLS: http://+:5001
+      RABBITMQ_HOST: rabbit-mq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: YOUR_USERNAME
+      RABBITMQ_PASSWORD: YOUR_PASSWORD
+      REDIS_HOST: redis
+      REDIS_PASSWORD: YOUR_PASSWORD
+      REDIS_PORT: 6379
+    depends_on:
+      rabbit-mq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  user-microservice:
+    build:
+      context: ./Microservices
+      dockerfile: ./User.Microservice/Dockerfile
+      args:
+        SERVICE_NAME: User.Microservice
+    image: user-microservice
+    container_name: user-microservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      DATABASE_HOST: 
+      DATABASE_PORT:
+      DATABASE_NAME: 
+      DATABASE_USERNAME: YOUR_USERNAME
+      DATABASE_PASSWORD: YOUR_PASSWORD
+      ASPNETCORE_URLS: http://+:5002
+      RABBITMQ_HOST: rabbit-mq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: YOUR_USERNAME
+      RABBITMQ_PASSWORD: YOUR_PASSWORD
+      REDIS_HOST: redis
+      REDIS_PASSWORD: YOUR_PASSWORD
+      REDIS_PORT: 6379
+    depends_on:
+      rabbit-mq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  api-gateway:
+    build:
+      context: ./ApiGateway
+      dockerfile: Dockerfile
+    image: api-gateway
+    container_name: api-gateway
+    ports:
+      - "2406:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      USER_MICROSERVICE_HOST: YOUR_MICROSERVICE_HOST #example: user-microservice (the docker service name)
+      USER_MICROSERVICE_PORT: YOUR_MICROSERVICE_PORT
+      GUEST_MICROSERVICE_HOST: YOUR_MICROSERVICE_HOST
+      GUEST_MICROSERVICE_PORT: YOUR_MICROSERVICE_PORT
+    networks:
+      - app-network
+
+  rabbit-mq:
+    image: rabbitmq:3-management
+    container_name: rabbit-mq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: YOUR_USERNAME
+      RABBITMQ_DEFAULT_PASS: YOUR_PASSWORD
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    command: ["redis-server", "--requirepass", "YOUR_PASSWORD"]
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli","-a", "YOUR_PASSWORD", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  rabbitmq-data:
+  redis-data:

@@ -1,0 +1,23 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /App
+
+COPY ApiGateway.sln ./
+
+COPY src/src.csproj ./src/
+
+
+RUN dotnet restore
+
+COPY src/ ./src/
+
+WORKDIR /App/src
+RUN dotnet publish -c Release -o /App/out
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /App
+
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+COPY --from=build /App/out .
+
+ENTRYPOINT ["dotnet", "src.dll"]

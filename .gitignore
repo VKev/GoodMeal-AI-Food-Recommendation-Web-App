@@ -1,0 +1,7 @@
+**/Build/
+.vscode/
+.env
+.fake
+docker-compose-production.yml
+
+#docker-compose -f docker-compose-production.yml -p microservices up --build -d

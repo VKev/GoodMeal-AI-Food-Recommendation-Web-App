@@ -1,0 +1,41 @@
+{
+  "Routes": [
+    {
+      "UpstreamPathTemplate": "/api/User/{everything}",
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": "5002"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/User/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Guest/{everything}",
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": "5001"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Guest/{everything}"
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:2406"
+  }
+}
