@@ -1,5 +1,7 @@
 "use client";
 
+import Login from "./Login";
+
 export default function Background() {
     return (
         <div style={{ position: "relative", height: "100vh", overflow: "hidden" }}>
@@ -27,14 +29,19 @@ export default function Background() {
                     position: "absolute",
                     top: 0,
                     right: 0,
-                    width: "50%",
+                    width: "30%",
                     height: "100%",
-                    background: "linear-gradient(to left, rgba(128, 128, 128, 0.5), rgba(128, 128, 128, 0))",
+                    background: "white",
                     zIndex: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                 }}
-            ></div>
-           
-
+            >
+                <div style={{ width: "100%", padding: "20px" }}>
+                    <Login />
+                </div>
+            </div>
         </div>
     );
 }
