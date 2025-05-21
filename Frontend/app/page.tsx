@@ -1,6 +1,5 @@
 "use client";
 import Background from "@/components/Background";
-import Content from "@/components/Content";
 import ReactFullpage from "@fullpage/react-fullpage";
 
 export default function Home() {
@@ -18,16 +17,28 @@ export default function Home() {
                 </div>
               </div>
               <div className="section">
-                <div className="content-wrapper">
-                  <Content />
-
+                <div className="content-wrapper" style={{ width: "100vw", height: "100vh" }}>
+                  <img
+                    src="/banner.png"
+                    alt="Food Banner"
+                    className="w-full h-full object-cover rounded-lg shadow-md"
+                  />
+                </div>
+              </div>
+              <div className="section">
+                <div className="content-wrapper" style={{ width: "100vw", height: "100vh" }}>
+                  <img
+                    src="/banner1.png"
+                    alt="Food Banner"
+                    className="w-full h-full object-cover rounded-lg shadow-md"
+                  />
                 </div>
               </div>
             </ReactFullpage.Wrapper>
           );
         }} credits={{
           enabled: undefined,
-          label: undefined,
+          label: "",
           position: undefined
         }} />
     </>
