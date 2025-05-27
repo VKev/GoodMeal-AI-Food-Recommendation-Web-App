@@ -23,7 +23,7 @@ jobs:
       - name: Discover microservices
         id: get-services
         run: |
-          # Find all directories in Backend/Microservices that contain Dockerfile
+          # Find all directories in Backend/Microservices that contain Dockerfile (case insensitive)
           # Exclude SharedLibrary and ApiGateway
           services=()
           
@@ -33,10 +33,10 @@ jobs:
                 service_name=$(basename "$dir")
                 # Skip SharedLibrary and ApiGateway (case insensitive)
                 if [[ ! "$service_name" =~ ^(SharedLibrary|ApiGateway)$ ]] && [[ ! "$service_name" =~ ^(sharedlibrary|apigateway)$ ]]; then
-                  # Check if Dockerfile exists
-                  if [ -f "${dir}Dockerfile" ]; then
+                  # Check if Dockerfile exists (case insensitive)
+                  if [ -f "${dir}Dockerfile" ] || [ -f "${dir}dockerfile" ] || [ -f "${dir}DockerFile" ]; then
                     services+=("$service_name")
-                    echo "Found microservice: $service_name"
+                    echo "Found microservice: $service_name with Dockerfile"
                   else
                     echo "Skipping $service_name (no Dockerfile found)"
                   fi
@@ -45,10 +45,16 @@ jobs:
             done
           fi
           
-          # Convert array to JSON format for matrix strategy
-          services_json=$(printf '%s\n' "${services[@]}" | jq -R . | jq -s .)
-          echo "services=$services_json" >> $GITHUB_OUTPUT
-          echo "Discovered services: $services_json"
+          # Ensure we have at least one service
+          if [ ${#services[@]} -eq 0 ]; then
+            echo "No microservices found with Dockerfiles"
+            echo "services=[]" >> $GITHUB_OUTPUT
+          else
+            # Convert array to JSON format for matrix strategy
+            services_json=$(printf '%s\n' "${services[@]}" | jq -R . | jq -s .)
+            echo "services=$services_json" >> $GITHUB_OUTPUT
+            echo "Discovered services: $services_json"
+          fi
 
   build-and-push:
     name: Build and Push
@@ -103,7 +109,7 @@ jobs:
           IMAGE_TAG: ${{ steps.set-tag.outputs.IMAGE_TAG }}
         with:
           context: Backend/Microservices/${{ matrix.service }}
-          file: Backend/Microservices/${{ matrix.service }}/Dockerfile
+          file: Backend/Microservices/${{ matrix.service }}/dockerfile
           push: true
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.PROJECT_NAME }}-ecr:${{ matrix.service }}-${{ env.IMAGE_TAG }}
