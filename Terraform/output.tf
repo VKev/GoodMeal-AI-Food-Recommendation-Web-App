@@ -64,3 +64,24 @@ output "ecs_cluster_arn" {
   description = "ARN of the ECS cluster"
   value       = module.ec2.ecs_cluster_arn
 }
+
+# ECS Service Outputs
+output "ecs_service_name" {
+  description = "Name of the ECS service"
+  value       = module.ecs.ecs_service_name
+}
+
+output "ecs_service_arn" {
+  description = "ARN of the ECS service"
+  value       = module.ecs.ecs_service_arn
+}
+
+output "task_definition_arn" {
+  description = "ARN of the task definition"
+  value       = module.ecs.task_definition_arn
+}
+
+output "cloudwatch_log_group_name" {
+  description = "Name of the CloudWatch log group for ECS logs"
+  value       = module.ecs.cloudwatch_log_group_name
+}

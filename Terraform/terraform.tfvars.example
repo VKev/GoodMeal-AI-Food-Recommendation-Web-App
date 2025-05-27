@@ -1,0 +1,44 @@
+# Project Configuration
+project_name = "goodmeal"
+aws_region   = "us-east-1"
+
+# VPC Configuration
+vpc_cidr            = "10.0.0.0/16"
+public_subnet_cidr  = "10.0.1.0/24"
+private_subnet_cidr = "10.0.2.0/24"
+
+# EC2 Configuration
+instance_type       = "t2.micro"  # Free tier eligible
+associate_public_ip = true
+
+# ECS Configuration
+ecr_repository_url = "123456789012.dkr.ecr.us-east-1.amazonaws.com/goodmeal-app"  # Replace with your ECR repository URL
+image_tag         = "latest"
+container_name    = "goodmeal-app"
+container_port    = 80
+container_memory  = 512
+container_cpu     = 256
+desired_count     = 1
+
+# Environment Variables for your application
+environment_variables = [
+  {
+    name  = "NODE_ENV"
+    value = "production"
+  },
+  {
+    name  = "PORT"
+    value = "80"
+  }
+  # Add more environment variables as needed
+]
+
+# Optional Features
+enable_auto_scaling      = false
+enable_service_discovery = false
+
+# CloudFront Configuration (if needed)
+# origin_domain_name    = "s3.wasabisys.com"
+# origin_path          = "/khangstoragetest"
+# lambda_edge_secret   = "0Kg04La06!"
+# bucket_secret_referer = "0Kg04Rr07!" 

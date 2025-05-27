@@ -20,6 +20,35 @@ module "ec2" {
   associate_public_ip = var.associate_public_ip
 }
 
+# ECS Module
+module "ecs" {
+  source = "./modules/ecs"
+  
+  project_name       = var.project_name
+  aws_region        = var.aws_region
+  vpc_id            = module.vpc.vpc_id
+  ecs_cluster_id    = module.ec2.ecs_cluster_arn
+  ecs_cluster_name  = module.ec2.ecs_cluster_name
+  
+  # Container configuration
+  ecr_repository_url = var.ecr_repository_url
+  image_tag         = var.image_tag
+  container_name    = var.container_name
+  container_port    = var.container_port
+  container_memory  = var.container_memory
+  container_cpu     = var.container_cpu
+  desired_count     = var.desired_count
+  
+  # Environment variables
+  environment_variables = var.environment_variables
+  
+  # Optional features
+  enable_auto_scaling      = var.enable_auto_scaling
+  enable_service_discovery = var.enable_service_discovery
+  
+  depends_on = [module.ec2]
+}
+
 # module "lambda_edge" {
 #   source = "./modules/lambda_edge"
 # }
