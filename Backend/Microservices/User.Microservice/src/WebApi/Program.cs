@@ -1,12 +1,11 @@
 using Application;
 using Infrastructure;
-using Infrastructure.Configs;
 using Infrastructure.Context;
 using SharedLibrary.Utils;
+using SharedLibrary.Configs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
-using WebApi.Configs;
 string solutionDirectory = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName ?? "";
 if (solutionDirectory != null)
 {
@@ -23,11 +22,6 @@ builder.Services.AddAuthorization();
 
 builder.Host.UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
     .ReadFrom.Configuration(hostingContext.Configuration));
-builder.Services.AddLogging(loggingBuilder =>
-{
-    loggingBuilder.ClearProviders();
-    loggingBuilder.AddSerilog();
-});
 
 builder.Services.ConfigureOptions<DatabaseConfigSetup>();
 builder.Services.AddDbContext<MyDbContext>((serviceProvider, options) =>

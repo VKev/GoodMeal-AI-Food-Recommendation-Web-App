@@ -2,10 +2,10 @@ using Application;
 using Infrastructure;
 using Infrastructure.Context;
 using SharedLibrary.Utils;
+using SharedLibrary.Configs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
-using WebApi.Configs;
 
 string solutionDirectory = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName ?? "";
 if (solutionDirectory != null)

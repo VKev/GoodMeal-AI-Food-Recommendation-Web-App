@@ -6,7 +6,7 @@ using Application.Guests.Commands;
 using Application.Guests.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Common;
+using SharedLibrary.Common;
 
 namespace WebApi.Controllers
 {

@@ -1,7 +1,9 @@
+using System;
+using System.Collections.Generic;
+using SharedLibrary.Common.ResponseModel;
 using Application.Abstractions.Messaging;
 using Application.Abstractions.UnitOfWork;
 using Application.Common;
-using Application.Common.ResponseModel;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Repositories;
