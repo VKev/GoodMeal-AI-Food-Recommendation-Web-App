@@ -50,8 +50,8 @@ jobs:
             echo "No microservices found with Dockerfiles"
             echo "services=[]" >> $GITHUB_OUTPUT
           else
-            # Convert array to JSON format for matrix strategy
-            services_json=$(printf '%s\n' "${services[@]}" | jq -R . | jq -s .)
+            # Convert array to JSON format for matrix strategy (compact format)
+            services_json=$(printf '%s\n' "${services[@]}" | jq -R . | jq -s -c .)
             echo "services=$services_json" >> $GITHUB_OUTPUT
             echo "Discovered services: $services_json"
           fi
