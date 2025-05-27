@@ -25,6 +25,8 @@ RUN dotnet publish -c Release -o /App/out
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /App
 
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 COPY --from=build /App/out ./

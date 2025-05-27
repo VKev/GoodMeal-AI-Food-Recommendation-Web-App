@@ -31,21 +31,19 @@ module "ecs" {
   ecs_cluster_name  = module.ec2.ecs_cluster_name
   
   # Container configuration
-  ecr_repository_url = var.ecr_repository_url
-  image_tag         = var.image_tag
-  container_name    = var.container_name
-  container_port    = var.container_port
-  container_memory  = var.container_memory
-  container_cpu     = var.container_cpu
-  desired_count     = var.desired_count
+  ecr_repository_url = "242201290212.dkr.ecr.us-east-1.amazonaws.com/goodmeal-ecr:Guest.Microservice-df6c4cfa2317f4bd693b4c6fed08d973e3ab47f1"
+  image_tag         = "latest"
+  container_name    = "goodmeal-guest-microservice"
+  container_port    = 5001
+  container_memory  = 1024
+  container_cpu     = 1024
+  desired_count     = 1
   
-  # Environment variables
-  environment_variables = var.environment_variables
+
   
-  # Optional features
   enable_auto_scaling      = var.enable_auto_scaling
   enable_service_discovery = var.enable_service_discovery
-  
+  health_check_command = ["CMD-SHELL", "curl -f http://localhost:5001/ || exit 1"]
   depends_on = [module.ec2]
 }
 

@@ -68,7 +68,7 @@ resource "aws_ecs_service" "app_service" {
   launch_type = "EC2"
   
   # Placement strategy
-  placement_strategy {
+  ordered_placement_strategy {
     type  = "spread"
     field = "instanceId"
   }
@@ -92,10 +92,8 @@ resource "aws_ecs_service" "app_service" {
   }
   
   # Deployment configuration
-  deployment_configuration {
-    maximum_percent         = 200
-    minimum_healthy_percent = 50
-  }
+  deployment_maximum_percent         = 200
+  deployment_minimum_healthy_percent = 50
   
   # Auto-scaling integration
   lifecycle {
@@ -224,8 +222,6 @@ resource "aws_service_discovery_service" "app_service" {
 
     routing_policy = "MULTIVALUE"
   }
-
-  health_check_grace_period_seconds = 30
 
   tags = {
     Name = "${var.project_name}-service-discovery-service"
