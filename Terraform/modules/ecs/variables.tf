@@ -1,127 +1,127 @@
+##############################
+# REQUIRED – NO DEFAULTS
+##############################
 variable "project_name" {
-  description = "Name of the project"
+  description = "Prefix for all ECS-related resources"
   type        = string
 }
 
 variable "aws_region" {
-  description = "AWS region"
+  description = "AWS region (used for log driver options)"
   type        = string
 }
 
-variable "vpc_id" {
-  description = "VPC ID where resources will be created"
-  type        = string
-}
-
-variable "ecs_cluster_id" {
-  description = "ECS Cluster ID"
-  type        = string
-}
-
-variable "ecs_cluster_name" {
-  description = "ECS Cluster name"
+variable "container_name" {
+  description = "Logical name of the container inside the task definition"
   type        = string
 }
 
 variable "ecr_repository_url" {
-  description = "ECR repository URL for the container image"
+  description = "ECR repository URI, e.g. 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/myapp"
   type        = string
 }
 
 variable "image_tag" {
-  description = "Docker image tag to deploy"
+  description = "Image tag to deploy (latest, git-sha, …)"
   type        = string
-  default     = "latest"
-}
-
-variable "container_name" {
-  description = "Name of the container"
-  type        = string
-}
-
-variable "container_port" {
-  description = "Port that the container exposes"
-  type        = number
-  default     = 80
-}
-
-variable "container_memory" {
-  description = "Memory allocation for the container (in MB)"
-  type        = number
-  default     = 512
 }
 
 variable "container_cpu" {
-  description = "CPU allocation for the container (CPU units)"
+  description = "Hard CPU limit for the container (task-level CPU shares)"
   type        = number
-  default     = 256
 }
 
+variable "container_memory" {
+  description = "Hard memory limit for the container (MiB)"
+  type        = number
+}
+
+variable "container_port" {
+  description = "Port your application listens on inside the container"
+  type        = number
+}
+
+variable "environment_variables" {
+  description = "List of environment variables, each as { name = \"...\", value = \"...\" }"
+  type        = list(object({
+    name  = string
+    value = string
+  }))
+}
+
+variable "health_check_command" {
+  description = "CMD or CMD-SHELL array for container health checks"
+  type        = list(string)
+}
+
+variable "ecs_cluster_id" {
+  description = "Cluster ID, passed from the EC2 module"
+  type        = string
+}
+
+variable "ecs_cluster_name" {
+  description = "Cluster name, passed from the EC2 module (needed for auto-scaling resource_id)"
+  type        = string
+}
+
+variable "vpc_id" {
+  description = "VPC where service-discovery namespaces will be created"
+  type        = string
+}
+
+##############################
+# OPTIONAL – WITH DEFAULTS
+##############################
 variable "desired_count" {
-  description = "Desired number of tasks to run"
+  description = "Number of tasks to keep running"
   type        = number
   default     = 1
 }
 
-variable "environment_variables" {
-  description = "Environment variables for the container"
-  type = list(object({
-    name  = string
-    value = string
-  }))
-  default = []
-}
-
-variable "health_check_command" {
-  description = "Health check command for the container"
-  type        = list(string)
-  default     = ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
-}
-
-variable "log_retention_days" {
-  description = "CloudWatch log retention in days"
-  type        = number
-  default     = 7
-}
-
-variable "target_group_arn" {
-  description = "Target group ARN for load balancer (optional)"
-  type        = string
-  default     = ""
-}
-
 variable "enable_service_discovery" {
-  description = "Enable service discovery"
+  description = "Create Cloud Map namespace + service?"
   type        = bool
   default     = false
 }
 
 variable "enable_auto_scaling" {
-  description = "Enable auto scaling for the ECS service"
+  description = "Create target-tracking scaling policies?"
   type        = bool
   default     = false
 }
 
+variable "target_group_arn" {
+  description = "ALB / NLB target group ARN (blank to disable LB attachment)"
+  type        = string
+  default     = ""
+}
+
+variable "log_retention_days" {
+  description = "Retention period for /ecs/<project> log group"
+  type        = number
+  default     = 30
+}
+
+variable "max_capacity" {
+  description = "Upper limit for auto-scaling"
+  type        = number
+  default     = 4
+}
+
 variable "min_capacity" {
-  description = "Minimum number of tasks for auto scaling"
+  description = "Lower limit for auto-scaling"
   type        = number
   default     = 1
 }
 
-variable "max_capacity" {
-  description = "Maximum number of tasks for auto scaling"
-  type        = number
-  default     = 10
-}
-
 variable "cpu_target_value" {
-  description = "Target CPU utilization percentage for auto scaling"
+  description = "Target CPU utilisation percentage"
   type        = number
-  default     = 70
+  default     = 50
 }
 
 variable "memory_target_value" {
-  description = "Target memory utilization percentage for auto scaling"
+  description = "Target memory utilisation percentage"
   type        = number
-  default     = 80
-} 
+  default     = 70
+}

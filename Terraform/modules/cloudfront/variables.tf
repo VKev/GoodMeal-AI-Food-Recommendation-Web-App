@@ -17,3 +17,8 @@ variable "bucket_secret_referer" {
   description = "Custom header referer for the bucket"
   type = string
 }
+
+variable "project_name" {
+  description = "The name of the project"
+  type        = string
+}

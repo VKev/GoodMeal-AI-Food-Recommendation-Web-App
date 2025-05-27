@@ -1,45 +1,133 @@
-# ECS Task Definition
+##########################################################################
+# REQUIRED VARIABLES (declare in ecs/variables.tf or from the root module)
+##########################################################################
+# var.project_name             – Prefix for names/tags
+# var.aws_region               – e.g. "ap-southeast-1"
+# var.container_name           – logical name inside the task def
+# var.ecr_repository_url       – 111122223333.dkr.ecr.ap-southeast-1.amazonaws.com/myapp
+# var.image_tag                – e.g. "latest"
+# var.container_cpu            – 256  (hard limit, unit = CPU shares)
+# var.container_memory         – 512  (hard limit, MiB)
+# var.container_port           – 8080
+# var.environment_variables    – list of { name = "...", value = "..." }
+# var.health_check_command     – ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+# var.ecs_cluster_id           – aws_ecs_cluster.main.id  (passed from ec2 module)
+# var.ecs_cluster_name         – aws_ecs_cluster.main.name
+# var.vpc_id                   – VPC where service discovery lives
+# --- OPTIONAL ---
+# var.enable_service_discovery – default false
+# var.enable_auto_scaling      – default false
+# var.desired_count            – default 1
+# var.target_group_arn         – ""  (if ALB target group supplied)
+# var.log_retention_days       – default 30
+# var.max_capacity             – default 4
+# var.min_capacity             – default 1
+# var.cpu_target_value         – default 50
+# var.memory_target_value      – default 70
+##########################################################################
+
+#################################
+# CloudWatch log group (one-off)
+#################################
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name              = "/ecs/${var.project_name}"
+  retention_in_days = var.log_retention_days
+  tags              = { Name = "${var.project_name}-ecs-logs" }
+}
+
+####################
+# IAM FOR THE TASK
+####################
+resource "aws_iam_role" "ecs_task_role" {
+  name = "${var.project_name}-ecs-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "ecs-tasks.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role" "ecs_execution_role" {
+  name = "${var.project_name}-ecs-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "ecs-tasks.amazonaws.com" }
+    }]
+  })
+}
+
+# Policy: the task itself only needs to write its own log streams
+resource "aws_iam_role_policy" "ecs_task_policy" {
+  name = "${var.project_name}-ecs-task-policy"
+  role = aws_iam_role.ecs_task_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+      Resource = "${aws_cloudwatch_log_group.ecs_logs.arn}:*"
+    }]
+  })
+}
+
+# Pre-defined AWS-managed policies
+resource "aws_iam_role_policy_attachment" "ecs_execution_managed" {
+  role       = aws_iam_role.ecs_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_ecr_pull" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+##############################
+# TASK DEFINITION
+##############################
 resource "aws_ecs_task_definition" "app_task" {
   family                   = "${var.project_name}-task"
-  network_mode            = "bridge"
+  network_mode             = "bridge"
   requires_compatibilities = ["EC2"]
-  
-  # Task role for the application
+  cpu                      = tostring(var.container_cpu)
+  memory                   = tostring(var.container_memory)
+
   task_role_arn      = aws_iam_role.ecs_task_role.arn
   execution_role_arn = aws_iam_role.ecs_execution_role.arn
 
   container_definitions = jsonencode([
     {
-      name  = var.container_name
-      image = "${var.ecr_repository_url}:${var.image_tag}"
-      
-      # Resource allocation
-      memory = var.container_memory
-      cpu    = var.container_cpu
-      
-      # Port mappings
-      portMappings = [
-        {
-          containerPort = var.container_port
-          hostPort      = 0  # Dynamic port mapping
-          protocol      = "tcp"
-        }
-      ]
-      
-      # Environment variables
+      name      = var.container_name
+      image     = "${var.ecr_repository_url}:${var.image_tag}"
+      cpu       = var.container_cpu
+      memory    = var.container_memory
+      essential = true
+
+      portMappings = [{
+        containerPort = var.container_port
+        hostPort      = 0            # dynamic host port
+        protocol      = "tcp"
+      }]
+
       environment = var.environment_variables
-      
-      # Logging configuration
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs_logs.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
+          awslogs-group         = aws_cloudwatch_log_group.ecs_logs.name
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
         }
       }
-      
-      # Health check
+
       healthCheck = {
         command     = var.health_check_command
         interval    = 30
@@ -47,41 +135,37 @@ resource "aws_ecs_task_definition" "app_task" {
         retries     = 3
         startPeriod = 60
       }
-      
-      essential = true
     }
   ])
 
-  tags = {
-    Name = "${var.project_name}-task-definition"
-  }
+  tags = { Name = "${var.project_name}-task-definition" }
 }
 
-# ECS Service
+#################
+# SERVICE
+#################
 resource "aws_ecs_service" "app_service" {
   name            = "${var.project_name}-service"
   cluster         = var.ecs_cluster_id
   task_definition = aws_ecs_task_definition.app_task.arn
   desired_count   = var.desired_count
-  
-  # Launch type
-  launch_type = "EC2"
-  
-  # Placement strategy
+  launch_type     = "EC2"
+
   ordered_placement_strategy {
     type  = "spread"
     field = "instanceId"
   }
-  
-  # Service discovery (optional)
+
+  ###################################################
+  # OPTIONAL: Service discovery & ALB integration
+  ###################################################
   dynamic "service_registries" {
     for_each = var.enable_service_discovery ? [1] : []
     content {
-      registry_arn = aws_service_discovery_service.app_service[0].arn
+      registry_arn = aws_service_discovery_service.discovery_service[0].arn
     }
   }
-  
-  # Load balancer configuration (if ALB is provided)
+
   dynamic "load_balancer" {
     for_each = var.target_group_arn != "" ? [1] : []
     content {
@@ -90,145 +174,49 @@ resource "aws_ecs_service" "app_service" {
       container_port   = var.container_port
     }
   }
-  
-  # Deployment configuration
+
+  ###################################################
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 50
-  
-  # Auto-scaling integration
-  lifecycle {
-    ignore_changes = [desired_count]
-  }
-  
-  tags = {
-    Name = "${var.project_name}-ecs-service"
-  }
-  
+
+  lifecycle { ignore_changes = [desired_count] }
+
+  tags = { Name = "${var.project_name}-ecs-service" }
+
   depends_on = [
-    aws_iam_role_policy_attachment.ecs_task_role_policy,
-    aws_iam_role_policy_attachment.ecs_execution_role_policy
+    aws_iam_role_policy_attachment.ecs_task_ecr_pull,
+    aws_iam_role_policy_attachment.ecs_execution_managed
   ]
 }
 
-# CloudWatch Log Group
-resource "aws_cloudwatch_log_group" "ecs_logs" {
-  name              = "/ecs/${var.project_name}"
-  retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${var.project_name}-ecs-logs"
-  }
-}
-
-# IAM Role for ECS Task
-resource "aws_iam_role" "ecs_task_role" {
-  name = "${var.project_name}-ecs-task-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        }
-      }
-    ]
-  })
-
-  tags = {
-    Name = "${var.project_name}-ecs-task-role"
-  }
-}
-
-# IAM Role for ECS Task Execution
-resource "aws_iam_role" "ecs_execution_role" {
-  name = "${var.project_name}-ecs-execution-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        }
-      }
-    ]
-  })
-
-  tags = {
-    Name = "${var.project_name}-ecs-execution-role"
-  }
-}
-
-# Policy for ECS Task Role (customize based on your app needs)
-resource "aws_iam_role_policy" "ecs_task_policy" {
-  name = "${var.project_name}-ecs-task-policy"
-  role = aws_iam_role.ecs_task_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Resource = "${aws_cloudwatch_log_group.ecs_logs.arn}:*"
-      }
-    ]
-  })
-}
-
-# Attach ECS Task Execution Role Policy
-resource "aws_iam_role_policy_attachment" "ecs_execution_role_policy" {
-  role       = aws_iam_role.ecs_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-# Additional policy for ECR access
-resource "aws_iam_role_policy_attachment" "ecs_task_role_policy" {
-  role       = aws_iam_role.ecs_task_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-# Service Discovery (optional)
-resource "aws_service_discovery_private_dns_namespace" "app_namespace" {
+#######################################
+# OPTIONAL PRIVATE SERVICE DISCOVERY
+#######################################
+resource "aws_service_discovery_private_dns_namespace" "dns_ns" {
   count       = var.enable_service_discovery ? 1 : 0
   name        = "${var.project_name}.local"
-  description = "Service discovery namespace for ${var.project_name}"
   vpc         = var.vpc_id
-
-  tags = {
-    Name = "${var.project_name}-service-discovery-namespace"
-  }
+  description = "Service discovery namespace"
 }
 
-resource "aws_service_discovery_service" "app_service" {
+resource "aws_service_discovery_service" "discovery_service" {
   count = var.enable_service_discovery ? 1 : 0
   name  = var.container_name
 
   dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.app_namespace[0].id
+    namespace_id = aws_service_discovery_private_dns_namespace.dns_ns[0].id
+    routing_policy = "MULTIVALUE"
 
     dns_records {
       ttl  = 10
       type = "A"
     }
-
-    routing_policy = "MULTIVALUE"
-  }
-
-  tags = {
-    Name = "${var.project_name}-service-discovery-service"
   }
 }
 
-# Auto Scaling Target
+###################################################
+# OPTIONAL TARGET-TRACKING AUTO-SCALING
+###################################################
 resource "aws_appautoscaling_target" "ecs_target" {
   count              = var.enable_auto_scaling ? 1 : 0
   max_capacity       = var.max_capacity
@@ -238,7 +226,6 @@ resource "aws_appautoscaling_target" "ecs_target" {
   service_namespace  = "ecs"
 }
 
-# Auto Scaling Policy - CPU
 resource "aws_appautoscaling_policy" "ecs_cpu_policy" {
   count              = var.enable_auto_scaling ? 1 : 0
   name               = "${var.project_name}-cpu-scaling"
@@ -255,7 +242,6 @@ resource "aws_appautoscaling_policy" "ecs_cpu_policy" {
   }
 }
 
-# Auto Scaling Policy - Memory
 resource "aws_appautoscaling_policy" "ecs_memory_policy" {
   count              = var.enable_auto_scaling ? 1 : 0
   name               = "${var.project_name}-memory-scaling"
@@ -270,4 +256,4 @@ resource "aws_appautoscaling_policy" "ecs_memory_policy" {
     }
     target_value = var.memory_target_value
   }
-} 
+}

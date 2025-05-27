@@ -8,6 +8,14 @@
 #   value       = module.cloudfront.cloudfront_domain_name
 # }
 
+# output "cloudfront_private_key_pem" {
+#   description = "Private key for CloudFront signed URLs/cookies."
+#   value       = module.cloudfront.cloudfront_private_key_pem
+#   sensitive   = true
+# }
+
+
+
 # VPC Outputs
 output "vpc_id" {
   description = "ID of the VPC"
@@ -63,6 +71,12 @@ output "ecs_cluster_name" {
 output "ecs_cluster_arn" {
   description = "ARN of the ECS cluster"
   value       = module.ec2.ecs_cluster_arn
+}
+
+output "ec2_private_key_pem" {
+  description = "Private key for EC2 instance."
+  value       = module.ec2.ec2_private_key_pem
+  sensitive   = true
 }
 
 # ECS Service Outputs
