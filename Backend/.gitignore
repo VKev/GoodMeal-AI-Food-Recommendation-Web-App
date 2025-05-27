@@ -3,5 +3,6 @@
 .env
 .fake
 docker-compose-production.yml
-private_key.pem
+cloudfront_private_key.pem
+ec2_private_key.pem
 #docker-compose -f docker-compose-production.yml -p microservices up --build -d

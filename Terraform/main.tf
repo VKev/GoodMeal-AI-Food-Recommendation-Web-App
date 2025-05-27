@@ -8,6 +8,18 @@ module "vpc" {
   private_subnet_cidr = var.private_subnet_cidr
 }
 
+# EC2 Module
+module "ec2" {
+  source = "./modules/ec2"
+  
+  project_name        = var.project_name
+  vpc_id             = module.vpc.vpc_id
+  vpc_cidr           = var.vpc_cidr
+  subnet_id          = module.vpc.public_subnet_id  # Using public subnet for easier access
+  instance_type      = var.instance_type
+  associate_public_ip = var.associate_public_ip
+}
+
 # module "lambda_edge" {
 #   source = "./modules/lambda_edge"
 # }

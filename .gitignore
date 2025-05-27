@@ -1,3 +1,4 @@
 .vscode
 Terraform/variables.tf
 .terraform
+.terraform.lock.hcl
