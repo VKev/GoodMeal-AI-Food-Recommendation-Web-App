@@ -131,7 +131,7 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 # Key pair for EC2 access - uses local public_key.pem file
 resource "aws_key_pair" "ec2_key" {
   key_name   = "${var.project_name}-ec2-key"
-  public_key = file("${path.module}/public_key.pem")
+  public_key = file("${path.module}/public_key.pub")
 
   tags = {
     Name = "${var.project_name}-ec2-key"
