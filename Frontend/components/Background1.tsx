@@ -39,8 +39,8 @@ const SpawnText: React.FC<SpawnTextProps> = ({ text, delay = 0, className = "" }
                         : 'opacity-0 transform translate-y-4'
                         }`}
                     style={{
-                        transitionDelay: `${index * 20}ms`, // Nhanh hơn: mỗi từ delay 20ms
-                        marginRight: '0.25rem'
+                        transitionDelay: `${index * 20}ms`,
+                        marginRight: index === words.length - 1 ? 0 : '0.8rem' // Tăng khoảng cách giữa các chữ
                     }}
                 >
                     {word}

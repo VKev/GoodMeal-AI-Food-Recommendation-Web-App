@@ -1,148 +1,82 @@
-// import React, { useState } from "react";
-// import { Form, Input, Button, Tabs, Select, Checkbox, message } from "antd";
-// import { GoogleOutlined } from "@ant-design/icons";
+import React from "react";
 
-// const { TabPane } = Tabs;
-// const { Option } = Select;
+const Login: React.FC = () => {
+  return (
+    <div style={{ minHeight: "100vh", background: "#fff" }}>
+      <div style={{ padding: "24px 0 0 32px", fontWeight: 600, fontSize: 28, fontFamily: "sans-serif" }}>
+        GoodMeal
+      </div>
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        marginTop: 80
+      }}>
+        <h1 style={{ fontSize: 36, fontWeight: 500, marginBottom: 32 }}>Welcome back</h1>
+        <input
+          type="email"
+          placeholder="Email address"
+          style={{
+            width: 400,
+            padding: "16px 12px",
+            fontSize: 18,
+            borderRadius: 8,
+            border: "1px solid #e0e0e0",
+            marginBottom: 20,
+            outline: "none"
+          }}
+        />
+        <button
+          style={{
+            width: 400,
+            padding: "14px 0",
+            background: "#16a085",
+            color: "#fff",
+            fontSize: 20,
+            border: "none",
+            borderRadius: 8,
+            fontWeight: 500,
+            marginBottom: 18,
+            cursor: "pointer"
+          }}
+        >
+          Continue
+        </button>
+        <div style={{ marginBottom: 18, color: "#222", fontSize: 16 }}>
+          Don't have an account?{" "}
+          <a href="#" style={{ color: "#16a085", textDecoration: "none", fontWeight: 500 }}>
+            Sign up
+          </a>
+        </div>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          width: 400,
+          margin: "16px 0"
+        }}>
+          <div style={{ flex: 1, height: 1, background: "#e0e0e0" }} />
+          <span style={{ margin: "0 16px", color: "#888" }}>OR</span>
+          <div style={{ flex: 1, height: 1, background: "#e0e0e0" }} />
+        </div>
+        <button style={{
+          width: 400,
+          display: "flex",
+          alignItems: "center",
+          padding: "12px 0",
+          border: "1px solid #e0e0e0",
+          borderRadius: 8,
+          background: "#fff",
+          fontSize: 18,
+          marginBottom: 12,
+          cursor: "pointer"
+        }}>
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style={{ width: 24, marginRight: 16 }} />
+          Continue with Google
+        </button>
+       
+      </div>
+    </div>
+  );
+};
 
-// const Login: React.FC = () => {
-//   const [isRegister, setIsRegister] = useState(false);
-
-//   const onFinishLogin = (values: any) => {
-//     console.log("Login Success:", values);
-//     message.success("Login successful!");
-//   };
-
-//   const onFinishRegister = (values: any) => {
-//     console.log("Register Success:", values);
-//     message.success("Registration successful!");
-//   };
-
-//   const handleGoogleLogin = () => {
-//     console.log("Google Login");
-//     message.info("Redirecting to Google Login...");
-//   };
-
-//   return (
-//     <div
-//       style={{
-//         width: "100%",
-//         height: "100%", // Chiếm toàn bộ chiều cao của phần nền trắng
-//         padding: "40px 20px", // Tăng padding để giống Instagram
-//         backgroundColor: "#fff",
-//         display: "flex",
-//         flexDirection: "column",
-//         justifyContent: "center",
-//         alignItems: "center", // Căn giữa nội dung
-//       }}
-//     >
-//       <div
-//         style={{
-//           width: "100%",
-//           maxWidth: 350,
-//           minHeight: 400, // Cố định chiều cao tối thiểu cho nội dung
-//           display: "flex",
-//           flexDirection: "column",
-//           justifyContent: "space-between",
-//         }}
-//       >
-//         <Tabs
-//           defaultActiveKey="1"
-//           onChange={(key) => setIsRegister(key === "2")}
-//           centered
-//           style={{ marginBottom: 20 }}
-//         >
-//           <TabPane tab="Login" key="1">
-//             <div style={{ minHeight: 300 }}> {/* Cố định chiều cao nội dung tab */}
-//               <Form name="login" onFinish={onFinishLogin} layout="vertical">
-//                 <Form.Item
-//                   name="email"
-//                   label="Email"
-//                   rules={[
-//                     { required: true, message: "Please input your email!" },
-//                     { type: "email", message: "Invalid email!" },
-//                   ]}
-//                 >
-//                   <Input placeholder="Enter your email" />
-//                 </Form.Item>
-//                 <Form.Item
-//                   name="password"
-//                   label="Password"
-//                   rules={[{ required: true, message: "Please input your password!" }]}
-//                 >
-//                   <Input.Password placeholder="Enter your password" />
-//                 </Form.Item>
-//                 <Form.Item>
-//                   <Button type="primary" htmlType="submit" block>
-//                     Login
-//                   </Button>
-//                 </Form.Item>
-//                 <Form.Item>
-//                   <Button icon={<GoogleOutlined />} block onClick={handleGoogleLogin}>
-//                     Login with Google
-//                   </Button>
-//                 </Form.Item>
-//               </Form>
-//             </div>
-//           </TabPane>
-//           <TabPane tab="Register" key="2">
-//             <div style={{ minHeight: 300 }}> {/* Cố định chiều cao nội dung tab */}
-//               <Form name="register" onFinish={onFinishRegister} layout="vertical">
-//                 <Form.Item
-//                   name="email"
-//                   label="Email"
-//                   rules={[
-//                     { required: true, message: "Please input your email!" },
-//                     { type: "email", message: "Invalid email!" },
-//                   ]}
-//                 >
-//                   <Input placeholder="Enter your email" />
-//                 </Form.Item>
-//                 <Form.Item
-//                   name="password"
-//                   label="Password"
-//                   rules={[{ required: true, message: "Please input your password!" }]}
-//                 >
-//                   <Input.Password placeholder="Enter your password" />
-//                 </Form.Item>
-//                 <Form.Item
-//                   name="role"
-//                   label="Role"
-//                   rules={[{ required: true, message: "Please select your role!" }]}
-//                 >
-//                   <Select placeholder="Select your role">
-//                     <Option value="user">User</Option>
-//                     <Option value="business">Business</Option>
-//                   </Select>
-//                 </Form.Item>
-//                 <Form.Item
-//                   name="terms"
-//                   valuePropName="checked"
-//                   rules={[
-//                     {
-//                       validator: (_, value) =>
-//                         value
-//                           ? Promise.resolve()
-//                           : Promise.reject("You must accept the terms and conditions!"),
-//                     },
-//                   ]}
-//                 >
-//                   <Checkbox>
-//                     I accept the <a href="#">terms and conditions</a>
-//                   </Checkbox>
-//                 </Form.Item>
-//                 <Form.Item>
-//                   <Button type="primary" htmlType="submit" block>
-//                     Register
-//                   </Button>
-//                 </Form.Item>
-//               </Form>
-//             </div>
-//           </TabPane>
-//         </Tabs>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Login;
+export default Login;

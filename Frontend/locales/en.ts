@@ -2,43 +2,41 @@ const en = {
     helpTitle: "Natural Language Searching",
     helpDescription: "We provide utilities to help you have a better experience: Suggestions when you have trouble searching, Help you choose the right restaurant or dish, Introduction to outstanding features",
     businessSection: {
-        header: "Smart Store",
-        subHeader: "for the AI era",
-        description: "Customers just need to say 'I'm sad, I want to eat somethings' – AI will instantly suggest your store.",
+        header: "Business Management",
+        subHeader: "Smart Platform",
+        description: "Register to create and manage your store, promote products, and increase brand awareness with AI-powered business tools.",
         stats: [
-            { value: "85%", label: "Increase in customers" },
+            { value: "3M+", label: "Active users" },
             { value: "24/7", label: "AI operates" },
             { value: "5s", label: "Fast response" }
         ],
         ctaRegister: "Register your store",
-        ctaDemo: "See AI demo",
-  
+        
         aiPlatform: "AI-Powered Platform",
-        aiPlatformIcon: "",
         benefits: [
             {
-                icon: "🧠",
-                title: "Smart AI Suggestions",
-                desc: "Customers find your store through natural language",
-                feature: "Smart Discovery"
+                icon: "🏪",
+                title: "Store Creation & Management", 
+                desc: "Create your digital storefront and manage all business operations from one dashboard",
+                feature: "Store Setup"
             },
             {
-                icon: "🎯",
-                title: "Precise Customers",
-                desc: "AI understands intent, brings the right people to your store",
-                feature: "Intent Matching"
+                icon: "📢",
+                title: "Smart Advertising",
+                desc: "AI-powered ads that target customers based on their natural language preferences",
+                feature: "Marketing Tools"
             },
             {
-                icon: "💬",
-                title: "Automated Chat",
-                desc: "AI chatbot answers 24/7, consults like a staff member",
-                feature: "AI Assistant"
+                icon: "🍽️",
+                title: "Food Management",
+                desc: "Track inventory, manage menu items, and optimize pricing with intelligent analytics",
+                feature: "Food Operations"
             },
             {
-                icon: "📈",
-                title: "Increase Sales",
-                desc: "Appear in every natural customer search",
-                feature: "Visibility Boost"
+                icon: "📊",
+                title: "Business Analytics",
+                desc: "Real-time insights on customer behavior, sales trends, and performance metrics",
+                feature: "Data Intelligence"
             }
         ],
         trust: [
