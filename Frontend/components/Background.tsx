@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 export default function Background() {
     const [isLoaded, setIsLoaded] = useState(true);
@@ -97,17 +98,18 @@ export default function Background() {
                     </div>
 
                     {/* App Store Badges */}
-                    <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 ${isLoaded ? 'animate-fadeInUp animation-delay-800' : 'opacity-0'}`}>
-                        <div className="flex items-center gap-4">
+                    <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 ${isLoaded ? 'animate-fadeInUp animation-delay-800' : 'opacity-0'}`}>                        <div className="flex items-center gap-4">
                             <a
                                 href="https://play.google.com/store"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="transform transition-all duration-300 hover:scale-110 hover:brightness-110"
                             >
-                                <img
+                                <Image
                                     src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                                     alt="Get it on Google Play"
+                                    width={144}
+                                    height={48}
                                     className="h-12 filter drop-shadow-lg"
                                 />
                             </a>
@@ -117,9 +119,11 @@ export default function Background() {
                                 rel="noopener noreferrer"
                                 className="transform transition-all duration-300 hover:scale-110 hover:brightness-110"
                             >
-                                <img
+                                <Image
                                     src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
                                     alt="Download on the App Store"
+                                    width={144}
+                                    height={48}
                                     className="h-12 filter drop-shadow-lg"
                                 />
                             </a>

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { investors } from '@/constants/Investor';
 
 export default function Footer() {
@@ -89,42 +90,38 @@ export default function Footer() {
                         </div>
                         
                         <div className="relative overflow-hidden">
-                            <div className="flex animate-scroll">
-                                {/* First set of investors */}
+                            <div className="flex animate-scroll">                                {/* First set of investors */}
                                 {investors.map((investor, index) => (
                                     <div
                                         key={`first-${index}`}
                                         className="flex-none mx-6 flex items-center gap-4 px-8 py-6 bg-gray-800/30 border border-gray-700/30 rounded-xl backdrop-blur-sm hover:bg-gray-800/50 hover:border-orange-500/30 transition-all duration-300 group"
                                     >
                                         <div className="w-8 h-8 flex items-center justify-center bg-white rounded-md p-1">
-                                            <img 
+                                            <Image 
                                                 src={investor.darkLogo || investor.logo}
                                                 alt={`${investor.name} logo`}
+                                                width={32}
+                                                height={32}
                                                 className="w-full h-full object-contain filter brightness-0"
-                                                onError={(e) => {
-                                                    e.currentTarget.src = `https://logo.clearbit.com/${investor.name.toLowerCase().replace(/\s+/g, '')}.com`;
-                                                }}
                                             />
                                         </div>
                                         <span className="text-gray-300 font-medium whitespace-nowrap group-hover:text-white transition-colors duration-300">
                                             {investor.name}
                                         </span>
                                     </div>
-                                ))}
-                                {/* Duplicate set for seamless loop */}
+                                ))}                                {/* Duplicate set for seamless loop */}
                                 {investors.map((investor, index) => (
                                     <div
                                         key={`second-${index}`}
                                         className="flex-none mx-6 flex items-center gap-4 px-8 py-6 bg-gray-800/30 border border-gray-700/30 rounded-xl backdrop-blur-sm hover:bg-gray-800/50 hover:border-orange-500/30 transition-all duration-300 group"
                                     >
                                         <div className="w-8 h-8 flex items-center justify-center bg-white rounded-md p-1">
-                                            <img 
+                                            <Image 
                                                 src={investor.darkLogo || investor.logo}
                                                 alt={`${investor.name} logo`}
+                                                width={32}
+                                                height={32}
                                                 className="w-full h-full object-contain filter brightness-0"
-                                                onError={(e) => {
-                                                    e.currentTarget.src = `https://logo.clearbit.com/${investor.name.toLowerCase().replace(/\s+/g, '')}.com`;
-                                                }}
                                             />
                                         </div>
                                         <span className="text-gray-300 font-medium whitespace-nowrap group-hover:text-white transition-colors duration-300">
@@ -220,9 +217,7 @@ export default function Footer() {
                                     </span>
                                 </a>
                             ))}
-                        </div>
-
-                        {/* App Store Badges */}
+                        </div>                        {/* App Store Badges */}
                         <div className="flex items-center gap-3">
                             <a
                                 href="https://play.google.com/store"
@@ -230,9 +225,11 @@ export default function Footer() {
                                 rel="noopener noreferrer"
                                 className="transform transition-all duration-300 hover:scale-110 hover:brightness-110"
                             >
-                                <img
+                                <Image
                                     src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                                     alt="Get it on Google Play"
+                                    width={120}
+                                    height={40}
                                     className="h-10 filter drop-shadow-lg"
                                 />
                             </a>
@@ -242,9 +239,11 @@ export default function Footer() {
                                 rel="noopener noreferrer"
                                 className="transform transition-all duration-300 hover:scale-110 hover:brightness-110"
                             >
-                                <img
+                                <Image
                                     src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
                                     alt="Download on the App Store"
+                                    width={120}
+                                    height={40}
                                     className="h-10 filter drop-shadow-lg"
                                 />
                             </a>

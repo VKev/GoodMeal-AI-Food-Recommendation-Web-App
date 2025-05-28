@@ -32,11 +32,45 @@ const CreateAccount: React.FC = () => {
 
       <div className="relative w-full max-w-md">
         {/* Glassmorphism Card */}
-        <div className="backdrop-blur-xl p-8">
-          {/* Welcome Section */}
+        <div className="backdrop-blur-xl p-8">          {/* Welcome Section */}
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-white mb-2">Create Account</h2>
             <p className="text-gray-400 text-sm">Join us and start your culinary journey</p>
+          </div>
+
+          {/* Role Selection */}
+          <div className="mb-6">
+            <label className="text-white text-sm font-medium mb-3 block">Select Role</label>
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => setSelectedRole("US")}
+                className={`flex-1 p-4 rounded-2xl border transition-all duration-300 ${
+                  selectedRole === "US"
+                    ? "bg-orange-500/20 border-orange-500 text-orange-400"
+                    : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-2">
+                  <UserOutlined className="text-xl" />
+                  <span className="text-sm font-medium">User</span>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole("BU")}
+                className={`flex-1 p-4 rounded-2xl border transition-all duration-300 ${
+                  selectedRole === "BU"
+                    ? "bg-orange-500/20 border-orange-500 text-orange-400"
+                    : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-2">
+                  <ShopOutlined className="text-xl" />
+                  <span className="text-sm font-medium">Business</span>
+                </div>
+              </button>
+            </div>
           </div>
 
 
@@ -102,40 +136,7 @@ const CreateAccount: React.FC = () => {
                 {showConfirmPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
               </button>
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-orange-500/0 focus-within:from-orange-500/10 focus-within:to-orange-600/10 pointer-events-none transition-all duration-300"></div>
-            </div>
-          </div>
-          {/* Role Selection */}
-          <div className="mb-6">
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => setSelectedRole("US")}
-                className={`flex-1 p-4 rounded-2xl border transition-all duration-300 ${selectedRole === "US"
-                  ? "bg-orange-500/20 border-orange-500 text-orange-400"
-                  : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
-                  }`}
-              >
-                <div className="flex flex-col items-center space-y-2">
-                  <UserOutlined className="text-xl" />
-                  <span className="text-sm font-medium">User</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedRole("BU")}
-                className={`flex-1 p-4 rounded-2xl border transition-all duration-300 ${selectedRole === "BU"
-                  ? "bg-orange-500/20 border-orange-500 text-orange-400"
-                  : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
-                  }`}
-              >
-                <div className="flex flex-col items-center space-y-2">
-                  <ShopOutlined className="text-xl" />
-                  <span className="text-sm font-medium">Business</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
+            </div>          </div>
 
           {/* Terms & Conditions */}
           <div className="mb-6">
