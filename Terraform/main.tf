@@ -33,6 +33,24 @@ module "alb" {
         healthy_threshold   = 2
         unhealthy_threshold = 3
       }
+    },
+    {
+      name_suffix = "user"    
+      port        = 5002      
+      protocol    = "HTTP"     
+      target_type = "instance" 
+
+      health_check = {
+        enabled             = true
+        path                = "/api/user/health" 
+        port                = "traffic-port"      
+        protocol            = "HTTP"              
+        matcher             = "200"               
+        interval            = 30
+        timeout             = 5
+        healthy_threshold   = 2
+        unhealthy_threshold = 3
+      }
     }
   ]
   default_listener_action = {
@@ -52,6 +70,17 @@ module "alb" {
         {
           path_pattern = {
             values = ["/api/guest/*"]
+          }
+        }
+      ]
+    },
+    {
+      priority            = 10
+      target_group_suffix = "user"
+      conditions = [
+        {
+          path_pattern = {
+            values = ["/api/user/*"]
           }
         }
       ]
@@ -91,8 +120,8 @@ module "ecs" {
       name                 = "goodmeal-guest-microservice"
       image_repository_url = "242201290212.dkr.ecr.us-east-1.amazonaws.com/goodmeal-ecr"
       image_tag            = "Guest.Microservice-latest"
-      cpu                  = 768
-      memory               = 768
+      cpu                  = 400
+      memory               = 400
       essential            = true
       port_mappings = [
         {
@@ -111,14 +140,44 @@ module "ecs" {
       }
       enable_service_discovery = var.enable_service_discovery
       service_discovery_port   = 5001
+    },
+    {
+      name                 = "goodmeal-user-microservice"
+      image_repository_url = "242201290212.dkr.ecr.us-east-1.amazonaws.com/goodmeal-ecr"
+      image_tag            = "User.Microservice-latest"
+      cpu                  = 400
+      memory               = 400
+      essential            = true
+      port_mappings = [
+        {
+          container_port = 5002
+          host_port      = 0
+          protocol       = "tcp"
+        }
+      ]
+      environment_variables = var.environment_variables
+      health_check = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:5002/api/user/health || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 0
+      }
+      enable_service_discovery = var.enable_service_discovery
+      service_discovery_port   = 5002
     }
   ]
 
   target_groups = [
     {
       target_group_arn = module.alb.target_group_arns_map["guest"]
-      container_name   = "goodmeal-guest-microservice"
+      container_name   = "goodmeal-user-microservice"
       container_port   = 5001
+    },
+    {
+      target_group_arn = module.alb.target_group_arns_map["user"]
+      container_name   = "goodmeal-user-microservice"
+      container_port   = 5002
     }
   ]
 
