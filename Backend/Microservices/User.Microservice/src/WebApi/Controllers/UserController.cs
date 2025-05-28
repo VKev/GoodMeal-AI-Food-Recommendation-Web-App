@@ -34,5 +34,11 @@ namespace WebApi.Controllers
             var result = await _mediator.Send(new GetAllUsersQuery(), cancellationToken);
             return Ok(result);
         }
+
+        [HttpGet("health")]
+        public async Task<IActionResult> Health()
+        {
+            return Ok();
+        }
     }
 }
