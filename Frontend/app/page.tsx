@@ -1,5 +1,9 @@
 "use client";
 import Background from "@/components/Background";
+import Background1 from "@/components/Background1";
+import Background2 from "@/components/Background2";
+import Footer from "@/components/Footer";
+
 import ReactFullpage from "@fullpage/react-fullpage";
 
 export default function Home() {
@@ -16,22 +20,24 @@ export default function Home() {
 
                 </div>
               </div>
+   
+             
               <div className="section">
-                <div className="content-wrapper" style={{ width: "100vw", height: "100vh" }}>
-                  <img
-                    src="/banner.png"
-                    alt="Food Banner"
-                    className="w-full h-full object-cover rounded-lg shadow-md"
-                  />
+                <div className="content-wrapper">
+                  <Background1 />
+
                 </div>
               </div>
               <div className="section">
-                <div className="content-wrapper" style={{ width: "100vw", height: "100vh" }}>
-                  <img
-                    src="/banner1.png"
-                    alt="Food Banner"
-                    className="w-full h-full object-cover rounded-lg shadow-md"
-                  />
+                <div className="content-wrapper">
+                  <Background2 />
+
+                </div>
+              </div>
+              <div className="section">
+                <div className="content-wrapper">
+                  <Footer />
+
                 </div>
               </div>
             </ReactFullpage.Wrapper>

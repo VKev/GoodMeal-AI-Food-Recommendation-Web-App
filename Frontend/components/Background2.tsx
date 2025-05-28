@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import en from '../locales/en';
 
-const SpawnText = ({ text, delay = 0, className = "" }) => {
+interface SpawnTextProps {
+    text: string;
+    delay?: number;
+    className?: string;
+}
+
+const SpawnText: React.FC<SpawnTextProps> = ({ text, delay = 0, className = "" }) => {
     const [visibleWords, setVisibleWords] = useState(0);
     const words = text.split(' ');
 
@@ -23,7 +29,7 @@ const SpawnText = ({ text, delay = 0, className = "" }) => {
 
     return (
         <span className={className}>
-            {words.map((word, index) => (
+            {words.map((word:any, index:any) => (
                 <span
                     key={index}
                     className={`inline-block transition-all duration-500 ${
@@ -43,9 +49,9 @@ const SpawnText = ({ text, delay = 0, className = "" }) => {
     );
 };
 
-const useInView = () => {
+const useInView = (): [React.RefObject<HTMLDivElement | null>, boolean] => {
     const [isInView, setIsInView] = useState(false);
-    const ref = useRef();
+    const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -150,11 +156,6 @@ export default function BusinessSection() {
                                 <div className="absolute inset-0 bg-gradient-to-r from-orange-200 to-orange-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                 <span className="relative flex items-center justify-center gap-3">
                                     {t.ctaRegister}
-                                </span>
-                            </button>
-                            <button className="group px-8 py-4 rounded-xl font-bold text-lg text-orange-300 border-2 border-orange-500/30 hover:border-orange-500 transition-all duration-300 hover:scale-105 hover:bg-orange-500/5">
-                                <span className="flex items-center justify-center gap-3">
-                                    {t.ctaDemo}
                                 </span>
                             </button>
                         </div>

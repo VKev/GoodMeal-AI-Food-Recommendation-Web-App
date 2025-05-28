@@ -16,6 +16,7 @@
     "antd": "^5.25.2",
     "framer-motion": "^11.18.2",
     "fullpage.js": "^4.0.35",
+    "lucide-react": "^0.511.0",
     "next": "15.3.2",
     "postcss": "^8.5.3",
     "react": "^19.1.0",
