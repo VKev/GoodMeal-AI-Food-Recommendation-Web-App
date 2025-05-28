@@ -1,6 +1,4 @@
-##############################
-# REQUIRED – NO DEFAULTS
-##############################
+
 variable "project_name" {
   description = "Prefix for all ECS-related resources"
   type        = string
@@ -69,9 +67,6 @@ variable "vpc_id" {
   type        = string
 }
 
-##############################
-# OPTIONAL – WITH DEFAULTS
-##############################
 variable "desired_count" {
   description = "Number of tasks to keep running"
   type        = number

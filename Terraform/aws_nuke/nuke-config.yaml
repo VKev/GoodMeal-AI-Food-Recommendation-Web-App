@@ -11,6 +11,11 @@ resource-types:
   - IAMUserPolicyAttachment
   - IAMUserPolicy
   - IAMUserAccessKey
+  
+  - ECRRepository
+  - ECRRepositoryPolicy
+  - ECRPublicRepository
+  - ECRPublicRepositoryPolicy
  
 bypass-alias-check-accounts:
   - "242201290212"

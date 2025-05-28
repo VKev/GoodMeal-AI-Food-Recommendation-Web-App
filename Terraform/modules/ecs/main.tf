@@ -1,43 +1,11 @@
-##########################################################################
-# REQUIRED VARIABLES (declare in ecs/variables.tf or from the root module)
-##########################################################################
-# var.project_name             – Prefix for names/tags
-# var.aws_region               – e.g. "ap-southeast-1"
-# var.container_name           – logical name inside the task def
-# var.ecr_repository_url       – 111122223333.dkr.ecr.ap-southeast-1.amazonaws.com/myapp
-# var.image_tag                – e.g. "latest"
-# var.container_cpu            – 256  (hard limit, unit = CPU shares)
-# var.container_memory         – 512  (hard limit, MiB)
-# var.container_port           – 8080
-# var.environment_variables    – list of { name = "...", value = "..." }
-# var.health_check_command     – ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
-# var.ecs_cluster_id           – aws_ecs_cluster.main.id  (passed from ec2 module)
-# var.ecs_cluster_name         – aws_ecs_cluster.main.name
-# var.vpc_id                   – VPC where service discovery lives
-# --- OPTIONAL ---
-# var.enable_service_discovery – default false
-# var.enable_auto_scaling      – default false
-# var.desired_count            – default 1
-# var.target_group_arn         – ""  (if ALB target group supplied)
-# var.log_retention_days       – default 30
-# var.max_capacity             – default 4
-# var.min_capacity             – default 1
-# var.cpu_target_value         – default 50
-# var.memory_target_value      – default 70
-##########################################################################
 
-#################################
-# CloudWatch log group (one-off)
-#################################
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "/ecs/${var.project_name}"
   retention_in_days = var.log_retention_days
   tags              = { Name = "${var.project_name}-ecs-logs" }
 }
 
-####################
-# IAM FOR THE TASK
-####################
+
 resource "aws_iam_role" "ecs_task_role" {
   name = "${var.project_name}-ecs-task-role"
 
@@ -64,7 +32,6 @@ resource "aws_iam_role" "ecs_execution_role" {
   })
 }
 
-# Policy: the task itself only needs to write its own log streams
 resource "aws_iam_role_policy" "ecs_task_policy" {
   name = "${var.project_name}-ecs-task-policy"
   role = aws_iam_role.ecs_task_role.id
@@ -79,7 +46,6 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
   })
 }
 
-# Pre-defined AWS-managed policies
 resource "aws_iam_role_policy_attachment" "ecs_execution_managed" {
   role       = aws_iam_role.ecs_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
@@ -90,9 +56,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_ecr_pull" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-##############################
-# TASK DEFINITION
-##############################
+
 resource "aws_ecs_task_definition" "app_task" {
   family                   = "${var.project_name}-task"
   network_mode             = "bridge"
@@ -141,9 +105,7 @@ resource "aws_ecs_task_definition" "app_task" {
   tags = { Name = "${var.project_name}-task-definition" }
 }
 
-#################
-# SERVICE
-#################
+
 resource "aws_ecs_service" "app_service" {
   name            = "${var.project_name}-service"
   cluster         = var.ecs_cluster_id
@@ -156,9 +118,6 @@ resource "aws_ecs_service" "app_service" {
     field = "instanceId"
   }
 
-  ###################################################
-  # OPTIONAL: Service discovery & ALB integration
-  ###################################################
   dynamic "service_registries" {
     for_each = var.enable_service_discovery ? [1] : []
     content {
@@ -175,7 +134,6 @@ resource "aws_ecs_service" "app_service" {
     }
   }
 
-  ###################################################
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 50
 
@@ -189,9 +147,6 @@ resource "aws_ecs_service" "app_service" {
   ]
 }
 
-#######################################
-# OPTIONAL PRIVATE SERVICE DISCOVERY
-#######################################
 resource "aws_service_discovery_private_dns_namespace" "dns_ns" {
   count       = var.enable_service_discovery ? 1 : 0
   name        = "${var.project_name}.local"
@@ -214,9 +169,6 @@ resource "aws_service_discovery_service" "discovery_service" {
   }
 }
 
-###################################################
-# OPTIONAL TARGET-TRACKING AUTO-SCALING
-###################################################
 resource "aws_appautoscaling_target" "ecs_target" {
   count              = var.enable_auto_scaling ? 1 : 0
   max_capacity       = var.max_capacity

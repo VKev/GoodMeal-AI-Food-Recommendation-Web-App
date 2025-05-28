@@ -43,7 +43,15 @@ resource "aws_security_group" "ec2_sg" {
 
   # dynamic ports for ALB/NLB + tasks running in bridge mode
   ingress {
-    description = "Dynamic ECS ports"
+    description     = "ALB to ECS dynamic ports"
+    from_port       = 32768
+    to_port         = 65535
+    protocol        = "tcp"
+    security_groups = [var.alb_security_group_id]
+  }
+
+  ingress {
+    description = "VPC internal traffic on dynamic ports"
     from_port   = 32768
     to_port     = 65535
     protocol    = "tcp"

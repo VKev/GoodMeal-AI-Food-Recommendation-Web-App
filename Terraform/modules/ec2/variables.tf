@@ -42,8 +42,7 @@ variable "associate_public_ip" {
   default     = true
 }
 
-variable "environment" {
-  description = "Environment tag (dev / staging / prod)"
+variable "alb_security_group_id" {
+  description = "Security-group ID of the Application Load Balancer"
   type        = string
-  default     = "dev"
 }
