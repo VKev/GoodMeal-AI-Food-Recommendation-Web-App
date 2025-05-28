@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import en from '../locales/en'; // Thêm dòng này
 
 type SpawnTextProps = {
@@ -27,11 +28,9 @@ const SpawnText: React.FC<SpawnTextProps> = ({ text, delay = 0, className = "" }
         }, delay);
 
         return () => clearTimeout(timer);
-    }, [words.length, delay]);
-
-    return (
+    }, [words.length, delay]);    return (
         <span className={className}>
-            {words.map((word: any, index: any) => (
+            {words.map((word: string, index: number) => (
                 <span
                     key={index}
                     className={`inline-block transition-all duration-500 ${index < visibleWords
@@ -129,18 +128,15 @@ export default function Background() {
                 <div className="flex items-center justify-center p-8 lg:p-16">
                     <div className={`relative transition-all duration-1000 delay-1000 ${isImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                         {/* Glowing background */}
-                        <div className="absolute -inset-4 rounded-3xl blur-2xl"></div>
-
-                        {/* Main image container */}
+                        <div className="absolute -inset-4 rounded-3xl blur-2xl"></div>                        {/* Main image container */}
                         <div className="relative  rounded-2xl p-1 ">
-                            <img
+                            <Image
                                 src="/app.png"
                                 alt="App Screenshot"
+                                width={800}
+                                height={600}
                                 className="rounded-xl shadow-2xl  w-full max-w-3xl mx-auto"
                             />
-
-
-
                         </div>
                     </div>
                 </div>

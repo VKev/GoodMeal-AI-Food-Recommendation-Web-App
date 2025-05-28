@@ -1,91 +1,186 @@
-import React from "react";
+"use client"
+import React, { useState } from "react";
+import { EyeInvisibleOutlined, EyeOutlined, UserOutlined, ShopOutlined } from '@ant-design/icons';
+import Link from "next/link";
 
-const Create: React.FC = () => {
+const CreateAccount: React.FC = () => {
+  const [selectedRole, setSelectedRole] = useState<"US" | "BU" | null>(null);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   return (
-    <div style={{ minHeight: "100vh", background: "#fff" }}>
-      <div style={{ padding: "24px 0 0 32px", fontWeight: 600, fontSize: 28, fontFamily: "sans-serif" }}>
-        GoodMeal
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/4 w-60 h-60 bg-orange-400/5 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
-      <div style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginTop: 80
-      }}>
-        <h1 style={{ fontSize: 36, fontWeight: 500, marginBottom: 32 }}>Create an account</h1>
-        <input
-          type="email"
-          placeholder="Email address"
-          style={{
-            width: 400,
-            padding: "16px 12px",
-            fontSize: 18,
-            borderRadius: 8,
-            border: "1.5px solid #16a085",
-            marginBottom: 20,
-            outline: "none"
-          }}
-        />
-        <button
-          style={{
-            width: 400,
-            padding: "14px 0",
-            background: "#16a085",
-            color: "#fff",
-            fontSize: 20,
-            border: "none",
-            borderRadius: 8,
-            fontWeight: 500,
-            marginBottom: 18,
-            cursor: "pointer"
-          }}
-        >
-          Continue
-        </button>
-        <div style={{ marginBottom: 18, color: "#222", fontSize: 16 }}>
-          Already have an account?{" "}
-          <a href="/sign-in" style={{ color: "#16a085", textDecoration: "none", fontWeight: 500 }}>
-            Log in
-          </a>
+
+      <div className="relative w-full max-w-md">
+        {/* Glassmorphism Card */}
+        <div className="backdrop-blur-xl p-8">          {/* Welcome Section */}
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">Create Account</h2>
+            <p className="text-gray-400 text-sm">Join us and start your culinary journey</p>
+          </div>
+
+          {/* Role Selection */}
+          <div className="mb-6">
+            <label className="text-white text-sm font-medium mb-3 block">Select Role</label>
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => setSelectedRole("US")}
+                className={`flex-1 p-4 rounded-2xl border transition-all duration-300 ${
+                  selectedRole === "US"
+                    ? "bg-orange-500/20 border-orange-500 text-orange-400"
+                    : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-2">
+                  <UserOutlined className="text-xl" />
+                  <span className="text-sm font-medium">User</span>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole("BU")}
+                className={`flex-1 p-4 rounded-2xl border transition-all duration-300 ${
+                  selectedRole === "BU"
+                    ? "bg-orange-500/20 border-orange-500 text-orange-400"
+                    : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
+                }`}
+              >
+                <div className="flex flex-col items-center space-y-2">
+                  <ShopOutlined className="text-xl" />
+                  <span className="text-sm font-medium">Business</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+
+          {/* Form Inputs */}
+          <div className="space-y-4 mb-6">
+            {/* Full Name */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Full name"
+                value={formData.fullName}
+                onChange={(e) => handleInputChange("fullName", e.target.value)}
+                className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white/10 transition-all duration-300"
+              />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-orange-500/0 focus-within:from-orange-500/10 focus-within:to-orange-600/10 pointer-events-none transition-all duration-300"></div>
+            </div>
+
+            {/* Email */}
+            <div className="relative">
+              <input
+                type="email"
+                placeholder="Email address"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white/10 transition-all duration-300"
+              />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-orange-500/0 focus-within:from-orange-500/10 focus-within:to-orange-600/10 pointer-events-none transition-all duration-300"></div>
+            </div>
+
+            {/* Password */}
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={formData.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                className="w-full p-4 pr-12 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white/10 transition-all duration-300"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors duration-200"
+              >
+                {showPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+              </button>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-orange-500/0 focus-within:from-orange-500/10 focus-within:to-orange-600/10 pointer-events-none transition-all duration-300"></div>
+            </div>
+
+            {/* Confirm Password */}
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm password"
+                value={formData.confirmPassword}
+                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                className="w-full p-4 pr-12 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white/10 transition-all duration-300"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors duration-200"
+              >
+                {showConfirmPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+              </button>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-orange-500/0 focus-within:from-orange-500/10 focus-within:to-orange-600/10 pointer-events-none transition-all duration-300"></div>
+            </div>          </div>
+
+          {/* Terms & Conditions */}
+          <div className="mb-6">
+            <label className="flex items-start space-x-3">
+              <input
+                type="checkbox"
+                className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500 focus:ring-2"
+              />
+              <span className="text-gray-400 text-sm leading-relaxed">
+                I agree to the{" "}
+                <button className="text-orange-500 hover:text-orange-400 transition-colors duration-200 underline">
+                  Terms of Service
+                </button>
+                {" "}and{" "}
+                <button className="text-orange-500 hover:text-orange-400 transition-colors duration-200 underline">
+                  Privacy Policy
+                </button>
+              </span>
+            </label>
+          </div>
+
+          {/* Create Account Button */}
+          <button className="w-full p-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-orange-700 hover:shadow-orange-500/40 transition-all duration-300 transform hover:scale-[1.02] mb-6">
+            Create Account
+          </button>
+
+          {/* Footer */}
+          <div className="text-center">
+            <span className="text-gray-400 text-sm">Already have an account? </span>
+            <Link
+              href="/sign-in"
+              className="text-orange-500 font-semibold text-sm hover:text-orange-400 transition-colors duration-300">
+              Sign in
+            </Link>
+          </div>
         </div>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          width: 400,
-          margin: "16px 0"
-        }}>
-          <div style={{ flex: 1, height: 1, background: "#e0e0e0" }} />
-          <span style={{ margin: "0 16px", color: "#888" }}>OR</span>
-          <div style={{ flex: 1, height: 1, background: "#e0e0e0" }} />
-        </div>
-        <button style={{
-          width: 400,
-          display: "flex",
-          alignItems: "center",
-          padding: "12px 0",
-          border: "1px solid #e0e0e0",
-          borderRadius: 8,
-          background: "#fff",
-          fontSize: 18,
-          marginBottom: 12,
-          cursor: "pointer"
-        }}>
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style={{ width: 24, marginRight: 16 }} />
-          Continue with Google
-        </button>
-        
-        <div style={{ display: "flex", justifyContent: "center", width: 400, marginTop: 32, color: "#16a085", fontSize: 15 }}>
-          <a href="#" style={{ color: "#16a085", textDecoration: "none", marginRight: 12 }}>
-            Terms of Use
-          </a>
-          <span style={{ color: "#bdbdbd" }}>|</span>
-          <a href="#" style={{ color: "#16a085", textDecoration: "none", marginLeft: 12 }}>
-            Privacy Policy
-          </a>
-        </div>
+
+        {/* Floating Elements */}
+        <div className="absolute -top-2 -right-2 w-4 h-4 bg-orange-500 rounded-full opacity-60 animate-bounce"></div>
+        <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-orange-400 rounded-full opacity-40 animate-bounce delay-500"></div>
+        <div className="absolute top-1/3 -right-4 w-2 h-2 bg-orange-300 rounded-full opacity-50 animate-bounce delay-1000"></div>
       </div>
     </div>
   );
 };
 
-export default Create;
+export default CreateAccount;

@@ -1,14 +1,24 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 export default function Background() {
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(true);
     const [scrollY, setScrollY] = useState(0);
 
     useEffect(() => {
         const handleScroll = () => setScrollY(window.scrollY);
         window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        
+        // Đảm bảo animation luôn chạy khi component mount
+        const timer = setTimeout(() => {
+            setIsLoaded(true);
+        }, 100);
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            clearTimeout(timer);
+        };
     }, []);
 
     return (
@@ -51,25 +61,23 @@ export default function Background() {
             <div className={`absolute inset-0 flex items-center justify-center transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                 <div className="text-center px-6 max-w-4xl mx-auto">
 
-
                     {/* Main Heading */}
-                    <h1 className="text-6xl md:text-8xl lg:text-9xl font-black mb-6 animate-fadeInUp animation-delay-200">
+                    <h1 className={`text-6xl md:text-8xl lg:text-9xl font-black mb-6 ${isLoaded ? 'animate-fadeInUp animation-delay-200' : 'opacity-0'}`}>
                         <span className="bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent drop-shadow-2xl">
                             Good
                         </span>
                         <span className="bg-gradient-to-r from-orange-200 via-orange-300 to-orange-400 bg-clip-text text-transparent">
                             Meal
                         </span>
-
                     </h1>
 
                     {/* Subtitle */}
-                    <p className="text-xl md:text-2xl lg:text-3xl text-white/90 font-light mb-12 max-w-2xl mx-auto leading-relaxed animate-fadeInUp animation-delay-400">
+                    <p className={`text-xl md:text-2xl lg:text-3xl text-white/90 font-light mb-12 max-w-2xl mx-auto leading-relaxed ${isLoaded ? 'animate-fadeInUp animation-delay-400' : 'opacity-0'}`}>
                         Discover your perfect meal with intelligent AI recommendations tailored just for you
                     </p>
 
                     {/* CTA Button */}
-                    <div className="animate-fadeInUp animation-delay-600">
+                    <div className={`${isLoaded ? 'animate-fadeInUp animation-delay-600' : 'opacity-0'}`}>
                         <a
                             href="/sign-in"
                             className="group relative inline-flex items-center gap-3 bg-white text-black font-semibold text-lg px-8 py-4 rounded-full transition-all duration-300 hover:bg-orange-400 hover:text-black hover:scale-105 shadow-2xl hover:shadow-orange-400/25"
@@ -90,18 +98,18 @@ export default function Background() {
                     </div>
 
                     {/* App Store Badges */}
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 animate-fadeInUp animation-delay-800">
-
-                        <div className="flex items-center gap-4">
+                    <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 ${isLoaded ? 'animate-fadeInUp animation-delay-800' : 'opacity-0'}`}>                        <div className="flex items-center gap-4">
                             <a
                                 href="https://play.google.com/store"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="transform transition-all duration-300 hover:scale-110 hover:brightness-110"
                             >
-                                <img
+                                <Image
                                     src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                                     alt="Get it on Google Play"
+                                    width={144}
+                                    height={48}
                                     className="h-12 filter drop-shadow-lg"
                                 />
                             </a>
@@ -111,9 +119,11 @@ export default function Background() {
                                 rel="noopener noreferrer"
                                 className="transform transition-all duration-300 hover:scale-110 hover:brightness-110"
                             >
-                                <img
+                                <Image
                                     src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
                                     alt="Download on the App Store"
+                                    width={144}
+                                    height={48}
                                     className="h-12 filter drop-shadow-lg"
                                 />
                             </a>
@@ -149,22 +159,18 @@ export default function Background() {
                 
                 .animation-delay-200 {
                     animation-delay: 0.2s;
-                    opacity: 0;
                 }
                 
                 .animation-delay-400 {
                     animation-delay: 0.4s;
-                    opacity: 0;
                 }
                 
                 .animation-delay-600 {
                     animation-delay: 0.6s;
-                    opacity: 0;
                 }
                 
                 .animation-delay-800 {
                     animation-delay: 0.8s;
-                    opacity: 0;
                 }
             `}</style>
         </div>

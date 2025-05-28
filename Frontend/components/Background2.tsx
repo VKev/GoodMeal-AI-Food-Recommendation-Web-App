@@ -1,3 +1,4 @@
+"use client"
 import React, { useState, useEffect, useRef } from 'react';
 import en from '../locales/en';
 
@@ -25,11 +26,9 @@ const SpawnText: React.FC<SpawnTextProps> = ({ text, delay = 0, className = "" }
             return () => clearInterval(interval);
         }, delay);
         return () => clearTimeout(timer);
-    }, [words.length, delay]);
-
-    return (
+    }, [words.length, delay]);    return (
         <span className={className}>
-            {words.map((word:any, index:any) => (
+            {words.map((word: string, index: number) => (
                 <span
                     key={index}
                     className={`inline-block transition-all duration-500 ${
@@ -79,14 +78,12 @@ export default function BusinessSection() {
     const t = en.businessSection;
 
     // AI-powered business benefits for natural language suggestion platform
-    const businessBenefits = t.benefits;
-
-    useEffect(() => {
+    const businessBenefits = t.benefits;    useEffect(() => {
         const interval = setInterval(() => {
             setActiveCard(prev => (prev + 1) % businessBenefits.length);
         }, 3000);
         return () => clearInterval(interval);
-    }, []);
+    }, [businessBenefits.length]);
 
     return (
         <div ref={sectionRef} className="max-h-screen py-24 bg-gradient-to-b from-gray-900 via-black to-gray-900 relative overflow-hidden">
