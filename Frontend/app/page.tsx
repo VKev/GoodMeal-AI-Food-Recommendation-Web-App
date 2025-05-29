@@ -1,8 +1,8 @@
 "use client";
-import Background from "@/components/Background";
-import Background1 from "@/components/Background1";
-import Background2 from "@/components/Background2";
-import Footer from "@/components/Footer";
+import Background from "@/components/HomePage/Background";
+import Background1 from "@/components/HomePage/Background1";
+import Background2 from "@/components/HomePage/Background2";
+import Footer from "@/components/HomePage/Footer";
 
 import ReactFullpage from "@fullpage/react-fullpage";
 

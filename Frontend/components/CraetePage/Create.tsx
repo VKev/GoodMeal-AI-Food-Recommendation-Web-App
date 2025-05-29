@@ -22,7 +22,7 @@ const CreateAccount: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="max-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -159,7 +159,7 @@ const CreateAccount: React.FC = () => {
           </div>
 
           {/* Create Account Button */}
-          <button className="w-full p-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-orange-700 hover:shadow-orange-500/40 transition-all duration-300 transform hover:scale-[1.02] mb-6">
+          <button className="w-full p-4 bg-gradient-to-r from-orange-300 to-orange-400 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-orange-700 hover:shadow-orange-500/40 transition-all duration-300 transform hover:scale-[1.02] mb-6">
             Create Account
           </button>
 

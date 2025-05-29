@@ -1,6 +1,7 @@
+"use client"
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import en from '../locales/en'; // Thêm dòng này
+import en from '../../locales/en';
 
 type SpawnTextProps = {
     text: string;
