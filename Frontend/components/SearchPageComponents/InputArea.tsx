@@ -1,90 +1,70 @@
-import React from 'react';
-import {
-    Button,
-    Typography,
-    Flex,
-    Input
-} from 'antd';
-import {
-    AudioOutlined,
-    ArrowUpOutlined
-} from '@ant-design/icons';
+import React, { useRef, useState } from 'react';
+import { Flex } from 'antd';
+import ImageUploadArea from './ImageUploadArea';
+import MessageInput from './MessageInput';
+import SendButton from './SendButton';
+import InputAreaFooter from './InputAreaFooter';
+import { useImageUpload } from './hooks/useImageUpload';
+import { InputAreaProps, UploadedImage } from './types';
 
-const { Text } = Typography;
-const { TextArea } = Input;
+const InputArea: React.FC<InputAreaProps> = ({ inputMessage, setInputMessage }) => {
+    const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-interface InputAreaProps {
-    message: string;
-    setMessage: (message: string) => void;
-}
+    const {
+        handleUpload,
+        handlePaste,
+        handleDrop,
+        handleDragOver,
+        removeImage
+    } = useImageUpload(uploadedImages, setUploadedImages);
 
-const InputArea: React.FC<InputAreaProps> = ({ message, setMessage }) => {
+    const handleSend = () => {
+        // Add send logic here
+        console.log('Sending message:', inputMessage);
+        console.log('Uploaded images:', uploadedImages);
+    };
+
     return (
         <div
             style={{
-                borderTop: '1px solid #404040',
-                padding: '24px',
-                background: 'rgba(26, 26, 29, 0.8)',
-                backdropFilter: 'blur(10px)',
-                maxHeight: '160px',
-                flexShrink: 0
+                borderTop: '1px solid rgba(255, 122, 0, 0.2)',
+                padding: '20px 24px',
+                background: 'linear-gradient(135deg, rgba(26, 26, 29, 0.95) 0%, rgba(20, 20, 23, 0.98) 100%)',
+                backdropFilter: 'blur(20px)',
+                minHeight: uploadedImages.length > 0 ? '180px' : '120px',
+                maxHeight: uploadedImages.length > 0 ? '300px' : '180px',
+                flexShrink: 0,
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                borderRadius: '0',
+                boxShadow: '0 -4px 32px rgba(0, 0, 0, 0.3), 0 -1px 0 rgba(255, 122, 0, 0.1)'
             }}
         >
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                <ImageUploadArea
+                    uploadedImages={uploadedImages}
+                    removeImage={removeImage}
+                />
+
                 <Flex gap={16} align="flex-end">
-                    <div style={{ flex: 1, position: 'relative' }}>
-                        <TextArea
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Nhập câu hỏi của bạn..."
-                            autoSize={{ minRows: 1, maxRows: 4 }}
-                            style={{
-                                background: 'rgba(128, 128, 128, 0.1)',
-                                border: '1px solid rgba(128, 128, 128, 0.2)',
-                                borderRadius: '12px',
-                                padding: '16px 60px 16px 16px',
-                                fontSize: '16px',
-                                color: '#ffffff',
-                                resize: 'none'
-                            }}
-                        />
-                        <Button
-                            type="text"
-                            icon={<AudioOutlined />}
-                            style={{
-                                position: 'absolute',
-                                right: '8px',
-                                bottom: '8px',
-                                color: '#b3b3b3'
-                            }}
-                        />
-                    </div>
-                    <Button
-                        type="primary"
-                        shape="round"
-                        icon={<ArrowUpOutlined />}
-                        disabled={!message.trim()}
-                        style={{
-                            background: message.trim()
-                                ? 'linear-gradient(45deg, #ff7a00 0%, #ff9500 100%)'
-                                : '#404040',
-                            border: 'none',
-                            width: '48px',
-                            height: '48px',
-                            boxShadow: message.trim()
-                                ? '0 4px 15px rgba(255, 122, 0, 0.25)'
-                                : 'none'
-                        }}
+                    <MessageInput
+                        inputMessage={inputMessage}
+                        setInputMessage={setInputMessage}
+                        textAreaRef={textAreaRef}
+                        handlePaste={handlePaste}
+                        handleDrop={handleDrop}
+                        handleDragOver={handleDragOver}
+                        handleUpload={handleUpload}
+                    />
+                    
+                    <SendButton
+                        inputMessage={inputMessage}
+                        uploadedImages={uploadedImages}
+                        onSend={handleSend}
                     />
                 </Flex>
-                <Flex justify="space-between" style={{ marginTop: '12px' }}>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                        AI Chat Pro có thể mắc lỗi. Hãy kiểm tra thông tin quan trọng.
-                    </Text>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                        {message.length}/2000
-                    </Text>
-                </Flex>
+                
+                <InputAreaFooter inputMessageLength={inputMessage.length} />
             </div>
         </div>
     );

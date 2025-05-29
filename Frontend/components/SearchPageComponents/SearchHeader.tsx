@@ -29,12 +29,11 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed }) => {
             }}
         >
             <Flex justify="space-between" align="center">
-                <div style={{ marginLeft: collapsed ? '60px' : '0', transition: 'all 0.3s' }}>
-                    <Title level={2} style={{ margin: 0, color: '#ffffff' }}>
-                        Xin chào! Tôi có thể giúp gì?
-                    </Title>
+                <div style={{ marginLeft: collapsed ? '60px' : '0', transition: 'all 0.3s' }}>                    <Title level={2} style={{ margin: 0, color: '#ffffff' }}>
+                    Hello! How can I help you?
+                </Title>
                     <Text type="secondary" style={{ fontSize: '14px' }}>
-                        Hỏi bất cứ điều gì về lập trình, thiết kế, hoặc công nghệ
+                        Tell me about your mood!
                     </Text>
                 </div>
             </Flex>

@@ -33,10 +33,10 @@ interface MainContentProps {
 
 const MainContent: React.FC<MainContentProps> = ({ selectedChat }) => {
     const quickActions: QuickAction[] = [
-        { icon: CodeOutlined, title: 'Code Review', desc: 'Kiểm tra và tối ưu code', color: '#ff7a00' },
-        { icon: BookOutlined, title: 'Học tập', desc: 'Giải thích khái niệm lập trình', color: '#ff7a00' },
-        { icon: BugOutlined, title: 'Debug', desc: 'Tìm và sửa lỗi trong code', color: '#ff7a00' },
-        { icon: ToolOutlined, title: 'Tối ưu', desc: 'Cải thiện hiệu suất ứng dụng', color: '#ff7a00' }
+        { icon: CodeOutlined, title: 'Code Review', desc: 'Review and optimize code', color: '#ff7a00' },
+        { icon: BookOutlined, title: 'Learning', desc: 'Explain programming concepts', color: '#ff7a00' },
+        { icon: BugOutlined, title: 'Debug', desc: 'Find and fix bugs in code', color: '#ff7a00' },
+        { icon: ToolOutlined, title: 'Optimize', desc: 'Improve application performance', color: '#ff7a00' }
     ];
 
     return (
@@ -59,8 +59,7 @@ const MainContent: React.FC<MainContentProps> = ({ selectedChat }) => {
                                 boxShadow: '0 8px 25px rgba(255, 122, 0, 0.25)'
                             }}
                             icon={<StarOutlined style={{ fontSize: '40px' }} />}
-                        />
-                        <Title
+                        />                        <Title
                             level={1}
                             style={{
                                 background: 'linear-gradient(45deg, #ffffff 0%, #b3b3b3 100%)',
@@ -70,10 +69,10 @@ const MainContent: React.FC<MainContentProps> = ({ selectedChat }) => {
                                 marginBottom: '16px'
                             }}
                         >
-                            Bắt đầu cuộc trò chuyện
+                            Start a conversation
                         </Title>
                         <Paragraph style={{ color: '#b3b3b3', fontSize: '18px' }}>
-                            Chọn một trong những gợi ý bên dưới hoặc nhập câu hỏi của bạn
+                            Choose one of the suggestions below or enter your question
                         </Paragraph>
                     </div>
 
@@ -130,12 +129,11 @@ const MainContent: React.FC<MainContentProps> = ({ selectedChat }) => {
                             marginBottom: '16px'
                         }}
                         icon={<MessageOutlined style={{ fontSize: '32px' }} />}
-                    />
-                    <Title level={3} style={{ color: '#ffffff', marginBottom: '8px' }}>
-                        Cuộc trò chuyện được chọn
+                    />                    <Title level={3} style={{ color: '#ffffff', marginBottom: '8px' }}>
+                        GoodMeal
                     </Title>
                     <Text type="secondary">
-                        Bắt đầu nhập tin nhắn bên dưới để tiếp tục
+                        Start typing a message below to continue
                     </Text>
                 </div>
             )}
