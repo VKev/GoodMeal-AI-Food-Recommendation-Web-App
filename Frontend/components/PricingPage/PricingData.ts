@@ -29,7 +29,7 @@ export const pricingPlans: PricingPlan[] = [
             'Basic web app access'
         ],
         popular: false,
-        buttonText: 'Start Free',
+        buttonText: 'Your current plan',
         buttonType: 'default',
         color: '#52c41a',
         icon: '🆓'

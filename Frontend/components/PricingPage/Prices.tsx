@@ -89,7 +89,7 @@ const Prices: React.FC = () => {
                 margin: '0 auto 64px auto' 
             }}>                <Title level={1} style={{ 
                     margin: '0 0 16px 0',
-                    background: 'linear-gradient(45deg, #ff9500 0%, #ff7a00 100%)',
+                    background: 'linear-gradient(45deg, #ffe0b3 0%, #ffd699 100%)',
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     color: 'transparent',
@@ -139,12 +139,14 @@ const Prices: React.FC = () => {
                         Yearly
                     </Text>
                     <div style={{
-                        background: 'linear-gradient(45deg, #ff7a00 0%, #ff9500 100%)',
+                        background: 'linear-gradient(45deg, #ff9800 0%, #ffb300 100%)',
                         color: 'white',
                         padding: '4px 8px',
                         borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
+                        fontSize: '13px',
+                        fontWeight: 900,
+                        letterSpacing: '0.5px',
+                        boxShadow: '0 2px 8px rgba(255, 152, 0, 0.18)'
                     }}>
                         Save 20%
                     </div>

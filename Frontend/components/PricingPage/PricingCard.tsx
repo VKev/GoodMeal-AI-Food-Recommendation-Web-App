@@ -25,20 +25,20 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
                 height: '100%',
                 position: 'relative',
                 background: isActive 
-                    ? 'linear-gradient(135deg, rgba(255, 122, 0, 0.15) 0%, rgba(255, 149, 0, 0.08) 100%)'
+                    ? 'linear-gradient(135deg, rgba(255, 183, 77, 0.18) 0%, rgba(255, 204, 128, 0.10) 100%)'
                     : plan.popular 
-                        ? 'linear-gradient(135deg, rgba(255, 122, 0, 0.05) 0%, rgba(255, 149, 0, 0.02) 100%)'
+                        ? 'linear-gradient(135deg, rgba(255, 183, 77, 0.10) 0%, rgba(255, 204, 128, 0.06) 100%)'
                         : 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
                 border: isActive
-                    ? '3px solid #ff7a00'
+                    ? '3px solid #ffb74d'
                     : plan.popular 
-                        ? '2px solid #ff7a00'
+                        ? '2px solid #ffb74d'
                         : '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '16px',
                 boxShadow: isActive
-                    ? '0 12px 40px rgba(255, 122, 0, 0.3)'
+                    ? '0 12px 40px rgba(255, 183, 77, 0.32)'
                     : plan.popular
-                        ? '0 8px 32px rgba(255, 122, 0, 0.2)'
+                        ? '0 8px 32px rgba(255, 183, 77, 0.22)'
                         : '0 4px 16px rgba(0, 0, 0, 0.1)',
                 transition: 'all 0.3s ease',
                 overflow: 'hidden',
@@ -54,7 +54,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
                     position: 'absolute',
                     top: '16px',
                     right: '16px',
-                    background: 'linear-gradient(45deg, #ff7a00 0%, #ff9500 100%)',
+                    background: 'linear-gradient(45deg, #ffb74d 0%, #ffcc80 100%)',
                     color: 'white',
                     padding: '4px 12px',
                     borderRadius: '12px',
@@ -95,7 +95,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
                 <div style={{ 
                     fontSize: '32px', 
                     marginBottom: '8px',
-                    background: plan.popular ? 'linear-gradient(45deg, #ff7a00 0%, #ff9500 100%)' : 'linear-gradient(45deg, #52c41a 0%, #73d13d 100%)',
+                    background: plan.popular ? 'linear-gradient(45deg, #ffb74d 0%, #ffcc80 100%)' : 'linear-gradient(45deg, #52c41a 0%, #73d13d 100%)',
                     borderRadius: '50%',
                     width: '64px',
                     height: '64px',
@@ -109,7 +109,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
                 
                 <Title level={3} style={{ 
                     margin: '0 0 8px 0',
-                    color: plan.popular ? '#ff7a00' : '#ffffff',
+                    color: plan.popular ? '#ffa726' : '#ffffff',
                     fontWeight: 'bold'
                 }}>
                     {plan.name}
@@ -124,7 +124,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
                 </Paragraph>                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
                     <Title level={1} style={{ 
                         margin: 0,
-                        color: plan.popular ? '#ff7a00' : '#ffffff',
+                        color: plan.popular ? '#ffa726' : '#ffffff',
                         fontWeight: 'bold'
                     }}>
                         {currentPrice}
@@ -158,7 +158,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
                     }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                             <CheckOutlined style={{ 
-                                color: plan.popular ? '#ff7a00' : '#52c41a',
+                                color: plan.popular ? '#ffb74d' : '#52c41a',
                                 marginTop: '2px',
                                 fontSize: '14px'
                             }} />
@@ -187,14 +187,14 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
                     fontWeight: 'medium',
                     fontSize: '16px',
                     background: plan.buttonType === 'primary' 
-                        ? 'linear-gradient(45deg, #ff7a00 0%, #ff9500 100%)'
+                        ? 'linear-gradient(45deg, #ffb74d 0%, #ffcc80 100%)'
                         : 'transparent',
                     border: plan.buttonType === 'primary' 
                         ? 'none'
                         : '2px solid rgba(255, 255, 255, 0.2)',
                     color: plan.buttonType === 'primary' ? '#ffffff' : '#ffffff',
                     boxShadow: plan.buttonType === 'primary'
-                        ? '0 4px 15px rgba(255, 122, 0, 0.3)'
+                        ? '0 4px 15px rgba(255, 183, 77, 0.32)'
                         : 'none'
                 }}
             >
