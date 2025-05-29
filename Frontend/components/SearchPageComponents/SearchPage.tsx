@@ -18,14 +18,19 @@ import InputArea from './InputArea';
 
 const SearchPage = () => {
     const [selectedChat, setSelectedChat] = useState<number | null>(null);
-    const [message, setMessage] = useState('');
-    const [collapsed, setCollapsed] = useState(false);
-
-    const chatHistory = [
-        { id: 1, title: 'Thiết kế cơ sở dữ liệu', preview: 'Tạo schema MongoDB cho hệ thống...', time: 'Hôm qua' },
-        { id: 2, title: 'API Authentication', preview: 'Implement JWT token...', time: 'Hôm qua' },
-        { id: 3, title: 'React Hooks', preview: 'Giải thích useEffect và useState...', time: '2 ngày trước' },
-    ];    return (
+    const [inputMessage, setInputMessage] = useState('');
+    const [collapsed, setCollapsed] = useState(false);    const chatHistory = [
+        { id: 1, title: 'Database Design', preview: 'Create MongoDB schema for system...', time: 'Yesterday' },
+        { id: 2, title: 'API Authentication', preview: 'Implement JWT token...', time: 'Yesterday' },
+        { id: 3, title: 'React Hooks', preview: 'Explain useEffect and useState...', time: '2 days ago' },
+        { id: 4, title: 'CSS Styling', preview: 'Responsive design with Tailwind...', time: '3 days ago' },
+        { id: 5, title: 'State Management', preview: 'Redux vs Context API comparison...', time: '4 days ago' },
+        { id: 6, title: 'API Integration', preview: 'Fetch data from REST endpoints...', time: '5 days ago' },
+        { id: 7, title: 'Error Handling', preview: 'Try-catch and error boundaries...', time: '1 week ago' },
+        { id: 8, title: 'Performance', preview: 'Code splitting and lazy loading...', time: '1 week ago' },
+        { id: 9, title: 'Testing', preview: 'Unit tests with Jest and RTL...', time: '2 weeks ago' },
+        { id: 10, title: 'Deployment', preview: 'CI/CD pipeline setup...', time: '2 weeks ago' },
+    ];return (
         <ConfigProvider
             theme={{
                 algorithm: theme.darkAlgorithm,
@@ -81,10 +86,8 @@ const SearchPage = () => {
                     <SearchHeader collapsed={collapsed} />
                     
                     {/* Content Area */}
-                    <MainContent selectedChat={selectedChat} />
-                    
-                    {/* Input Area */}
-                    <InputArea message={message} setMessage={setMessage} />
+                    <MainContent selectedChat={selectedChat} />                      {/* Input Area */}
+                    <InputArea inputMessage={inputMessage} setInputMessage={setInputMessage} />
                 </Layout>
             </Layout>
         </ConfigProvider>
