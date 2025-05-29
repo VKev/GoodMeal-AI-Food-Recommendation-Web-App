@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
-import en from '../locales/en';
+import en from '../../locales/en';
 
 interface SpawnTextProps {
     text: string;
