@@ -1,58 +1,57 @@
 # VPC Module
 module "vpc" {
-  source              = "./modules/vpc"
-  project_name        = var.project_name
-  vpc_cidr            = var.vpc_cidr
-  public_subnet_cidrs = var.public_subnet_cidrs
-  public_subnet_count = 2
-
-  private_subnet_cidr = var.private_subnet_cidr
+  source                = "./modules/vpc"
+  project_name          = var.project_name
+  vpc_cidr              = var.vpc_cidr
+  public_subnet_cidrs   = var.public_subnet_cidrs
+  public_subnet_count   = 2
+  private_subnet_cidr   = var.private_subnet_cidr
 }
 
+# ALB Module
 module "alb" {
-  source            = "./modules/alb"
-  project_name      = var.project_name
-  vpc_id            = module.vpc.vpc_id
-  public_subnet_ids = module.vpc.public_subnet_ids
+  source              = "./modules/alb"
+  project_name        = var.project_name
+  vpc_id              = module.vpc.vpc_id
+  public_subnet_ids   = module.vpc.public_subnet_ids
 
   target_groups_definition = [
-    {
-      name_suffix = "guest"    
-      port        = 5001       
-      protocol    = "HTTP"     
-      target_type = "instance" 
-
+    { # Guest Service Target Group
+      name_suffix = "guest" # This should match the key in var.services
+      port        = var.services["guest"].alb_target_group_port
+      protocol    = var.services["guest"].alb_target_group_protocol
+      target_type = var.services["guest"].alb_target_group_type
       health_check = {
-        enabled             = true
-        path                = "/api/guest/health" 
-        port                = "traffic-port"      
-        protocol            = "HTTP"              
-        matcher             = "200"               
-        interval            = 30
-        timeout             = 5
-        healthy_threshold   = 2
-        unhealthy_threshold = 3
+        enabled             = var.services["guest"].alb_health_check.enabled
+        path                = var.services["guest"].alb_health_check.path
+        port                = var.services["guest"].alb_health_check.port
+        protocol            = var.services["guest"].alb_health_check.protocol
+        matcher             = var.services["guest"].alb_health_check.matcher
+        interval            = var.services["guest"].alb_health_check.interval
+        timeout             = var.services["guest"].alb_health_check.timeout
+        healthy_threshold   = var.services["guest"].alb_health_check.healthy_threshold
+        unhealthy_threshold = var.services["guest"].alb_health_check.unhealthy_threshold
       }
     },
-    {
-      name_suffix = "user"    
-      port        = 5002      
-      protocol    = "HTTP"     
-      target_type = "instance" 
-
+    { # User Service Target Group
+      name_suffix = "user" # This should match the key in var.services
+      port        = var.services["user"].alb_target_group_port
+      protocol    = var.services["user"].alb_target_group_protocol
+      target_type = var.services["user"].alb_target_group_type
       health_check = {
-        enabled             = true
-        path                = "/api/user/health" 
-        port                = "traffic-port"      
-        protocol            = "HTTP"              
-        matcher             = "200"               
-        interval            = 30
-        timeout             = 5
-        healthy_threshold   = 2
-        unhealthy_threshold = 3
+        enabled             = var.services["user"].alb_health_check.enabled
+        path                = var.services["user"].alb_health_check.path
+        port                = var.services["user"].alb_health_check.port
+        protocol            = var.services["user"].alb_health_check.protocol
+        matcher             = var.services["user"].alb_health_check.matcher
+        interval            = var.services["user"].alb_health_check.interval
+        timeout             = var.services["user"].alb_health_check.timeout
+        healthy_threshold   = var.services["user"].alb_health_check.healthy_threshold
+        unhealthy_threshold = var.services["user"].alb_health_check.unhealthy_threshold
       }
     }
   ]
+
   default_listener_action = {
     type = "fixed-response"
     fixed_response = {
@@ -63,31 +62,20 @@ module "alb" {
   }
 
   listener_rules_definition = [
-    {
-      priority            = 10
-      target_group_suffix = "guest"
-      conditions = [
-        {
-          path_pattern = {
-            values = ["/api/guest/*"]
-          }
-        }
-      ]
+    { # Guest Service Listener Rule
+      priority            = var.services["guest"].alb_listener_rule_priority
+      target_group_suffix = "guest" # Must match the name_suffix of the target group
+      conditions          = var.services["guest"].alb_listener_rule_conditions
     },
-    {
-      priority            = 10
-      target_group_suffix = "user"
-      conditions = [
-        {
-          path_pattern = {
-            values = ["/api/user/*"]
-          }
-        }
-      ]
+    { # User Service Listener Rule
+      priority            = var.services["user"].alb_listener_rule_priority
+      target_group_suffix = "user" # Must match the name_suffix of the target group
+      conditions          = var.services["user"].alb_listener_rule_conditions
     }
   ]
 }
 
+# EC2 Module
 module "ec2" {
   source                = "./modules/ec2"
   project_name          = var.project_name
@@ -101,7 +89,7 @@ module "ec2" {
   depends_on = [module.alb]
 }
 
-
+# ECS Module
 module "ecs" {
   source = "./modules/ecs"
 
@@ -112,72 +100,60 @@ module "ecs" {
   ecs_cluster_name = module.ec2.ecs_cluster_name
   desired_count    = 1
 
-  task_cpu    = 768
-  task_memory = 768
+  task_cpu    = 825
+  task_memory = 825
 
   containers = [
-    {
-      name                 = "goodmeal-guest-microservice"
-      image_repository_url = "242201290212.dkr.ecr.us-east-1.amazonaws.com/goodmeal-ecr"
-      image_tag            = "Guest.Microservice-latest"
-      cpu                  = 400
-      memory               = 400
-      essential            = true
-      port_mappings = [
-        {
-          container_port = 5001
-          host_port      = 0
-          protocol       = "tcp"
-        }
-      ]
-      environment_variables = var.environment_variables
+    { # Guest Container Definition
+      name                 = "${var.project_name}-guest-${var.services["guest"].ecs_container_name_suffix}"
+      image_repository_url = var.services["guest"].ecs_container_image_repository_url
+      image_tag            = var.services["guest"].ecs_container_image_tag
+      cpu                  = var.services["guest"].ecs_container_cpu
+      memory               = var.services["guest"].ecs_container_memory
+      essential            = var.services["guest"].ecs_container_essential
+      port_mappings        = var.services["guest"].ecs_container_port_mappings
+      environment_variables= var.services["guest"].ecs_environment_variables
       health_check = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:5001/api/guest/health || exit 1"]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 0
+        command     = var.services["guest"].ecs_container_health_check.command
+        interval    = var.services["guest"].ecs_container_health_check.interval
+        timeout     = var.services["guest"].ecs_container_health_check.timeout
+        retries     = var.services["guest"].ecs_container_health_check.retries
+        startPeriod = var.services["guest"].ecs_container_health_check.startPeriod
       }
-      enable_service_discovery = var.enable_service_discovery
-      service_discovery_port   = 5001
+      enable_service_discovery = var.enable_service_discovery # Uses the global variable
+      service_discovery_port   = var.services["guest"].ecs_service_discovery_port
     },
-    {
-      name                 = "goodmeal-user-microservice"
-      image_repository_url = "242201290212.dkr.ecr.us-east-1.amazonaws.com/goodmeal-ecr"
-      image_tag            = "User.Microservice-latest"
-      cpu                  = 400
-      memory               = 400
-      essential            = true
-      port_mappings = [
-        {
-          container_port = 5002
-          host_port      = 0
-          protocol       = "tcp"
-        }
-      ]
-      environment_variables = var.environment_variables
+    { # User Container Definition
+      name                 = "${var.project_name}-user-${var.services["user"].ecs_container_name_suffix}"
+      image_repository_url = var.services["user"].ecs_container_image_repository_url
+      image_tag            = var.services["user"].ecs_container_image_tag
+      cpu                  = var.services["user"].ecs_container_cpu
+      memory               = var.services["user"].ecs_container_memory
+      essential            = var.services["user"].ecs_container_essential
+      port_mappings        = var.services["user"].ecs_container_port_mappings
+      environment_variables= var.services["user"].ecs_environment_variables
       health_check = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:5002/api/user/health || exit 1"]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 0
+        command     = var.services["user"].ecs_container_health_check.command
+        interval    = var.services["user"].ecs_container_health_check.interval
+        timeout     = var.services["user"].ecs_container_health_check.timeout
+        retries     = var.services["user"].ecs_container_health_check.retries
+        startPeriod = var.services["user"].ecs_container_health_check.startPeriod
       }
-      enable_service_discovery = var.enable_service_discovery
-      service_discovery_port   = 5002
+      enable_service_discovery = var.enable_service_discovery # Uses the global variable
+      service_discovery_port   = var.services["user"].ecs_service_discovery_port
     }
   ]
 
   target_groups = [
-    {
+    { # Guest Service to Target Group Mapping
       target_group_arn = module.alb.target_group_arns_map["guest"]
-      container_name   = "goodmeal-user-microservice"
-      container_port   = 5001
+      container_name   = "${var.project_name}-guest-${var.services["guest"].ecs_container_name_suffix}"
+      container_port   = var.services["guest"].ecs_container_port_mappings[0].container_port # Assumes first port mapping
     },
-    {
+    { # User Service to Target Group Mapping
       target_group_arn = module.alb.target_group_arns_map["user"]
-      container_name   = "goodmeal-user-microservice"
-      container_port   = 5002
+      container_name   = "${var.project_name}-user-${var.services["user"].ecs_container_name_suffix}"
+      container_port   = var.services["user"].ecs_container_port_mappings[0].container_port # Assumes first port mapping
     }
   ]
 
