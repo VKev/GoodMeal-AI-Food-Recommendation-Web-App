@@ -2,6 +2,7 @@ using Application.Abstractions.Messaging;
 
 namespace Application.Auths.Commands;
 
-public sealed record LoginWithGitHubQuery(
-    string AccessToken
+public sealed record LoginUserCommand(
+    string Email,
+    string Password
 ) : ICommand;

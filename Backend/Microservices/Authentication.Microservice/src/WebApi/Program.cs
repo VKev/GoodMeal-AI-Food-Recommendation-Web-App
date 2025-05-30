@@ -1,10 +1,7 @@
 using Application;
 using Infrastructure;
-using Infrastructure.Context;
 using SharedLibrary.Utils;
 using SharedLibrary.Configs;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Serilog;
 
 string solutionDirectory = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName ?? "";
@@ -22,25 +19,9 @@ builder.Host.UseSerilog((hostingContext, loggerConfiguration) => loggerConfigura
     .ReadFrom.Configuration(hostingContext.Configuration));
 
 builder.Services.ConfigureOptions<DatabaseConfigSetup>();
-builder.Services.AddDbContext<MyDbContext>((serviceProvider, options) =>
-{
-    var databaseConfig = serviceProvider.GetService<IOptions<DatabaseConfig>>()!.Value;
-    options.UseNpgsql(databaseConfig.ConnectionString, actions =>
-    {
-        actions.EnableRetryOnFailure(databaseConfig.MaxRetryCount);
-        actions.CommandTimeout(databaseConfig.CommandTimeout);
-    });
-    if (environment.IsDevelopment())
-    {
-        options.EnableDetailedErrors(databaseConfig.EnableDetailedErrors);
-        options.EnableSensitiveDataLogging(databaseConfig.EnableSensitiveDataLogging);
-    }
-});
-
 builder.Services
     .AddApplication()
     .AddInfrastructure();
-
 
 var app = builder.Build();
 

@@ -1,7 +1,6 @@
-using Application.Users.Commands;
-using Application.Users.Queries;
 using Application.Auths.Commands;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
 
@@ -27,9 +26,9 @@ namespace WebApi.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginUserQuery query, CancellationToken cancellationToken)
+        public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(query, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
             if (result.IsFailure)
             {
                 return HandleFailure(result);
@@ -41,43 +40,43 @@ namespace WebApi.Controllers
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(command, cancellationToken);
-            
+
             return Ok(result);
         }
 
-        [HttpPost("login-google")]
-        public async Task<IActionResult> LoginGoogle([FromBody] LoginWithGoogleQuery query, CancellationToken cancellationToken)
+        [HttpPost("login-with-external-provider")]
+        public async Task<IActionResult> LoginGoogle([FromBody] LoginWithExternalProviderCommand command, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(query, cancellationToken);
+            var result = await _mediator.Send(command, cancellationToken);
             if (result.IsFailure)
             {
                 return HandleFailure(result);
             }
             return Ok(result);
         }
-
-        [HttpPost("login-facebook")]
-        public async Task<IActionResult> LoginFacebook([FromBody] LoginWithFacebookQuery query, CancellationToken cancellationToken)
+        
+        [HttpGet("check-authorization")]
+        [Authorize]
+        public IActionResult CheckAuthorization()
         {
-            var result = await _mediator.Send(query, cancellationToken);
-            if (result.IsFailure)
+            if (!User.Identity?.IsAuthenticated ?? false)
             {
-                return HandleFailure(result);
+                return Unauthorized(new { message = "Not authorized" });
             }
-            return Ok(result);
-        }
 
-        [HttpPost("login-github")]
-        public async Task<IActionResult> LoginGitHub([FromBody] LoginWithGitHubQuery query, CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(query, cancellationToken);
-            if (result.IsFailure)
+            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+            return Ok(new
             {
-                return HandleFailure(result);
-            }
-            return Ok(result);
+                message = "Authorized",
+                user = new
+                {
+                    name = User.Identity.Name,
+                    authenticationType = User.Identity.AuthenticationType,
+                    claims
+                }
+            });
         }
-
+        
         [HttpGet("health")]
         public async Task<IActionResult> Health()
         {

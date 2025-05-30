@@ -8,3 +8,4 @@ Backend/Microservices/Microservices.sln.DotSettings.user
 /Backend/Microservices/User.Microservice/src/WebApi/obj
 Backend/Microservices/User.Microservice/src/WebApi/credentials.json
 /Backend/Microservices/User.Microservice/src/Infrastructure/obj
+Backend/Microservices/Authentication.Microservice/src/WebApi/credentials.json
