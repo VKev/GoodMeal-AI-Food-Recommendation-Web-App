@@ -185,9 +185,8 @@ const PaymentPageContent: React.FC = () => {
                     <Paragraph style={{ 
                         color: '#b3b3b3',
                         fontSize: '16px',
-                        margin: 0
-                    }}>
-                        You're just one step away from unlocking premium features
+                        margin: 0                    }}>
+                        You&apos;re just one step away from unlocking premium features
                     </Paragraph>
                 </div>                <Row gutter={[32, 32]}>
                     {/* Order Summary */}

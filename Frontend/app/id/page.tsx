@@ -1,10 +1,10 @@
 "use client"
 import SearchPage from '@/components/SearchPageComponents/SearchPage'
-import React, { useEffect } from 'react'
+import React, { useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { message } from 'antd'
 
-function page() {
+function SearchPageWithParams() {
     const searchParams = useSearchParams()
     
     useEffect(() => {
@@ -26,11 +26,17 @@ function page() {
         }
     }, [searchParams])
 
+    return <SearchPage />
+}
+
+function Page() {
     return (
         <div>
-            <SearchPage />
+            <Suspense fallback={<div>Loading...</div>}>
+                <SearchPageWithParams />
+            </Suspense>
         </div>
     )
 }
 
-export default page
+export default Page

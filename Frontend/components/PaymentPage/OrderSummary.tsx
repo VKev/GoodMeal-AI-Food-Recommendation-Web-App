@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Typography, Space, Row, Col } from 'antd';
+import { Card, Typography, Space } from 'antd';
 import { CheckOutlined } from '@ant-design/icons';
 import { OrderSummaryProps } from './types';
 
@@ -91,9 +91,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                     color: '#ffffff', 
                     fontWeight: 'medium',
                     display: 'block',
-                    marginBottom: '16px'
-                }}>
-                    What's included:
+                    marginBottom: '16px'                }}>
+                    What&apos;s included:
                 </Text>
                 <Space direction="vertical" size={8} style={{ width: '100%' }}>
                     {selectedPlan.features.slice(0, 5).map((feature: string, index: number) => (

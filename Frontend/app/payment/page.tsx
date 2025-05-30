@@ -1,6 +1,6 @@
 "use client"
+import PaymentPage from '@/components/PaymentPage/PaymentPage'
 import React from 'react'
-import PaymentPage from '@/components/PaymentPage'
 
 function page() {
   return (
