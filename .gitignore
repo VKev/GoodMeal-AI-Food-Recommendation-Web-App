@@ -2,3 +2,9 @@
 Terraform/variables.tf
 .terraform
 .terraform.lock.hcl
+/Backend/Microservices/.idea
+Backend/Microservices/Microservices.sln.DotSettings.user
+/Backend/ApiGateway/.idea
+/Backend/Microservices/User.Microservice/src/WebApi/obj
+Backend/Microservices/User.Microservice/src/WebApi/credentials.json
+/Backend/Microservices/User.Microservice/src/Infrastructure/obj

@@ -1,8 +1,8 @@
-using Microsoft.OpenApi.Models;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using src;
 
 DotNetEnv.Env.Load();
 
@@ -67,13 +67,20 @@ if (jsonObject != null)
     File.WriteAllText(ocelotConfigPath, jsonObject.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 }
 
+var configBuilder = new ConfigurationBuilder()
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+var appConfig = configBuilder.Build();
+new Startup(appConfig).ConfigureServices(builder.Services);
+
 builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
     .AddJsonFile($"ocelot.{env}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
 builder.Services.AddOcelot(builder.Configuration);
-
-var app = builder.Build();
+var app = builder.Build();  
 
 // Restore the original JSON content during application shutdown
 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
@@ -82,5 +89,5 @@ lifetime.ApplicationStopping.Register(() =>
     File.WriteAllText(ocelotConfigPath, originalJsonContent);
 });
 
-await app.UseOcelot();
-app.Run();
+await app.UseAuthentication().UseOcelot();
+await app.RunAsync();

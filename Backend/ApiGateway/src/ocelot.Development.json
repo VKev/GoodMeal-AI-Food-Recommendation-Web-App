@@ -18,6 +18,27 @@
       "DownstreamPathTemplate": "/api/User/{everything}"
     },
     {
+      "UpstreamPathTemplate": "/api/Auth/{everything}",
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": "5002"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/{everything}",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "IdentityApiKey",
+        "AllowedScopes": []
+      }
+    },
+    {
       "UpstreamPathTemplate": "/api/Guest/{everything}",
       "UpstreamHttpMethod": [
         "Get",

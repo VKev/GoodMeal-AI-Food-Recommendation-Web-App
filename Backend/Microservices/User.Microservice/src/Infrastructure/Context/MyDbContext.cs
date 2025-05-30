@@ -67,6 +67,8 @@ public partial class MyDbContext : DbContext
             entity.ToTable("users");
 
             entity.HasIndex(e => e.Email, "users_email_key").IsUnique();
+            
+            entity.HasIndex(e => e.IdentityId, "users_identity_key").IsUnique();
 
             entity.Property(e => e.UserId)
                 .HasDefaultValueSql("gen_random_uuid()")
@@ -78,6 +80,8 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(100)
                 .HasColumnName("email");
+            entity.Property(e => e.IdentityId)
+                .HasColumnName("identityId");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
