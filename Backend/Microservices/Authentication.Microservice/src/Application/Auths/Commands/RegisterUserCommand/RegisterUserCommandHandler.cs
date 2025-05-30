@@ -35,6 +35,7 @@ public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand>
             CorrelationId = Guid.NewGuid(),
             Email = request.Email,
             Name = request.Name,
+            IdentityId = identityId,
         }, cancellationToken);
         
         return Result.Success();
