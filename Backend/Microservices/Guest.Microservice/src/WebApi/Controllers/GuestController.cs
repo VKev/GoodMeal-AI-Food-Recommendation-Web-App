@@ -38,6 +38,7 @@ namespace WebApi.Controllers
         [HttpGet("health")]
         public async Task<IActionResult> Health()
         {
+            
             return Ok();
         }
     }

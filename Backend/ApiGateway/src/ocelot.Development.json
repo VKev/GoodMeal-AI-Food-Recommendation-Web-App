@@ -2,12 +2,7 @@
   "Routes": [
     {
       "UpstreamPathTemplate": "/api/User/{everything}",
-      "UpstreamHttpMethod": [
-        "Get",
-        "Post",
-        "Put",
-        "Delete"
-      ],
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -18,13 +13,20 @@
       "DownstreamPathTemplate": "/api/User/{everything}"
     },
     {
-      "UpstreamPathTemplate": "/api/Guest/{everything}",
-      "UpstreamHttpMethod": [
-        "Get",
-        "Post",
-        "Put",
-        "Delete"
+      "UpstreamPathTemplate": "/api/Resource/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": "5003"
+        }
       ],
+      "DownstreamPathTemplate": "/api/Resource/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Guest/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {

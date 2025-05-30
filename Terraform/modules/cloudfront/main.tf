@@ -1,3 +1,24 @@
+# Create a CloudFront public key resource.
+resource "tls_private_key" "cloudfront_key" {
+  algorithm = "RSA"
+  rsa_bits  = 2048 # CloudFront public keys for signed URLs/cookies typically use 2048-bit RSA keys.
+}
+
+resource "aws_cloudfront_public_key" "cloudfront_public_key" {
+  name        = "${var.project_name}-Key-Group-PublicKey"
+  encoded_key = tls_private_key.cloudfront_key.public_key_pem
+  comment     = "Public key for ${var.project_name} key group"
+}
+
+# Create the CloudFront key group using the public key above.
+resource "aws_cloudfront_key_group" "cloudfront_key_group" {
+  name    = "Custom-${var.project_name}-Key-Group"
+  items   = [aws_cloudfront_public_key.cloudfront_public_key.id]
+  comment = "Key group for ${var.project_name}"
+
+}
+
+
 resource "aws_cloudfront_distribution" "this" {
   origin {
     domain_name = var.origin_domain_name
@@ -31,7 +52,7 @@ resource "aws_cloudfront_distribution" "this" {
     allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
 
-    trusted_key_groups = [aws_cloudfront_key_group.abda_lab_key_group.id]
+    trusted_key_groups = [aws_cloudfront_key_group.cloudfront_key_group.id]
 
     cache_policy_id            = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
     origin_request_policy_id   = "b689b0a8-53d0-40ab-baf2-68738e2966ac" # AWS Managed AllViewerExceptHostHeader

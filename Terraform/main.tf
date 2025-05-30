@@ -33,8 +33,8 @@ module "alb" {
         unhealthy_threshold = var.services["guest"].alb_health_check.unhealthy_threshold
       }
     },
-    { # User Service Target Group
-      name_suffix = "user" # This should match the key in var.services
+    { 
+      name_suffix = "user"
       port        = var.services["user"].alb_target_group_port
       protocol    = var.services["user"].alb_target_group_protocol
       target_type = var.services["user"].alb_target_group_type
@@ -49,6 +49,23 @@ module "alb" {
         healthy_threshold   = var.services["user"].alb_health_check.healthy_threshold
         unhealthy_threshold = var.services["user"].alb_health_check.unhealthy_threshold
       }
+    },
+    { 
+      name_suffix = "resource"
+      port        = var.services["resource"].alb_target_group_port
+      protocol    = var.services["resource"].alb_target_group_protocol
+      target_type = var.services["resource"].alb_target_group_type
+      health_check = {
+        enabled             = var.services["resource"].alb_health_check.enabled
+        path                = var.services["resource"].alb_health_check.path
+        port                = var.services["resource"].alb_health_check.port
+        protocol            = var.services["resource"].alb_health_check.protocol
+        matcher             = var.services["resource"].alb_health_check.matcher
+        interval            = var.services["resource"].alb_health_check.interval
+        timeout             = var.services["resource"].alb_health_check.timeout
+        healthy_threshold   = var.services["resource"].alb_health_check.healthy_threshold
+        unhealthy_threshold = var.services["resource"].alb_health_check.unhealthy_threshold
+      }
     }
   ]
 
@@ -62,15 +79,20 @@ module "alb" {
   }
 
   listener_rules_definition = [
-    { # Guest Service Listener Rule
+    { 
       priority            = var.services["guest"].alb_listener_rule_priority
-      target_group_suffix = "guest" # Must match the name_suffix of the target group
+      target_group_suffix = "guest"
       conditions          = var.services["guest"].alb_listener_rule_conditions
     },
-    { # User Service Listener Rule
+    { 
       priority            = var.services["user"].alb_listener_rule_priority
-      target_group_suffix = "user" # Must match the name_suffix of the target group
+      target_group_suffix = "user"
       conditions          = var.services["user"].alb_listener_rule_conditions
+    },
+    {
+      priority            = var.services["resource"].alb_listener_rule_priority
+      target_group_suffix = "resource"
+      conditions          = var.services["resource"].alb_listener_rule_conditions
     }
   ]
 }
@@ -141,6 +163,25 @@ module "ecs" {
       }
       enable_service_discovery = var.enable_service_discovery # Uses the global variable
       service_discovery_port   = var.services["user"].ecs_service_discovery_port
+    },
+    { # Resource Container Definition
+      name                 = "${var.project_name}-resource-${var.services["resource"].ecs_container_name_suffix}"
+      image_repository_url = var.services["resource"].ecs_container_image_repository_url
+      image_tag            = var.services["resource"].ecs_container_image_tag
+      cpu                  = var.services["resource"].ecs_container_cpu
+      memory               = var.services["resource"].ecs_container_memory
+      essential            = var.services["resource"].ecs_container_essential
+      port_mappings        = var.services["resource"].ecs_container_port_mappings
+      environment_variables= var.services["resource"].ecs_environment_variables
+      health_check = {
+        command     = var.services["resource"].ecs_container_health_check.command
+        interval    = var.services["resource"].ecs_container_health_check.interval
+        timeout     = var.services["resource"].ecs_container_health_check.timeout
+        retries     = var.services["resource"].ecs_container_health_check.retries
+        startPeriod = var.services["resource"].ecs_container_health_check.startPeriod
+      }
+      enable_service_discovery = var.enable_service_discovery # Uses the global variable
+      service_discovery_port   = var.services["resource"].ecs_service_discovery_port
     }
   ]
 
@@ -154,6 +195,11 @@ module "ecs" {
       target_group_arn = module.alb.target_group_arns_map["user"]
       container_name   = "${var.project_name}-user-${var.services["user"].ecs_container_name_suffix}"
       container_port   = var.services["user"].ecs_container_port_mappings[0].container_port # Assumes first port mapping
+    },
+    { # Resource Service to Target Group Mapping
+      target_group_arn = module.alb.target_group_arns_map["resource"]
+      container_name   = "${var.project_name}-resource-${var.services["resource"].ecs_container_name_suffix}"
+      container_port   = var.services["resource"].ecs_container_port_mappings[0].container_port # Assumes first port mapping
     }
   ]
 
@@ -163,15 +209,16 @@ module "ecs" {
   depends_on = [module.ec2]
 }
 
-# module "lambda_edge" {
-#   source = "./modules/lambda_edge"
-# }
+module "lambda_edge" {
+  source = "./modules/lambda_edge"
+  lambda_edge_secret = var.lambda_edge_secret
+}
 
-# module "cloudfront" {
-#   source                = "./modules/cloudfront"
-#   project_name          = var.project_name
-#   origin_domain_name    = var.origin_domain_name
-#   origin_path           = var.origin_path
-#   set_cookie_lambda_arn = module.lambda_edge.lambda_function_qualified_arn
-#   bucket_secret_referer = var.bucket_secret_referer
-# }
+module "cloudfront" {
+  source                = "./modules/cloudfront"
+  project_name          = var.project_name
+  origin_domain_name    = var.origin_domain_name
+  origin_path           = var.origin_path
+  set_cookie_lambda_arn = module.lambda_edge.lambda_function_qualified_arn
+  bucket_secret_referer = var.bucket_secret_referer
+}
