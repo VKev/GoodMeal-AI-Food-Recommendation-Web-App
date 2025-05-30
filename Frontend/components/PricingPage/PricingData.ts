@@ -29,16 +29,15 @@ export const pricingPlans: PricingPlan[] = [
             'Basic web app access'
         ],
         popular: false,
-        buttonText: 'Start Free',
+        buttonText: 'Current Plan',
         buttonType: 'default',
         color: '#52c41a',
         icon: '🆓'
-    },
-    {
+    },    {
         id: 'pro',
         name: 'Pro',
         monthlyPrice: '$19',
-        yearlyPrice: '$15',
+        yearlyPrice: '$182', // $19 * 12 * 0.8 = $182.4 ≈ $182
         description: 'Unlimited AI food recommendation experience',
         features: [
             'Unlimited AI Bot chats',
@@ -63,7 +62,7 @@ export const pricingPlans: PricingPlan[] = [
         id: 'business',
         name: 'Business',
         monthlyPrice: '$49',
-        yearlyPrice: '$39',
+        yearlyPrice: '$470', // $49 * 12 * 0.8 = $470.4 ≈ $470
         description: 'Complete solution for restaurants & businesses',
         features: [
             'All Pro features',

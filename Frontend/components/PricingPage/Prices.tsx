@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Row, Col, Typography, Switch, Card } from 'antd';
+import { Row, Col, Typography, Switch, Card, message } from 'antd';
 import { CheckCircleOutlined, QuestionCircleOutlined, CloseOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import PricingCard from './PricingCard';
@@ -10,11 +10,24 @@ const { Title, Paragraph, Text } = Typography;
 const Prices: React.FC = () => {
     const [isYearly, setIsYearly] = useState(false);
     const [activePlan, setActivePlan] = useState<string>('pro'); // Default to Pro plan
-    const router = useRouter();
-
-    const handleSelectPlan = (planId: string) => {
+    const router = useRouter();    const handleSelectPlan = (planId: string) => {
         console.log('Selected plan:', planId);
-        // Add logic for payment flow here
+        
+        // Handle free plan - show message instead of redirecting
+        if (planId === 'free') {
+            message.info({
+                content: '🆓 You are already on the Free plan! Enjoy the basic features.',
+                duration: 3,
+                style: {
+                    marginTop: '20vh',
+                }
+            });
+            return;
+        }
+        
+        // Navigate to payment page with plan details for paid plans
+        const billingType = isYearly ? 'yearly' : 'monthly';
+        router.push(`/payment?plan=${planId}&billing=${billingType}`);
     };
 
     const handleCardClick = (planId: string) => {
@@ -89,7 +102,7 @@ const Prices: React.FC = () => {
                 margin: '0 auto 64px auto' 
             }}>                <Title level={1} style={{ 
                     margin: '0 0 16px 0',
-                    background: 'linear-gradient(45deg, #ff9500 0%, #ff7a00 100%)',
+                    background: 'linear-gradient(45deg, #ffe0b3 0%, #ffd699 100%)',
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     color: 'transparent',
@@ -139,12 +152,14 @@ const Prices: React.FC = () => {
                         Yearly
                     </Text>
                     <div style={{
-                        background: 'linear-gradient(45deg, #ff7a00 0%, #ff9500 100%)',
+                        background: 'linear-gradient(45deg, #ff9800 0%, #ffb300 100%)',
                         color: 'white',
                         padding: '4px 8px',
                         borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
+                        fontSize: '13px',
+                        fontWeight: 900,
+                        letterSpacing: '0.5px',
+                        boxShadow: '0 2px 8px rgba(255, 152, 0, 0.18)'
                     }}>
                         Save 20%
                     </div>
