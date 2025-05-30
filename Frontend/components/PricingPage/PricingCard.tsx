@@ -16,7 +16,16 @@ interface PricingCardProps {
 const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onSelectPlan, onCardClick }) => {
     const currentPrice = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
     const period = isYearly ? '/year' : '/month';
-    const savings = isYearly && plan.id !== 'free' ? '(Save 20%)' : '';
+    
+    // Calculate actual savings for display
+    let savings = '';
+    if (isYearly && plan.id !== 'free') {
+        const monthlyAmount = parseInt(plan.monthlyPrice.replace('$', ''));
+        const yearlyAmount = parseInt(plan.yearlyPrice.replace('$', ''));
+        const fullYearPrice = monthlyAmount * 12;
+        const savedAmount = fullYearPrice - yearlyAmount;
+        savings = `(Save $${savedAmount})`;
+    }
 
     return (
         <Card
@@ -24,21 +33,19 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
             style={{
                 height: '100%',
                 position: 'relative',
-                background: isActive 
+                background: isActive
                     ? 'linear-gradient(135deg, rgba(255, 183, 77, 0.18) 0%, rgba(255, 204, 128, 0.10) 100%)'
-                    : plan.popular 
-                        ? 'linear-gradient(135deg, rgba(255, 183, 77, 0.10) 0%, rgba(255, 204, 128, 0.06) 100%)'
-                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
                 border: isActive
-                    ? '3px solid #ffb74d'
-                    : plan.popular 
-                        ? '2px solid #ffb74d'
+                    ? '3px solid #ff7a00'
+                    : plan.popular
+                        ? '2px solid #ff7a00'
                         : '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '16px',
                 boxShadow: isActive
-                    ? '0 12px 40px rgba(255, 183, 77, 0.32)'
+                    ? '0 12px 40px rgba(255, 122, 0, 0.3)'
                     : plan.popular
-                        ? '0 8px 32px rgba(255, 183, 77, 0.22)'
+                        ? '0 8px 32px rgba(255, 122, 0, 0.2)'
                         : '0 4px 16px rgba(0, 0, 0, 0.1)',
                 transition: 'all 0.3s ease',
                 overflow: 'hidden',
@@ -121,7 +128,8 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
                     fontSize: '14px'
                 }}>
                     {plan.description}
-                </Paragraph>                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
+                </Paragraph>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
                     <Title level={1} style={{ 
                         margin: 0,
                         color: plan.popular ? '#ffa726' : '#ffffff',
@@ -144,7 +152,41 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
                             {savings}
                         </Text>
                     )}
-                </div>
+                </div>                {/* CTA Button */}
+                <Button
+                    type={plan.buttonType}
+                    size="large"
+                    block
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectPlan(plan.id);
+                    }}                    style={{
+                        height: '48px',
+                        borderRadius: '12px',
+                        fontWeight: 'medium',
+                        fontSize: '16px',
+                        background: plan.buttonType === 'primary' 
+                            ? 'linear-gradient(45deg, #ff7a00 0%, #ff9500 100%)'
+                            : plan.id === 'free'
+                            ? 'rgba(82, 196, 26, 0.1)'
+                            : 'transparent',
+                        border: plan.buttonType === 'primary' 
+                            ? 'none'
+                            : plan.id === 'free'
+                            ? '2px solid #52c41a'
+                            : '2px solid rgba(255, 255, 255, 0.2)',
+                        color: plan.buttonType === 'primary' ? '#ffffff' : '#ffffff',
+                        boxShadow: plan.buttonType === 'primary'
+                            ? '0 4px 15px rgba(255, 122, 0, 0.3)'
+                            : 'none',
+                        margin: '24px 0 0 0',
+                        transition: 'all 0.3s ease',
+                        transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
+                        cursor: plan.id === 'free' ? 'default' : 'pointer'
+                    }}
+                >
+                    {plan.buttonText}
+                </Button>
             </div>
 
             {/* Features List */}
@@ -174,32 +216,6 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, isActive, onS
                 )}
                 style={{ marginBottom: '32px' }}
             />
-
-            {/* CTA Button */}
-            <Button
-                type={plan.buttonType}
-                size="large"
-                block
-                onClick={() => onSelectPlan(plan.id)}
-                style={{
-                    height: '48px',
-                    borderRadius: '12px',
-                    fontWeight: 'medium',
-                    fontSize: '16px',
-                    background: plan.buttonType === 'primary' 
-                        ? 'linear-gradient(45deg, #ffb74d 0%, #ffcc80 100%)'
-                        : 'transparent',
-                    border: plan.buttonType === 'primary' 
-                        ? 'none'
-                        : '2px solid rgba(255, 255, 255, 0.2)',
-                    color: plan.buttonType === 'primary' ? '#ffffff' : '#ffffff',
-                    boxShadow: plan.buttonType === 'primary'
-                        ? '0 4px 15px rgba(255, 183, 77, 0.32)'
-                        : 'none'
-                }}
-            >
-                {plan.buttonText}
-            </Button>
         </Card>
     );
 };
