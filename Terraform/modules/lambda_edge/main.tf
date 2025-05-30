@@ -1,7 +1,23 @@
+
+resource "null_resource" "npm_install" {
+  provisioner "local-exec" {
+    command = "npm install"
+    working_dir = "${path.module}"
+  }
+}
+
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "${path.module}"
   output_path = "${path.module}/lambda.zip"
+}
+
+resource "aws_ssm_parameter" "lambda_edge_secret" {
+  name        = "/lambda/edge/secret"
+  description = "Secret value for Lambda@Edge"
+  type        = "SecureString"
+  value       = var.lambda_edge_secret
+  overwrite   = true
 }
 
 resource "aws_iam_policy" "lambda_ssm_policy" {
@@ -62,4 +78,6 @@ resource "aws_lambda_function" "this" {
   timeouts {
     delete = "30m"
   }
+
+  depends_on = [ aws_ssm_parameter.lambda_edge_secret ]
 }

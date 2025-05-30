@@ -12,6 +12,18 @@
       ],
       "DownstreamPathTemplate": "/api/User/{everything}"
     },
+    {
+      "UpstreamPathTemplate": "/api/Resource/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "resource-microservice",
+          "Port": "5003"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Resource/{everything}"
+    },
 
     {
       "UpstreamPathTemplate": "/api/Guest/{everything}",

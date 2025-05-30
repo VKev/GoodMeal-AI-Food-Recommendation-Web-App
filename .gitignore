@@ -2,3 +2,5 @@
 Terraform/variables.tf
 .terraform
 .terraform.lock.hcl
+Terraform/modules/lambda_edge/lambda_edge.zip
+Terraform/modules/lambda_edge/node_modules
