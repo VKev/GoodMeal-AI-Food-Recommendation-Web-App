@@ -7,4 +7,3 @@ public sealed record RegisterUserCommand(
     string Password,
     string Name
 ) : ICommand;
-

@@ -6,7 +6,15 @@ namespace Infrastructure.Repositories;
 
 public class AuthRepository : IAuthRepository
 {
-    public async Task<string> RegisterAsync(string email, string password, CancellationToken cancellationToken = default)
+    private readonly IJwtProvider _jwtProvider;
+
+    public AuthRepository(IJwtProvider jwtProvider)
+    {
+        _jwtProvider = jwtProvider;
+    }
+
+    public async Task<string> RegisterAsync(string email, string password,
+        CancellationToken cancellationToken = default)
     {
         var userRecordArgs = new UserRecordArgs()
         {
@@ -19,9 +27,11 @@ public class AuthRepository : IAuthRepository
         return userRecord.Uid;
     }
 
-    public async Task<JwtResponse> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
+    public async Task<JwtResponse> LoginAsync(string email, string password,
+        CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var jwt = await _jwtProvider.GetForCredential(email, password, cancellationToken);
+        return jwt;
     }
 
     public async Task<JwtResponse> GenerateTokenAsync(object user, CancellationToken cancellationToken = default)
@@ -29,12 +39,13 @@ public class AuthRepository : IAuthRepository
         throw new NotImplementedException();
     }
 
-    public async Task<Result<JwtResponse>> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+    public async Task<JwtResponse> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<Result<JwtResponse>> LoginWithExternalProviderAsync(string provider, string providerKey, string identityToken,
+    public async Task<JwtResponse> LoginWithExternalProviderAsync(string provider, string providerKey,
+        string identityToken,
         CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();

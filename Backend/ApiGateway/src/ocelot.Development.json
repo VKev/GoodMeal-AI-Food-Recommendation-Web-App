@@ -29,14 +29,10 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": "5002"
+          "Port": "5003"
         }
       ],
-      "DownstreamPathTemplate": "/api/Auth/{everything}",
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "IdentityApiKey",
-        "AllowedScopes": []
-      }
+      "DownstreamPathTemplate": "/api/Auth/{everything}"
     },
     {
       "UpstreamPathTemplate": "/api/Guest/{everything}",

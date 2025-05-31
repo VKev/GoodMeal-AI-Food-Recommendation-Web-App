@@ -1,5 +1,7 @@
 using Application;
+using Domain.Repositories;
 using Infrastructure;
+using Infrastructure.Repositories;
 using SharedLibrary.Utils;
 using SharedLibrary.Configs;
 using Serilog;
@@ -22,6 +24,12 @@ builder.Services.ConfigureOptions<DatabaseConfigSetup>();
 builder.Services
     .AddApplication()
     .AddInfrastructure();
+
+builder.Services.AddHttpClient<IJwtProvider, JwtProvider>((client, provider) =>
+{
+    provider.BaseAddress = new Uri(builder.Configuration["Authentication:Uri"] ??
+                                   "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword");
+});
 
 var app = builder.Build();
 
