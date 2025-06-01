@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
+using SharedLibrary.Utils;
 
 namespace WebApi.Controllers
 {
@@ -56,7 +57,7 @@ namespace WebApi.Controllers
         }
         
         [HttpGet("check-authorization")]
-        [Authorize]
+        [ApiGatewayUser]
         public IActionResult CheckAuthorization()
         {
             if (!User.Identity?.IsAuthenticated ?? false)

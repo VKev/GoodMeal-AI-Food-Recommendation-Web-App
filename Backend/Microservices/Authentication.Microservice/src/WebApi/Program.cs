@@ -5,6 +5,7 @@ using Infrastructure.Repositories;
 using SharedLibrary.Utils;
 using SharedLibrary.Configs;
 using Serilog;
+using WebApi.Middlewares;
 
 string solutionDirectory = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName ?? "";
 DotNetEnv.Env.Load(Path.Combine(solutionDirectory, ".env"));
@@ -15,7 +16,6 @@ var environment = builder.Environment;
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddAuthorization();
 
 builder.Host.UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
     .ReadFrom.Configuration(hostingContext.Configuration));
@@ -48,10 +48,8 @@ app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
 app.MapControllers();
-
+app.UseMiddleware<GetAuthenticatedUserMiddleware>();
 app.Run();
 
 AutoScaffold.UpdateAppSettingsFile("appsettings.json", "default");
