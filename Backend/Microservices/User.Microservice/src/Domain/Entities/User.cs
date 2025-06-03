@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Domain.Entities;
+﻿namespace Domain.Entities;
 
 public partial class User
 {
@@ -11,7 +8,7 @@ public partial class User
 
     public string Email { get; set; } = null!;
     
-    public string IdentityId { get; set; } = null!;
+    public string? IdentityId { get; set; }
     
     public DateTime? CreatedAt { get; set; }
 

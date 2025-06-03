@@ -7,10 +7,12 @@ using Microsoft.Extensions.Logging;
 using Domain.Repositories;
 using Infrastructure.Repositories;
 using Application.Abstractions.UnitOfWork;
+using Application.Consumers;
 using Infrastructure.Common;
 using MassTransit;
 using Application.Sagas;
 using Infrastructure.Context;
+using SharedLibrary.Contracts.UserCreating;
 
 namespace Infrastructure
 {
@@ -44,7 +46,7 @@ namespace Infrastructure
             }
             services.AddMassTransit(busConfigurator =>
             {
-
+                busConfigurator.AddConsumer<AuthenticationUserCreatedConsumer>();
                 busConfigurator.AddSagaStateMachine<UserCreatingSaga, UserCreatingSagaData>()
                     .RedisRepository(r =>
                     {

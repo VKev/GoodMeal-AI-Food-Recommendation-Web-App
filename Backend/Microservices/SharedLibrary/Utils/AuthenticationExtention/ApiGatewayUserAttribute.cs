@@ -7,6 +7,8 @@ namespace SharedLibrary.Utils;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class ApiGatewayUserAttribute : Attribute, IActionFilter
 {
+    public string? Roles { get; set; }
+
     public void OnActionExecuting(ActionExecutingContext context)
     {
         var headers = context.HttpContext.Request.Headers;
@@ -31,7 +33,7 @@ public class ApiGatewayUserAttribute : Attribute, IActionFilter
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim(ClaimTypes.NameIdentifier, userId)
         };
 
         if (!string.IsNullOrEmpty(email))
@@ -44,6 +46,19 @@ public class ApiGatewayUserAttribute : Attribute, IActionFilter
         var principal = new ClaimsPrincipal(identity);
 
         context.HttpContext.User = principal;
+
+        if (!string.IsNullOrEmpty(Roles))
+        {
+            var allowedRoles = Roles.Split(',').Select(r => r.Trim());
+            var userRoles = context.HttpContext.User.Claims
+                .Where(c => c.Type == ClaimTypes.Role)
+                .Select(c => c.Value);
+
+            if (!allowedRoles.Intersect(userRoles).Any())
+            {
+                context.Result = new ForbidResult();
+            }
+        }
     }
 
     public void OnActionExecuted(ActionExecutedContext context)

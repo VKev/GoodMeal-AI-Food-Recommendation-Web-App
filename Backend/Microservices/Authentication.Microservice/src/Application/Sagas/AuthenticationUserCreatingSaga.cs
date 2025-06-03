@@ -29,11 +29,12 @@ namespace Application.Sagas
                     context.Saga.CorrelationId = context.Message.CorrelationId;
                     context.Saga.UserCreated = true;
 
-                    await context.Publish(new UserCreatedEvent
+                    await context.Publish(new AuthenticationUserCreatedEvent
                     {
                         CorrelationId = context.Message.CorrelationId,
                         Name = context.Message.Name,
-                        Email = context.Message.Email
+                        Email = context.Message.Email,
+                        IdentityID = context.Message.IdentityId,
                     });
                 })
             );

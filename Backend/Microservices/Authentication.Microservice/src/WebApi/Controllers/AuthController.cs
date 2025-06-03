@@ -12,17 +12,18 @@ namespace WebApi.Controllers
     {
         public AuthController(IMediator mediator) : base(mediator)
         {
-
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> Register([FromBody] RegisterUserCommand command,
+            CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(command, cancellationToken);
             if (result.IsFailure)
             {
                 return HandleFailure(result);
             }
+
             return Ok(result);
         }
 
@@ -34,28 +35,36 @@ namespace WebApi.Controllers
             {
                 return HandleFailure(result);
             }
-            return Ok(result);
-        }
-
-        [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(command, cancellationToken);
 
             return Ok(result);
         }
 
-        [HttpPost("login-with-external-provider")]
-        public async Task<IActionResult> LoginGoogle([FromBody] LoginWithExternalProviderCommand command, CancellationToken cancellationToken)
+        [HttpPost("login-token")]
+        public async Task<IActionResult> Login([FromBody] LoginWithExternalProviderCommand command,
+            CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(command, cancellationToken);
             if (result.IsFailure)
             {
                 return HandleFailure(result);
             }
+
             return Ok(result);
         }
         
+        [HttpPost("login-with-external-provider")]
+        public async Task<IActionResult> LoginGoogle([FromBody] LoginWithExternalProviderCommand command,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(command, cancellationToken);
+            if (result.IsFailure)
+            {
+                return HandleFailure(result);
+            }
+
+            return Ok(result);
+        }
+
         [HttpGet("check-authorization")]
         [ApiGatewayUser]
         public IActionResult CheckAuthorization()
@@ -77,7 +86,7 @@ namespace WebApi.Controllers
                 }
             });
         }
-        
+
         [HttpGet("health")]
         public async Task<IActionResult> Health()
         {

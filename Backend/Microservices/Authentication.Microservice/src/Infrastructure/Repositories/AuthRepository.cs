@@ -34,20 +34,31 @@ public class AuthRepository : IAuthRepository
         return jwt;
     }
 
-    public async Task<JwtResponse> GenerateTokenAsync(object user, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<JwtResponse> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<JwtResponse> LoginWithExternalProviderAsync(string provider, string providerKey,
-        string identityToken,
+    public async Task<JwtResponse> LoginWithExternalProviderAsync(string identityToken,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var decodedToken = await FirebaseAuth.DefaultInstance
+            .VerifyIdTokenAsync(identityToken, cancellationToken);
+
+        var uid = decodedToken.Uid;
+        var email = decodedToken.Claims.TryGetValue("email", out var emailObj) ? emailObj?.ToString() : null;
+        var name = decodedToken.Claims.TryGetValue("name", out var nameObj) ? nameObj?.ToString() : null;
+        var picture = decodedToken.Claims.TryGetValue("picture", out var picObj) ? picObj?.ToString() : null;
+
+        if (string.IsNullOrEmpty(email))
+        {
+            throw new Exception("Invalid token: email claim missing.");
+        }
+
+        return new JwtResponse
+        {
+            UserId = uid,
+            Email = email,
+            Name = name ?? "",
+            AccessToken = identityToken,
+            RefreshToken = "",
+            TokenType = "Firebase",
+            ExpiresIn = 3600,
+        };
     }
 }

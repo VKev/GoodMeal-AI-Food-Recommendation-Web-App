@@ -23,12 +23,14 @@ public class JwtProvider : IJwtProvider
             password,
             returnSecureToken = true
         };
-
-        Console.WriteLine("Request: " + _httpClient.BaseAddress + ":" + _httpClient.DefaultRequestHeaders.Authorization);
+        
         var response = await _httpClient.PostAsJsonAsync("", request, cancellationToken: cancellationToken);
         var userResponse = await response.Content.ReadFromJsonAsync<AuthResponse>(cancellationToken: cancellationToken);
         return new JwtResponse()
         {
+            UserId = userResponse?.LocalId ?? "",
+            Email = email,
+            Name = userResponse?.DisplayName ?? "",
             AccessToken = userResponse?.IdToken ?? "",
             RefreshToken = userResponse?.RefreshToken ?? "",
             TokenType = userResponse?.OauthAccessToken ?? "",
