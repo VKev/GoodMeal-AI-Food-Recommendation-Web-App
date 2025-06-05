@@ -2,12 +2,7 @@
   "Routes": [
     {
       "UpstreamPathTemplate": "/api/User/{everything}",
-      "UpstreamHttpMethod": [
-        "Get",
-        "Post",
-        "Put",
-        "Delete"
-      ],
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -19,12 +14,7 @@
     },
     {
       "UpstreamPathTemplate": "/api/Auth/{everything}",
-      "UpstreamHttpMethod": [
-        "Get",
-        "Post",
-        "Put",
-        "Delete"
-      ],
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -35,13 +25,25 @@
       "DownstreamPathTemplate": "/api/Auth/{everything}"
     },
     {
-      "UpstreamPathTemplate": "/api/Guest/{everything}",
-      "UpstreamHttpMethod": [
-        "Get",
-        "Post",
-        "Put",
-        "Delete"
+      "UpstreamPathTemplate": "/api/Resource/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": "5004"
+        }
       ],
+      "DownstreamPathTemplate": "/api/Auth/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Guest/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamPathTemplate": "/api/Resource/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Guest/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
