@@ -1,8 +1,7 @@
 using System.Net.Http.Json;
+using Domain.Entities;
 using Domain.Repositories;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SharedLibrary.Common.ResponseModel;
 
 namespace Infrastructure.Repositories;
 
@@ -28,7 +27,7 @@ public class JwtProvider : IJwtProvider
         var userResponse = await response.Content.ReadFromJsonAsync<AuthResponse>(cancellationToken: cancellationToken);
         return new JwtResponse()
         {
-            UserId = userResponse?.LocalId ?? "",
+            IdentityId = userResponse?.LocalId ?? "",
             Email = email,
             Name = userResponse?.DisplayName ?? "",
             AccessToken = userResponse?.IdToken ?? "",

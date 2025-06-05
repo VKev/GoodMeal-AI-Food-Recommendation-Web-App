@@ -39,21 +39,9 @@ namespace WebApi.Controllers
             return Ok(result);
         }
 
-        [HttpPost("login-token")]
-        public async Task<IActionResult> Login([FromBody] LoginWithExternalProviderCommand command,
-            CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(command, cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
 
-            return Ok(result);
-        }
-        
-        [HttpPost("login-with-external-provider")]
-        public async Task<IActionResult> LoginGoogle([FromBody] LoginWithExternalProviderCommand command,
+        [HttpPost("login-token")]
+        public async Task<IActionResult> LoginWithToken([FromBody] LoginWithExternalProviderCommand command,
             CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(command, cancellationToken);
@@ -75,6 +63,8 @@ namespace WebApi.Controllers
             }
 
             var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+            var roles = User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
+            
             return Ok(new
             {
                 message = "Authorized",
@@ -82,9 +72,26 @@ namespace WebApi.Controllers
                 {
                     name = User.Identity.Name,
                     authenticationType = User.Identity.AuthenticationType,
-                    claims
+                    userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+                    email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value,
+                    roles = roles,
+                    allClaims = claims
                 }
             });
+        }
+
+        [HttpGet("check-admin")]
+        [ApiGatewayUser(Roles = "Admin")]
+        public IActionResult CheckAdmin()
+        {
+            return Ok(new { message = "You have admin access!", timestamp = DateTime.UtcNow });
+        }
+
+        [HttpGet("check-user")]
+        [ApiGatewayUser(Roles = "User,Admin")]
+        public IActionResult CheckUser()
+        {
+            return Ok(new { message = "You have user access!", timestamp = DateTime.UtcNow });
         }
 
         [HttpGet("health")]

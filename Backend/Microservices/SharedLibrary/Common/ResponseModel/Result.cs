@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace SharedLibrary.Common.ResponseModel
 {
@@ -20,11 +21,21 @@ namespace SharedLibrary.Common.ResponseModel
             Error = error;
         }
 
-        public bool IsSuccess { get; }
+        [JsonConstructor]
+        protected Result()
+        {
+            IsSuccess = false;
+            Error = Error.None;
+        }
 
+        [JsonPropertyName("isSuccess")]
+        public bool IsSuccess { get; protected set; }
+
+        [JsonPropertyName("isFailure")]
         public bool IsFailure => !IsSuccess;
 
-        public Error Error { get; }
+        [JsonPropertyName("error")]
+        public Error Error { get; protected set; }
 
         public static Result Success() => new(true, Error.None);
 
@@ -37,7 +48,7 @@ namespace SharedLibrary.Common.ResponseModel
 
     public class Result<TValue> : Result
     {
-        private readonly TValue? _value;
+        private TValue? _value;
 
         protected internal Result(TValue? value, bool isSuccess, Error error)
             : base(isSuccess, error)
@@ -45,11 +56,22 @@ namespace SharedLibrary.Common.ResponseModel
             _value = value;
         }
 
-        public TValue Value => IsSuccess
-            ? _value!
-            : throw new InvalidOperationException("The value of a failure result can't be accessed");
+        [JsonConstructor]
+        protected Result() : base()
+        {
+            _value = default;
+        }
+
+        [JsonPropertyName("value")]
+        public TValue Value 
+        { 
+            get => IsSuccess
+                ? _value!
+                : throw new InvalidOperationException("The value of a failure result can't be accessed");
+            protected set => _value = value;
+        }
 
         public static implicit operator Result<TValue>(TValue? value) =>
             value is not null ? Success(value) : Failure<TValue>(Error.NullValue);
     }
-} 
+}

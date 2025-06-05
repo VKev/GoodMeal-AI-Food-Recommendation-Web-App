@@ -47,6 +47,25 @@ namespace WebApi.Controllers
             return Ok(result);
         }
 
+        [HttpGet("roles/{identityId}")]
+        public async Task<IActionResult> GetUserRoles(string identityId, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetUserRolesQuery(identityId), cancellationToken);
+            Console.WriteLine("Get role success: " + result.IsSuccess);
+
+            if (result.IsFailure)
+            {
+                return HandleFailure(result);
+            }
+
+            foreach (var role in result.Value.Roles)
+            {
+                Console.WriteLine(role);
+            }
+
+            return Ok(result);
+        }
+
         [HttpPost("add-role")]
         [ApiGatewayUser]
         public async Task<IActionResult> AddRole([FromBody] AddUserRoleCommand request,

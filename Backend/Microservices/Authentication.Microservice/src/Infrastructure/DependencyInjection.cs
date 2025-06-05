@@ -5,9 +5,12 @@ using Microsoft.Extensions.Logging;
 using Domain.Repositories;
 using Infrastructure.Repositories;
 using Application.Sagas;
+using Application.Consumers;
 using MassTransit;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Domain.Services;
+using Infrastructure.Services;
 
 namespace Infrastructure
 {
@@ -16,8 +19,13 @@ namespace Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICustomJwtProvider, CustomJwtProvider>();
             services.AddSingleton<EnvironmentConfig>();
-            
+
+            // Add HttpClient for UserService
+            services.AddHttpClient<IUserService, UserService>();
+
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             using var serviceProvider = services.BuildServiceProvider();
             var logger = serviceProvider.GetRequiredService<ILogger<AutoScaffold>>();
@@ -31,7 +39,7 @@ namespace Infrastructure
                         config.DatabasePassword,
                         config.DatabaseProvider);
             scaffold.UpdateAppSettings();
-            
+
             string solutionDirectory = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName ?? "";
             if (solutionDirectory != null)
             {
@@ -39,6 +47,9 @@ namespace Infrastructure
             }
             services.AddMassTransit(busConfigurator =>
             {
+                busConfigurator.AddConsumer<ControlAccessCustomRoleClaimConsumer>();
+                busConfigurator.AddConsumer<UserCreatedConsumer>();
+                busConfigurator.AddConsumer<UserDeletedConsumer>();
 
                 busConfigurator.AddSagaStateMachine<AuthenticationUserCreatingSaga, AuthenticationUserCreatingSagaData>()
                     .RedisRepository(r =>
@@ -65,12 +76,12 @@ namespace Infrastructure
                     configurator.ConfigureEndpoints(context);
                 });
             });
-            
+
             FirebaseApp.Create(new AppOptions()
             {
                 Credential = GoogleCredential.FromFile("credentials.json"),
             });
-            
+
             return services;
         }
     }

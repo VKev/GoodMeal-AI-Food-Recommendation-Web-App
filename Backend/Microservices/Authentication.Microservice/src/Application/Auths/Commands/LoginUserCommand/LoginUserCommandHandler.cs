@@ -20,13 +20,13 @@ public class LoginUserCommandHandler : ICommandHandler<LoginUserCommand>
     {
         var jwt = await _authRepository.LoginAsync(request.Email, request.Password, cancellationToken);
 
-        await _publishEndpoint.Publish(new AuthenticationUserCreatingSagaStart()
-        {
-            CorrelationId = Guid.NewGuid(),
-            Email = request.Email,
-            Name = request.Email,
-            IdentityId = jwt.UserId,
-        }, cancellationToken);
+        // await _publishEndpoint.Publish(new AuthenticationUserCreatingSagaStart()
+        // {
+        //     CorrelationId = Guid.NewGuid(),
+        //     Email = request.Email,
+        //     Name = request.Email,
+        //     IdentityId = jwt.UserId,
+        // }, cancellationToken);
 
         return Result.Success(jwt);
     }

@@ -5,3 +5,4 @@ namespace Application.Auths.Commands;
 public sealed record LoginWithExternalProviderCommand(
     string IdentityToken
 ) : ICommand;
+

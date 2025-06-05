@@ -24,15 +24,23 @@ public class AuthenticationUserCreatedConsumer : IConsumer<AuthenticationUserCre
     {
         try
         {
-            await _userRepository.AddAsync(
-                new User
-                {
-                    Name = context.Message.Name, Email = context.Message.Email, IdentityId = context.Message.IdentityID
-                }, context.CancellationToken);
+            var user = new User
+            {
+                Name = context.Message.Name, 
+                Email = context.Message.Email, 
+                IdentityId = context.Message.IdentityID
+            };
+            
+            await _userRepository.AddAsync(user, context.CancellationToken);
             await _unitOfWork.SaveChangesAsync(context.CancellationToken);
+            
             await context.Publish(new UserCreatedEvent()
             {
-                CorrelationId = context.Message.CorrelationId
+                CorrelationId = context.Message.CorrelationId,
+                Name = user.Name,
+                Email = user.Email,
+                IdentityId = user.IdentityId,
+                UserId = user.UserId
             });
         }
         catch (Exception ex)

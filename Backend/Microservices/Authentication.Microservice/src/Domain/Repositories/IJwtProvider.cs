@@ -1,4 +1,4 @@
-using SharedLibrary.Common.ResponseModel;
+using Domain.Entities;
 
 namespace Domain.Repositories;
 

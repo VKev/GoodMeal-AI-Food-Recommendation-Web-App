@@ -1,6 +1,6 @@
+using Domain.Entities;
 using Domain.Repositories;
 using FirebaseAdmin.Auth;
-using SharedLibrary.Common.ResponseModel;
 
 namespace Infrastructure.Repositories;
 
@@ -52,7 +52,7 @@ public class AuthRepository : IAuthRepository
 
         return new JwtResponse
         {
-            UserId = uid,
+            IdentityId = uid,
             Email = email,
             Name = name ?? "",
             AccessToken = identityToken,

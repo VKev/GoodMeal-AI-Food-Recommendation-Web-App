@@ -29,7 +29,8 @@ public class ApiGatewayUserAttribute : Attribute, IActionFilter
         }
 
         var email = headers["X-User-Email"].FirstOrDefault();
-        var role = headers["X-User-Role"].FirstOrDefault();
+        var primaryRole = headers["X-User-Role"].FirstOrDefault();
+        var allRoles = headers["X-User-Roles"].FirstOrDefault();
 
         var claims = new List<Claim>
         {
@@ -39,8 +40,20 @@ public class ApiGatewayUserAttribute : Attribute, IActionFilter
         if (!string.IsNullOrEmpty(email))
             claims.Add(new Claim(ClaimTypes.Email, email));
 
-        if (!string.IsNullOrEmpty(role))
-            claims.Add(new Claim(ClaimTypes.Role, role));
+        if (!string.IsNullOrEmpty(primaryRole))
+            claims.Add(new Claim(ClaimTypes.Role, primaryRole));
+
+        if (!string.IsNullOrEmpty(allRoles))
+        {
+            var roleList = allRoles.Split(',').Select(r => r.Trim()).Where(r => !string.IsNullOrEmpty(r));
+            foreach (var role in roleList)
+            {
+                if (!claims.Any(c => c.Type == ClaimTypes.Role && c.Value == role))
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
+            }
+        }
 
         var identity = new ClaimsIdentity(claims, "ApiGateway");
         var principal = new ClaimsPrincipal(identity);

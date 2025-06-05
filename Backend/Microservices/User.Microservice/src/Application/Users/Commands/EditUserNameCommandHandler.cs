@@ -6,14 +6,14 @@ using SharedLibrary.Common.ResponseModel;
 
 namespace Application.Users.Commands;
 
-public sealed record EditUserNameCommand(string userId, string name) : ICommand;
+public sealed record EditUserNameCommand(Guid userId, string name) : ICommand;
 
-public class EditUserNameValidator : AbstractValidator<RemoveUserRoleCommand>
+public class EditUserNameValidator : AbstractValidator<EditUserNameCommand>
 {
     public EditUserNameValidator()
     {
         RuleFor(x => x.userId).NotEmpty();
-        RuleFor(x => x.roleId).NotEmpty();
+        RuleFor(x => x.name).NotEmpty();
     }
 }
 
