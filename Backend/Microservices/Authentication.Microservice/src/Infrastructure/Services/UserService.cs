@@ -1,23 +1,20 @@
-using System.Net.Http.Json;
 using Domain.Entities;
 using Domain.Services;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using SharedLibrary.Common.ResponseModel;
+using MassTransit;
+using SharedLibrary.Contracts.GetUserRoles;
 
 namespace Infrastructure.Services;
 
 public class UserService : IUserService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IRequestClient<GetUserRolesRequest> _requestClient;
     private readonly ILogger<UserService> _logger;
-    private readonly string _userServiceBaseUrl;
 
-    public UserService(HttpClient httpClient, IConfiguration configuration, ILogger<UserService> logger)
+    public UserService(IRequestClient<GetUserRolesRequest> requestClient, ILogger<UserService> logger)
     {
-        _httpClient = httpClient;
+        _requestClient = requestClient;
         _logger = logger;
-        _userServiceBaseUrl = configuration["Services:UserService:BaseUrl"] ?? "http://api-gateway:8080";
     }
 
     public async Task<UserRolesResponse?> GetUserRolesAsync(string identityId,
@@ -25,16 +22,20 @@ public class UserService : IUserService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<Result<UserRolesResponse>>(
-                $"{_userServiceBaseUrl}/api/User/roles/{identityId}",
-                cancellationToken);
-
-            if (response == null || response.IsFailure)
+            var request = new GetUserRolesRequest { IdentityId = identityId };
+            
+            var response = await _requestClient.GetResponse<GetUserRolesResponse>(request, cancellationToken);
+            
+            var userRoles = response.Message;
+            
+            return new UserRolesResponse
             {
-                throw new Exception($"Failed to get user roles for identity {identityId}");
-            }
-
-            return response?.Value;
+                UserId = userRoles.UserId,
+                Email = userRoles.Email,
+                Name = userRoles.Name,
+                IdentityId = userRoles.IdentityId,
+                Roles = userRoles.Roles
+            };
         }
         catch (Exception ex)
         {

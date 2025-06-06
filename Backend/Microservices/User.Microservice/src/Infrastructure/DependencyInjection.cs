@@ -13,6 +13,7 @@ using MassTransit;
 using Application.Sagas;
 using Infrastructure.Context;
 using SharedLibrary.Contracts.UserCreating;
+using Application.Users.Consumers;
 
 namespace Infrastructure
 {
@@ -47,6 +48,7 @@ namespace Infrastructure
             services.AddMassTransit(busConfigurator =>
             {
                 busConfigurator.AddConsumer<AuthenticationUserCreatedConsumer>();
+                busConfigurator.AddConsumer<GetUserRolesConsumer>();
                 busConfigurator.AddSagaStateMachine<UserCreatingSaga, UserCreatingSagaData>()
                     .RedisRepository(r =>
                     {

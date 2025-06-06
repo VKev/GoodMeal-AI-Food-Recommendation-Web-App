@@ -11,6 +11,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Domain.Services;
 using Infrastructure.Services;
+using SharedLibrary.Contracts.GetUserRoles;
 
 namespace Infrastructure
 {
@@ -22,9 +23,6 @@ namespace Infrastructure
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICustomJwtProvider, CustomJwtProvider>();
             services.AddSingleton<EnvironmentConfig>();
-
-            // Add HttpClient for UserService
-            services.AddHttpClient<IUserService, UserService>();
 
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             using var serviceProvider = services.BuildServiceProvider();
@@ -50,6 +48,9 @@ namespace Infrastructure
                 busConfigurator.AddConsumer<ControlAccessCustomRoleClaimConsumer>();
                 busConfigurator.AddConsumer<UserCreatedConsumer>();
                 busConfigurator.AddConsumer<UserDeletedConsumer>();
+
+                // Add RequestClient for GetUserRoles
+                busConfigurator.AddRequestClient<GetUserRolesRequest>();
 
                 busConfigurator.AddSagaStateMachine<AuthenticationUserCreatingSaga, AuthenticationUserCreatingSagaData>()
                     .RedisRepository(r =>
