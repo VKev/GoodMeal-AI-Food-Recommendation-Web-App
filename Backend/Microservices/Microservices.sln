@@ -27,7 +27,30 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "User.Microse
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "User.Microservice\src\Infrastructure\Infrastructure.csproj", "{1CDF0A91-3DEC-4700-BD7F-792A244EE8F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedLibrary", "SharedLibrary\SharedLibrary.csproj", "{F379A7C2-9A5A-4521-9957-AE08783F2048}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Restaurant.Microservice", "Restaurant.Microservice", "{F7C147D2-7FA2-4536-97EB-576E6235CBEB}"
+	ProjectSection(SolutionItems) = preProject
+		Restaurant.Microservice\dockerfile = Restaurant.Microservice\dockerfile
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{40F766A7-9308-454F-8DAD-52E9A5710C35}"
+	ProjectSection(SolutionItems) = preProject
+		Restaurant.Microservice\src\.env = Restaurant.Microservice\src\.env
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Restaurant.Microservice\src\Application\Application.csproj", "{B32B6A67-B9EE-44DF-8EF4-7F11CAFB2C9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Restaurant.Microservice\src\Infrastructure\Infrastructure.csproj", "{F85D4ECC-0D44-4B57-A75C-37F85D343534}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Restaurant.Microservice\src\Domain\Domain.csproj", "{004F3E59-85C3-498D-91F5-3897DD87EA90}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi", "Restaurant.Microservice\src\WebApi\WebApi.csproj", "{565AB01B-B1F5-4F82-A1F9-D086B6629223}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4A64232D-EE40-403A-9560-A458E4F2E83E}"
+	ProjectSection(SolutionItems) = preProject
+		Restaurant.Microservice\test\ArchitectureTest.cs = Restaurant.Microservice\test\ArchitectureTest.cs
+		Restaurant.Microservice\test\Directory.Build.props = Restaurant.Microservice\test\Directory.Build.props
+		Restaurant.Microservice\test\test.csproj = Restaurant.Microservice\test\test.csproj
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Authentication.Microservice", "Authentication.Microservice", "{EF96A408-9A98-10BF-AD50-8070FB589998}"
 EndProject
@@ -40,6 +63,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Authentication.Microservice\src\Infrastructure\Infrastructure.csproj", "{2F02794F-142B-41ED-B653-975B6BCF8A65}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi", "Authentication.Microservice\src\WebApi\WebApi.csproj", "{95883429-2957-47B4-B6ED-0C42DEEAA895}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resource.Microservice", "Resource.Microservice", "{674CA801-AA3A-9FD9-EAD7-9572DAADA5CA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F24F5575-9258-AF46-02AC-C4850D32B5EC}"
@@ -51,6 +75,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Resource.Microservice\src\Infrastructure\Infrastructure.csproj", "{177C33F4-3847-4D15-9AD4-72909AC1E8D5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Resource.Microservice\src\Domain\Domain.csproj", "{1188B310-9058-4B28-871F-746B70E72BE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedLibrary", "SharedLibrary\SharedLibrary.csproj", "{8869EBA7-B2A7-430A-9F4E-0C382AE37179}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -158,14 +184,26 @@ Global
 		{1CDF0A91-3DEC-4700-BD7F-792A244EE8F7}.Release|x64.Build.0 = Release|Any CPU
 		{1CDF0A91-3DEC-4700-BD7F-792A244EE8F7}.Release|x86.ActiveCfg = Release|Any CPU
 		{1CDF0A91-3DEC-4700-BD7F-792A244EE8F7}.Release|x86.Build.0 = Release|Any CPU
-		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B32B6A67-B9EE-44DF-8EF4-7F11CAFB2C9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B32B6A67-B9EE-44DF-8EF4-7F11CAFB2C9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B32B6A67-B9EE-44DF-8EF4-7F11CAFB2C9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B32B6A67-B9EE-44DF-8EF4-7F11CAFB2C9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F85D4ECC-0D44-4B57-A75C-37F85D343534}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F85D4ECC-0D44-4B57-A75C-37F85D343534}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F85D4ECC-0D44-4B57-A75C-37F85D343534}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F85D4ECC-0D44-4B57-A75C-37F85D343534}.Release|Any CPU.Build.0 = Release|Any CPU
+		{004F3E59-85C3-498D-91F5-3897DD87EA90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{004F3E59-85C3-498D-91F5-3897DD87EA90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Debug|x64.Build.0 = Debug|Any CPU
 		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Debug|x86.Build.0 = Debug|Any CPU
-		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Release|Any CPU.Build.0 = Release|Any CPU
+		{004F3E59-85C3-498D-91F5-3897DD87EA90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{004F3E59-85C3-498D-91F5-3897DD87EA90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{565AB01B-B1F5-4F82-A1F9-D086B6629223}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{565AB01B-B1F5-4F82-A1F9-D086B6629223}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{565AB01B-B1F5-4F82-A1F9-D086B6629223}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{565AB01B-B1F5-4F82-A1F9-D086B6629223}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Release|x64.ActiveCfg = Release|Any CPU
 		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Release|x64.Build.0 = Release|Any CPU
 		{F379A7C2-9A5A-4521-9957-AE08783F2048}.Release|x86.ActiveCfg = Release|Any CPU
@@ -266,6 +304,18 @@ Global
 		{1188B310-9058-4B28-871F-746B70E72BE9}.Release|x64.Build.0 = Release|Any CPU
 		{1188B310-9058-4B28-871F-746B70E72BE9}.Release|x86.ActiveCfg = Release|Any CPU
 		{1188B310-9058-4B28-871F-746B70E72BE9}.Release|x86.Build.0 = Release|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Debug|x64.Build.0 = Debug|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Debug|x86.Build.0 = Debug|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Release|x64.ActiveCfg = Release|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Release|x64.Build.0 = Release|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Release|x86.ActiveCfg = Release|Any CPU
+		{8869EBA7-B2A7-430A-9F4E-0C382AE37179}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -281,6 +331,12 @@ Global
 		{68DDED90-E49B-40AB-9877-739AF1D6C3DD} = {802A1162-233A-4CFC-842F-D94894E209C4}
 		{E3FA3796-4EFB-45C7-86F8-4431F46AB7F8} = {802A1162-233A-4CFC-842F-D94894E209C4}
 		{1CDF0A91-3DEC-4700-BD7F-792A244EE8F7} = {802A1162-233A-4CFC-842F-D94894E209C4}
+		{40F766A7-9308-454F-8DAD-52E9A5710C35} = {F7C147D2-7FA2-4536-97EB-576E6235CBEB}
+		{B32B6A67-B9EE-44DF-8EF4-7F11CAFB2C9E} = {40F766A7-9308-454F-8DAD-52E9A5710C35}
+		{F85D4ECC-0D44-4B57-A75C-37F85D343534} = {40F766A7-9308-454F-8DAD-52E9A5710C35}
+		{004F3E59-85C3-498D-91F5-3897DD87EA90} = {40F766A7-9308-454F-8DAD-52E9A5710C35}
+		{565AB01B-B1F5-4F82-A1F9-D086B6629223} = {40F766A7-9308-454F-8DAD-52E9A5710C35}
+		{4A64232D-EE40-403A-9560-A458E4F2E83E} = {F7C147D2-7FA2-4536-97EB-576E6235CBEB}
 		{C58B5EA2-669A-37D2-8EE8-2B768B8A15B9} = {EF96A408-9A98-10BF-AD50-8070FB589998}
 		{0FC86D5B-3C77-4949-B75D-3BD5AD726332} = {C58B5EA2-669A-37D2-8EE8-2B768B8A15B9}
 		{2287B6EA-61C8-49AF-A60C-3802F52CA81A} = {C58B5EA2-669A-37D2-8EE8-2B768B8A15B9}
