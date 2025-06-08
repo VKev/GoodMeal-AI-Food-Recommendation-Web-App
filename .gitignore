@@ -1,7 +1,16 @@
-**/Build/
-.vscode/
-.env
-.fake
-docker-compose-production.yml
-
-#docker-compose -f docker-compose-production.yml -p microservices up --build -d
+.vscode
+Terraform/variables.tf
+.terraform
+.terraform.lock.hcl
+/Backend/Microservices/.idea
+Backend/Microservices/Microservices.sln.DotSettings.user
+/Backend/ApiGateway/.idea
+/Backend/Microservices/User.Microservice/src/WebApi/obj
+Backend/Microservices/User.Microservice/src/WebApi/credentials.json
+/Backend/Microservices/User.Microservice/src/Infrastructure/obj
+Backend/Microservices/Authentication.Microservice/src/WebApi/credentials.json
+Backend/ApiGateway/ApiGateway.sln.DotSettings.user
+Terraform/modules/lambda_edge/lambda_edge.zip
+Terraform/modules/lambda_edge/node_modules
+Terraform/modules/lambda_edge/lambda.zip
+Terraform/modules/lambda_edge/node_modules

@@ -1,0 +1,24 @@
+regions:
+  - global
+  - us-east-1
+
+blocklist:
+- "999999999999"
+
+resource-types:
+  excludes:
+  - IAMUser
+  - IAMUserPolicyAttachment
+  - IAMUserPolicy
+  - IAMUserAccessKey
+  
+  - ECRRepository
+  - ECRRepositoryPolicy
+  - ECRPublicRepository
+  - ECRPublicRepositoryPolicy
+ 
+bypass-alias-check-accounts:
+  - "242201290212"
+
+accounts:
+  "242201290212": {} 

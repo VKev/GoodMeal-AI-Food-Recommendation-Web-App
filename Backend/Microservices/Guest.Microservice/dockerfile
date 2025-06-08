@@ -1,0 +1,34 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /App
+
+ARG SERVICE_NAME
+ENV SERVICE_NAME=${SERVICE_NAME}
+
+COPY Microservices.sln ./
+
+COPY ${SERVICE_NAME}/src/WebApi/WebApi.csproj ./${SERVICE_NAME}/src/WebApi/
+COPY ${SERVICE_NAME}/src/Application/Application.csproj ./${SERVICE_NAME}/src/Application/
+COPY ${SERVICE_NAME}/src/Infrastructure/Infrastructure.csproj ./${SERVICE_NAME}/src/Infrastructure/
+COPY ${SERVICE_NAME}/src/Domain/Domain.csproj ./${SERVICE_NAME}/src/Domain/
+COPY ${SERVICE_NAME}/test/test.csproj ./${SERVICE_NAME}/test/
+COPY SharedLibrary/SharedLibrary.csproj ./SharedLibrary/
+
+RUN dotnet restore ${SERVICE_NAME}/src/WebApi/WebApi.csproj
+
+COPY ${SERVICE_NAME}/src/ ./${SERVICE_NAME}/src/
+COPY SharedLibrary/ ./SharedLibrary/
+
+WORKDIR /App/${SERVICE_NAME}/src/WebApi
+
+RUN dotnet publish -c Release -o /App/out
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /App
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+COPY --from=build /App/out ./
+
+ENTRYPOINT ["dotnet", "WebApi.dll"]
