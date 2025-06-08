@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Domain.Repositories;
 using Infrastructure.Repositories;
-using Application.Abstractions.UnitOfWork;
 using SharedLibrary.Common;
 using Infrastructure.Common;
 using MassTransit;

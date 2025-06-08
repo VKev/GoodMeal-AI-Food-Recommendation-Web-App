@@ -12,3 +12,5 @@ Backend/Microservices/Authentication.Microservice/src/WebApi/credentials.json
 Backend/ApiGateway/ApiGateway.sln.DotSettings.user
 Terraform/modules/lambda_edge/lambda_edge.zip
 Terraform/modules/lambda_edge/node_modules
+Terraform/modules/lambda_edge/lambda.zip
+Terraform/modules/lambda_edge/node_modules

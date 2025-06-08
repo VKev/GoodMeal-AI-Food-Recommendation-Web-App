@@ -18,3 +18,8 @@ output "cloudfront_private_key_pem" {
   value       = tls_private_key.cloudfront_key.private_key_pem
   sensitive   = true
 }
+
+output "cloudfront_key_group_id" {
+  description = "The ID of the CloudFront key group."
+  value       = aws_cloudfront_key_group.cloudfront_key_group.id
+}

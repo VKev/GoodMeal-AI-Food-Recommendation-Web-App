@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SharedLibrary.Common.ResponseModel;
-using Application.Abstractions.UnitOfWork;
 using Application.Users.Commands;
 using AutoMapper;
 using Domain.Repositories;

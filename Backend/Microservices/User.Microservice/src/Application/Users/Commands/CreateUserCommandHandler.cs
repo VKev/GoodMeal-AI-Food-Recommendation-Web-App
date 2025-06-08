@@ -1,11 +1,12 @@
 using SharedLibrary.Common.ResponseModel;
 using Application.Abstractions.Messaging;
-using Application.Abstractions.UnitOfWork;
+using Application.Common;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Repositories;
 using MassTransit;
 using SharedLibrary.Contracts.UserCreating;
+using SharedLibrary.Common;
 
 namespace Application.Users.Commands
 {
