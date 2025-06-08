@@ -47,6 +47,57 @@
         }
       ],
       "DownstreamPathTemplate": "/api/Guest/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Restaurant/{everything}",
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": "5303"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Restaurant/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Food/{everything}",
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": "5303"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Food/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Rating/{everything}",
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": "5303"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Rating/{everything}"
     }
   ],
   "GlobalConfiguration": {

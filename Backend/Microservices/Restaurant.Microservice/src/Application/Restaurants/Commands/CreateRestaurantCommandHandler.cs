@@ -1,0 +1,41 @@
+﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.UnitOfWork;
+using Application.Common.ResponseModel;
+using AutoMapper;
+using Domain.Entities;
+using Domain.Repositories;
+
+namespace Application.Restaurants.Commands;
+
+//Create DTO
+public sealed record CreateRestaurantCommand(
+    string Name,
+    string Address,
+    string Phone
+) : ICommand;
+
+internal sealed class CreateRestaurantCommandHandler : ICommandHandler<CreateRestaurantCommand>
+{
+    private readonly IRestaurantRepository _restaurantRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+
+    public CreateRestaurantCommandHandler(IRestaurantRepository restaurantRepository, IMapper mapper,
+        IUnitOfWork unitOfWork)
+    {
+        _restaurantRepository = restaurantRepository;
+        _mapper = mapper;
+        _unitOfWork = unitOfWork;
+    }
+
+
+    public async Task<Result> Handle(CreateRestaurantCommand command, CancellationToken cancellationToken)
+    {
+        var restaurant = _mapper.Map<Restaurant>(command);
+        restaurant.CreatedAt = DateTime.UtcNow;
+        restaurant.IsDisable = false;
+        await _restaurantRepository.AddAsync(restaurant, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}
