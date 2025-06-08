@@ -3,6 +3,7 @@ using Application.Abstractions.UnitOfWork;
 using Application.Common.ResponseModel;
 using AutoMapper;
 using Domain.Repositories;
+using SharedLibrary.Common;
 
 namespace Application.Prompt.Queries;
 

@@ -4,6 +4,7 @@ using Application.Common.ResponseModel;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Repositories;
+using SharedLibrary.Common;
 
 namespace Application.Prompt.Commands;
 

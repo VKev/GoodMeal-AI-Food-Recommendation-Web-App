@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Application.Abstractions.UnitOfWork;
 using Application.Behaviors;
 using FluentValidation;
-using Infrastructure.Configs;
-using MassTransit;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using SharedLibrary.Common;
 
 namespace Application
 {

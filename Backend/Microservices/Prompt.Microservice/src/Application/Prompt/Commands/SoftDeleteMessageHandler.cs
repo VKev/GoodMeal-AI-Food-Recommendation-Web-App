@@ -3,6 +3,7 @@ using Application.Abstractions.UnitOfWork;
 using Application.Common.ResponseModel;
 using Domain.Repositories;
 using Infrastructure.Repositories;
+using SharedLibrary.Common;
 
 namespace Application.Prompt.Commands;
 
