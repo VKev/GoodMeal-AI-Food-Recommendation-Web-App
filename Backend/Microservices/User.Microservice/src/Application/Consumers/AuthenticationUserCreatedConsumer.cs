@@ -1,8 +1,8 @@
-using Application.Abstractions.UnitOfWork;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Repositories;
 using MassTransit;
+using SharedLibrary.Common;
 using SharedLibrary.Contracts.UserCreating;
 
 namespace Application.Consumers;

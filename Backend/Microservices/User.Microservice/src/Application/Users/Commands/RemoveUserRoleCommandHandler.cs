@@ -1,9 +1,9 @@
 using Application.Abstractions.Messaging;
-using Application.Abstractions.UnitOfWork;
 using Domain.Repositories;
 using FluentValidation;
 using SharedLibrary.Common.ResponseModel;
 using MassTransit;
+using SharedLibrary.Common;
 using SharedLibrary.Contracts.UserRoleChanged;
 
 namespace Application.Users.Commands;

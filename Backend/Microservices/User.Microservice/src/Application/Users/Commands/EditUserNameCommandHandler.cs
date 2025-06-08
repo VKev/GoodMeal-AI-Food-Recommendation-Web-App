@@ -1,7 +1,7 @@
 using Application.Abstractions.Messaging;
-using Application.Abstractions.UnitOfWork;
 using Domain.Repositories;
 using FluentValidation;
+using SharedLibrary.Common;
 using SharedLibrary.Common.ResponseModel;
 
 namespace Application.Users.Commands;

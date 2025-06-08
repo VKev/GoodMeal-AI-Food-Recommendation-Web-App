@@ -1,9 +1,9 @@
 using SharedLibrary.Common.ResponseModel;
 using Application.Abstractions.Messaging;
-using Application.Abstractions.UnitOfWork;
 using Domain.Repositories;
 using FluentValidation;
 using MassTransit;
+using SharedLibrary.Common;
 using SharedLibrary.Contracts.UserDeleted;
 
 namespace Application.Users.Commands

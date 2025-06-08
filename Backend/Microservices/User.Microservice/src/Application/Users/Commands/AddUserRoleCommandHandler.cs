@@ -1,5 +1,4 @@
 using Application.Abstractions.Messaging;
-using Application.Abstractions.UnitOfWork;
 using AutoMapper;
 using Domain.Repositories;
 using FluentValidation;
@@ -7,6 +6,7 @@ using SharedLibrary.Common.ResponseModel;
 using MassTransit;
 using SharedLibrary.Contracts.UserRoleChanged;
 using Microsoft.EntityFrameworkCore;
+using SharedLibrary.Common;
 
 namespace Application.Users.Commands;
 
