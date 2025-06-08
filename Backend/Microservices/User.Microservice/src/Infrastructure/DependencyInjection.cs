@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Domain.Repositories;
 using Infrastructure.Repositories;
-using Application.Abstractions.UnitOfWork;
 using Infrastructure.Common;
 using MassTransit;
 using Application.Sagas;

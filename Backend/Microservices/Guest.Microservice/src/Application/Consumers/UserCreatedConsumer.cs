@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Application.Abstractions.UnitOfWork;
 using Application.Guests.Commands;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Repositories;
 using MassTransit;
+using SharedLibrary.Common;
 using SharedLibrary.Contracts.UserCreating;
 
 namespace Application.Consumers
