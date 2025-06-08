@@ -4,5 +4,7 @@ public record GetPromptSessionResponse(
     Guid Id,
     Guid UserId,
     DateTime CreatedAt,
-    DateTime? UpdatedAt
+    DateTime? UpdatedAt,
+    DateTime? DeletedAt,
+    bool? IsDeleted
 );

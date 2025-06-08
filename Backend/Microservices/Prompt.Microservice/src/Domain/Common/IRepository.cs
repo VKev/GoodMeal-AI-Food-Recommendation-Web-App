@@ -14,6 +14,7 @@ namespace Domain.Common
         Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken);
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken);
         void Update(T entity);
+        void UpdateFields(T entity, params Expression<Func<T, object>>[] updatedProperties);
         Task DeleteByIdAsync(Guid id, CancellationToken cancellationToken);
         void Delete(T entity);
         void DeleteRange(IEnumerable<T> entities);

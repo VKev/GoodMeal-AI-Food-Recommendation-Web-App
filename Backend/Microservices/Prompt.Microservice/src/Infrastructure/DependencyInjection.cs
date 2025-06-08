@@ -12,16 +12,13 @@ namespace Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services,
-            IConfiguration configuration)
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
             services.AddScoped<IPromptSessionRepository, PromptSessionRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IMessageRestaurantRepository, MessageRestaurantRepository>();
-            var envConfig = new EnvironmentConfig();
-            configuration.Bind("EnvironmentConfig", envConfig); // or load from env manually if you use .env
-
-            services.AddSingleton(envConfig);
+            services.AddSingleton<EnvironmentConfig>();
+            
             services.AddMassTransit(busConfigurator =>
             {
                 busConfigurator.SetKebabCaseEndpointNameFormatter();

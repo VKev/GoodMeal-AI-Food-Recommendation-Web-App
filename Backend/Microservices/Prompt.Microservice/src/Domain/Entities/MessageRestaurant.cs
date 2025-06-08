@@ -13,7 +13,7 @@ public partial class MessageRestaurant
 
     public string? CreatedBy { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }
 

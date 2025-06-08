@@ -15,7 +15,7 @@ public partial class PromptSession
 
     public DateTime? DeletedAt { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
     public string? CreatedBy { get; set; }
 

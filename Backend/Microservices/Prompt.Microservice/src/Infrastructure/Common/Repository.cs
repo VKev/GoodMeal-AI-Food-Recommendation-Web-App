@@ -12,8 +12,8 @@ namespace Infrastructure.Common
 {
     public class Repository<T> : IRepository<T> where T : class
     {
-        private readonly PromptDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        private protected readonly PromptDbContext _context;
+        private protected readonly DbSet<T> _dbSet;
 
         public Repository(PromptDbContext context)
         {
@@ -44,18 +44,29 @@ namespace Infrastructure.Common
 
         public async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return await _dbSet.ToListAsync(cancellationToken);
+            return await _dbSet.AsNoTracking().ToListAsync(cancellationToken);
         }
 
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            return await _dbSet.Where(predicate).ToListAsync(cancellationToken);
+            return await _dbSet.AsNoTracking().Where(predicate).ToListAsync(cancellationToken);
         }
 
         public void Update(T entity)
         {
             _dbSet.Update(entity);
+        }
+
+        public void UpdateFields(T entity, params Expression<Func<T, object>>[] updatedProperties)
+        {
+            var entry = _context.Entry(entity);
+            entry.State = EntityState.Unchanged;
+
+            foreach (var property in updatedProperties)
+            {
+                entry.Property(property).IsModified = true;
+            }
         }
 
         public async Task DeleteByIdAsync(Guid id, CancellationToken cancellationToken = default)

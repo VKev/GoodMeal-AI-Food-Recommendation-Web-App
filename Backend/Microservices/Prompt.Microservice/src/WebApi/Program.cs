@@ -46,12 +46,11 @@ builder.Services.AddDbContext<PromptDbContext>((serviceProvider, options) =>
     }
 });
 
-builder.Services.AddInfrastructure(builder.Configuration).AddApplication();
+builder.Services.AddInfrastructure().AddApplication();
 
 var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILogger<AutoScaffold>>();
 var config = app.Services.GetRequiredService<EnvironmentConfig>();
-
 var scaffold = new AutoScaffold(logger)
     .Configure(
         config.DatabaseHost,
@@ -69,7 +68,7 @@ var scaffold = new AutoScaffold(logger)
     );
 
 scaffold.UpdateAppSettings();
-scaffold.Run();
+// scaffold.Run();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

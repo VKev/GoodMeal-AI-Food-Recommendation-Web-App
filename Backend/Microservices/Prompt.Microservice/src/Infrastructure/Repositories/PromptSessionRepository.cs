@@ -6,9 +6,21 @@ using Infrastructure.Context;
 
 namespace Infrastructure.Repositories;
 
-public class PromptSessionRepository : Repository<PromptSession>,IPromptSessionRepository
+public class PromptSessionRepository : Repository<PromptSession>, IPromptSessionRepository
 {
     public PromptSessionRepository(PromptDbContext context) : base(context)
     {
+    }
+
+    public async Task SoftDeleteByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.PromptSessions.FindAsync(new object[] { id }, cancellationToken);
+        if (entity == null)
+        {
+            throw new KeyNotFoundException($"{nameof(PromptSession)} with id {id} not found.");
+        }
+
+        entity.IsDeleted = true;
+        entity.DeletedAt = DateTime.UtcNow;
     }
 }

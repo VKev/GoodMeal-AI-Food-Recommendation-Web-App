@@ -38,6 +38,7 @@ public partial class PromptDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .HasColumnName("id");
+            entity.Property(e => e.CreateBy).HasColumnName("create_by");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
@@ -48,13 +49,16 @@ public partial class PromptDbContext : DbContext
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
-            entity.Property(e => e.Message1)
-                .HasColumnType("jsonb")
-                .HasColumnName("message");
+            entity.Property(e => e.PromptMessage).HasColumnName("prompt_message");
             entity.Property(e => e.PromptSessionId).HasColumnName("prompt_session_id");
+            entity.Property(e => e.ResponseMessage)
+                .HasColumnType("jsonb")
+                .HasColumnName("response-message");
             entity.Property(e => e.Sender)
                 .HasColumnType("character varying")
                 .HasColumnName("sender");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
 
             entity.HasOne(d => d.PromptSession).WithMany(p => p.Messages)
                 .HasForeignKey(d => d.PromptSessionId)

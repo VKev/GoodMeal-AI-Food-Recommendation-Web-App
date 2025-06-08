@@ -32,4 +32,37 @@ public class PromptSessionController : ApiController
         var result = await _mediator.Send(new GetAllPromptSessionQuery(), cancellationToken);
         return Ok(result);
     }
+
+    [HttpGet("read/{id}")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetPromptSessionByIdQuery(id), cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpDelete("soft-delete")]
+    public async Task<IActionResult> SoftDelete([FromBody] SoftDeletePromptSessionCommand request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(request, cancellationToken);
+        if (result.IsFailure)
+        {
+            return HandleFailure(result);
+        }
+
+        return Ok(result);
+    }
+
+    [HttpDelete("delete")]
+    public async Task<IActionResult> Delete([FromBody] DeletePromptSessionCommand request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(request, cancellationToken);
+        if (result.IsFailure)
+        {
+            return HandleFailure(result);
+        }
+
+        return Ok(result);
+    }
 }

@@ -7,7 +7,8 @@ using Domain.Repositories;
 
 namespace Application.Prompt.Queries;
 
-public sealed record GetAllPromptSessionQuery : IQuery<IEnumerable<GetPromptSessionResponse>>;
+public sealed record GetAllPromptSessionQuery()
+    : IQuery<IEnumerable<GetPromptSessionResponse>>;
 
 public class
     GetAllPromptSessionQueryHandler : IQueryHandler<GetAllPromptSessionQuery, IEnumerable<GetPromptSessionResponse>>
@@ -24,11 +25,12 @@ public class
         _unitOfWork = unitOfWork;
     }
 
+
     public async Task<Result<IEnumerable<GetPromptSessionResponse>>> Handle(GetAllPromptSessionQuery request,
         CancellationToken cancellationToken)
     {
-        var sessions = await _promptSessionRepository.GetAllAsync(cancellationToken);
-        var response = _mapper.Map<IEnumerable<GetPromptSessionResponse>>(sessions);
-        return Result.Success(response);
+        var promptSessions = await _promptSessionRepository.GetAllAsync(cancellationToken);
+        var promptSessionResponses = _mapper.Map<IEnumerable<GetPromptSessionResponse>>(promptSessions);
+        return Result.Success(promptSessionResponses);
     }
 }

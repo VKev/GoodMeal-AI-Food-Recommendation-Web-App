@@ -5,25 +5,23 @@ using Domain.Repositories;
 
 namespace Application.Prompt.Commands;
 
-public sealed record DeletePromptSessionCommand(
+public sealed record SoftDeletePromptSessionCommand(
     Guid Id
 ) : ICommand;
 
-internal sealed class DeletePromptSessionHandler : ICommandHandler<DeletePromptSessionCommand>
+internal sealed class SoftDeletePromptSessionHandler : ICommandHandler<SoftDeletePromptSessionCommand>
 {
     private readonly IPromptSessionRepository _promptSessionRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public DeletePromptSessionHandler(IPromptSessionRepository promptSessionRepository, IUnitOfWork unitOfWork)
+    public SoftDeletePromptSessionHandler(IPromptSessionRepository promptSessionRepository, IUnitOfWork unitOfWork)
     {
         _promptSessionRepository = promptSessionRepository;
         _unitOfWork = unitOfWork;
     }
-
-    public async Task<Result> Handle(DeletePromptSessionCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(SoftDeletePromptSessionCommand request, CancellationToken cancellationToken)
     {
-        var promptSession = await _promptSessionRepository.GetByIdAsync(request.Id, cancellationToken);
-        _promptSessionRepository.Delete(promptSession);
+        await _promptSessionRepository.SoftDeleteByIdAsync(request.Id, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

@@ -33,4 +33,9 @@
       <_ContentIncludedByDefault Remove="bin\Debug\net9.0\WebApi.staticwebassets.endpoints.json" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="Build\obj\Debug\net9.0\WebApi.csproj.Up2Date" />
+      <Content Include="Build\obj\Debug\net9.0\WebApi.pdb" />
+    </ItemGroup>
+
 </Project>

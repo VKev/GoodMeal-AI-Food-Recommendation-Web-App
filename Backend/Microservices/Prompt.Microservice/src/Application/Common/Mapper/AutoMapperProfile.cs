@@ -13,12 +13,20 @@ namespace Application.Common.Mapper
     {
         public AutoMapperProfile()
         {
-          CreateMap<CreatePromptSessionCommand, PromptSession>();
-          CreateMap<PromptSession, CreatePromptSessionCommand>();
-          
-          CreateMap<GetPromptSessionResponse, PromptSession>();
-          CreateMap<PromptSession, GetPromptSessionResponse>();
+            CreateMap<CreatePromptSessionCommand, PromptSession>();
+            CreateMap<PromptSession, CreatePromptSessionCommand>();
+
+            CreateMap<GetPromptSessionResponse, PromptSession>();
+            CreateMap<PromptSession, GetPromptSessionResponse>();
+
+            CreateMap<CreateMessageCommand, Message>();
+            CreateMap<Message, CreateMessageCommand>();
+
+            CreateMap<GetMessageResponse, Message>();
+            CreateMap<Message, GetMessageResponse>();
+
+            CreateMap<UpdateMessageCommand, Message>();
+            CreateMap<Message, UpdateMessageCommand>();
         }
-        
     }
 }
