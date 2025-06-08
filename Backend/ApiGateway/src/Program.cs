@@ -1,8 +1,8 @@
-using Microsoft.OpenApi.Models;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using src;
 
 DotNetEnv.Env.Load();
 
@@ -67,11 +67,15 @@ if (jsonObject != null)
     File.WriteAllText(ocelotConfigPath, jsonObject.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 }
 
+new Startup(builder.Configuration).ConfigureServices(builder.Services);
+
 builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
     .AddJsonFile($"ocelot.{env}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddOcelot(builder.Configuration);
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddTransient<AuthenticationHandler>();
+builder.Services.AddOcelot(builder.Configuration).AddDelegatingHandler<AuthenticationHandler>(true);
 
 var app = builder.Build();
 
@@ -82,5 +86,5 @@ lifetime.ApplicationStopping.Register(() =>
     File.WriteAllText(ocelotConfigPath, originalJsonContent);
 });
 
-await app.UseOcelot();
-app.Run();
+await app.UseAuthentication().UseOcelot();
+await app.RunAsync();

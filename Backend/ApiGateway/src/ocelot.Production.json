@@ -13,18 +13,29 @@
       "DownstreamPathTemplate": "/api/User/{everything}"
     },
     {
+      "UpstreamPathTemplate": "/api/Auth/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "authentication-microservice",
+          "Port": "5003"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/{everything}"
+    },
+    {
       "UpstreamPathTemplate": "/api/Resource/{everything}",
       "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
           "Host": "resource-microservice",
-          "Port": "5003"
+          "Port": "5004"
         }
       ],
       "DownstreamPathTemplate": "/api/Resource/{everything}"
     },
-
     {
       "UpstreamPathTemplate": "/api/Guest/{everything}",
       "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],

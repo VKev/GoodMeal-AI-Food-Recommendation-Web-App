@@ -12,8 +12,8 @@ namespace Infrastructure.Common
 {
     public class Repository<T> : IRepository<T> where T : class
     {
-        private readonly MyDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        internal readonly MyDbContext _context;
+        internal readonly DbSet<T> _dbSet;
 
         public Repository(MyDbContext context)
         {

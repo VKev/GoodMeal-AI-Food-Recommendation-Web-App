@@ -27,7 +27,7 @@ public partial class MyDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseNpgsql("Name=DefaultConnection");
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("pgcrypto");
 
@@ -68,6 +68,8 @@ public partial class MyDbContext : DbContext
 
             entity.HasIndex(e => e.Email, "users_email_key").IsUnique();
 
+            entity.HasIndex(e => e.IdentityId, "users_identity_key").IsUnique();
+
             entity.Property(e => e.UserId)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("user_id");
@@ -78,9 +80,18 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(100)
                 .HasColumnName("email");
+            entity.Property(e => e.IdentityId)
+                .HasDefaultValueSql("''::text")
+                .HasColumnName("identityId");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
+            entity.Property(e => e.UpdateAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("update_at");
         });
 
         modelBuilder.Entity<UserRole>(entity =>
@@ -88,6 +99,8 @@ public partial class MyDbContext : DbContext
             entity.HasKey(e => new { e.UserId, e.RoleId }).HasName("user_roles_pkey");
 
             entity.ToTable("user_roles");
+
+            entity.HasIndex(e => e.RoleId, "IX_user_roles_role_id");
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.RoleId).HasColumnName("role_id");

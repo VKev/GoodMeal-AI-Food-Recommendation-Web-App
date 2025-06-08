@@ -83,6 +83,11 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("email");
 
+                    b.Property<string>("IdentityId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("identityId");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -93,6 +98,9 @@ namespace Infrastructure.Migrations
                         .HasName("users_pkey");
 
                     b.HasIndex(new[] { "Email" }, "users_email_key")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "IdentityId" }, "users_identity_key")
                         .IsUnique();
 
                     b.ToTable("users", (string)null);
