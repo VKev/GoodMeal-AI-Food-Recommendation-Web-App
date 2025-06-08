@@ -19,7 +19,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": "5003"
+          "Port": "5004"
         }
       ],
       "DownstreamPathTemplate": "/api/Auth/{everything}"
@@ -31,15 +31,10 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": "5004"
+          "Port": "5003"
         }
       ],
       "DownstreamPathTemplate": "/api/Auth/{everything}"
-    },
-    {
-      "UpstreamPathTemplate": "/api/Guest/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
-      "DownstreamPathTemplate": "/api/Resource/{everything}"
     },
     {
       "UpstreamPathTemplate": "/api/Guest/{everything}",

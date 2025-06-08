@@ -19,7 +19,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "authentication-microservice",
-          "Port": "5003"
+          "Port": "5004"
         }
       ],
       "DownstreamPathTemplate": "/api/Auth/{everything}"
@@ -31,7 +31,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "resource-microservice",
-          "Port": "5004"
+          "Port": "5003"
         }
       ],
       "DownstreamPathTemplate": "/api/Resource/{everything}"
@@ -48,6 +48,7 @@
       ],
       "DownstreamPathTemplate": "/api/Guest/{everything}"
     }
+
   ],
   "GlobalConfiguration": {
     "BaseUrl": "http://localhost:2406"
