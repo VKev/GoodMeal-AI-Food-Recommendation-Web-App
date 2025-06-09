@@ -38,6 +38,7 @@ namespace Infrastructure.Common
             {
                 throw new KeyNotFoundException($"{nameof(T)} with id {id} not found.");
             }
+
             return entity;
         }
 
@@ -46,7 +47,8 @@ namespace Infrastructure.Common
             return await _dbSet.ToListAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default)
         {
             return await _dbSet.Where(predicate).ToListAsync(cancellationToken);
         }

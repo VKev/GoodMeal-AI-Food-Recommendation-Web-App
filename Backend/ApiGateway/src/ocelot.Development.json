@@ -49,13 +49,44 @@
       "DownstreamPathTemplate": "/api/Guest/{everything}"
     },
     {
-      "UpstreamPathTemplate": "/api/Restaurant/{everything}",
-      "UpstreamHttpMethod": [
-        "Get",
-        "Post",
-        "Put",
-        "Delete"
+      "UpstreamPathTemplate": "/api/Message/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "prompt-microservice",
+          "Port": "5026"
+        }
       ],
+      "DownstreamPathTemplate": "/api/Message/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Gemini/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "prompt-microservice",
+          "Port": "5026"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Gemini/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/PromptSession/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "prompt-microservice",
+          "Port": "5026"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/PromptSession/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Restaurant/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -67,12 +98,7 @@
     },
     {
       "UpstreamPathTemplate": "/api/Food/{everything}",
-      "UpstreamHttpMethod": [
-        "Get",
-        "Post",
-        "Put",
-        "Delete"
-      ],
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -84,12 +110,7 @@
     },
     {
       "UpstreamPathTemplate": "/api/Rating/{everything}",
-      "UpstreamHttpMethod": [
-        "Get",
-        "Post",
-        "Put",
-        "Delete"
-      ],
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {

@@ -9,7 +9,7 @@ using Infrastructure.Context;
 
 namespace Infrastructure.Repositories
 {
-    public class GuestRepository :  Repository<Guest>, IGuestRepository
+    public class GuestRepository : Repository<Guest>, IGuestRepository
     {
         public GuestRepository(MyDbContext context) : base(context)
         {

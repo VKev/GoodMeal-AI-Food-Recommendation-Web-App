@@ -27,8 +27,4 @@
     <ProjectReference Include="..\..\..\SharedLibrary\SharedLibrary.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Remove=".env" />
-  </ItemGroup>
-
 </Project>

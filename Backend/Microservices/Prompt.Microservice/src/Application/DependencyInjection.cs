@@ -1,0 +1,26 @@
+using Application.Abstractions.UnitOfWork;
+using Application.Behaviors;
+using FluentValidation;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using SharedLibrary.Common;
+
+namespace Application
+{
+    public static class DependencyInjection
+    {
+        public static IServiceCollection AddApplication(this IServiceCollection services)
+        {
+            var assembly = typeof(DependencyInjection).Assembly;
+            services.AddHttpClient("GeminiClient",
+                client => { client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/"); });
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
+            services.AddValidatorsFromAssembly(assembly);
+            services.AddAutoMapper(assembly);
+            services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
+            services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
+            return services;
+        }
+    }
+}

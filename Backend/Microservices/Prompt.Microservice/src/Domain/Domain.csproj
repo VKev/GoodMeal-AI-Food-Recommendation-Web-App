@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <BaseOutputPath>$(MSBuildProjectDirectory)\Build\bin\</BaseOutputPath>
+        <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)\Build\obj\</BaseIntermediateOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Entities\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Build\obj\Debug\net9.0\Domain.csproj.CoreCompileInputs.cache" />
+      <Content Include="Build\obj\Debug\net9.0\Domain.csproj.FileListAbsolute.txt" />
+      <Content Include="Build\obj\Debug\net9.0\Domain.dll" />
+      <Content Include="Build\obj\Debug\net9.0\Domain.pdb" />
+      <Content Include="Build\obj\Debug\net9.0\Domain.sourcelink.json" />
+      <Content Include="Build\obj\rider.project.model.nuget.info" />
+    </ItemGroup>
+
+</Project>
