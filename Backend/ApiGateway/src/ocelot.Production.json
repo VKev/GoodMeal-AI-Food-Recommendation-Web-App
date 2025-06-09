@@ -60,7 +60,7 @@
       ],
       "DownstreamPathTemplate": "/api/PromptSession/{everything}"
     },
-{
+    {
       "UpstreamPathTemplate": "/api/Message/{everything}",
       "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
@@ -72,7 +72,7 @@
       ],
       "DownstreamPathTemplate": "/api/Message/{everything}"
     },
-{
+    {
       "UpstreamPathTemplate": "/api/Gemini/{everything}",
       "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
