@@ -59,8 +59,31 @@
         }
       ],
       "DownstreamPathTemplate": "/api/PromptSession/{everything}"
+    },
+{
+      "UpstreamPathTemplate": "/api/Message/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "prompt-microservice",
+          "Port": "5026"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Message/{everything}"
+    },
+{
+      "UpstreamPathTemplate": "/api/Gemini/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "prompt-microservice",
+          "Port": "5026"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Gemini/{everything}"
     }
-
   ],
   "GlobalConfiguration": {
     "BaseUrl": "http://localhost:2406"
