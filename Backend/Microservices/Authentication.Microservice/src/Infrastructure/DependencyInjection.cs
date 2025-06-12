@@ -1,3 +1,4 @@
+using System.Text;
 using SharedLibrary.Utils;
 using SharedLibrary.Configs;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,10 +78,16 @@ namespace Infrastructure
                     configurator.ConfigureEndpoints(context);
                 });
             });
-
+            
+            string base64String = Environment.GetEnvironmentVariable("GOOGLE_CREDENTIAL_BASE64");
+            byte[] jsonBytes = Convert.FromBase64String(base64String);
+            string jsonString = Encoding.UTF8.GetString(jsonBytes);
+            
+            Console.WriteLine(jsonString);
+            
             FirebaseApp.Create(new AppOptions()
             {
-                Credential = GoogleCredential.FromFile("credentials.json"),
+                Credential = GoogleCredential.FromJson(jsonString)
             });
 
             return services;
