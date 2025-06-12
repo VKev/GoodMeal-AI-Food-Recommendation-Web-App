@@ -2,7 +2,7 @@ using Infrastructure.Common;
 using Infrastructure.Context;
 using SharedLibrary.Common;
 
-namespace Application.Abstractions.UnitOfWork
+namespace Infrastructure.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {

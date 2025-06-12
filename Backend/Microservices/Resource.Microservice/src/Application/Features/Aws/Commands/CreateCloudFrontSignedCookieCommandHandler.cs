@@ -1,7 +1,7 @@
 using Amazon.CloudFront;
 using Amazon.S3;
 using Amazon.SecurityToken;
-using Application.Abstractions.Messaging;
+using SharedLibrary.Common.Messaging;
 using Application.Configs;
 using SharedLibrary.Common.ResponseModel;
 using System.Security.Cryptography;

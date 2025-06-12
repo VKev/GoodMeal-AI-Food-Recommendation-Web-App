@@ -1,10 +1,9 @@
-using Application.Abstractions.UnitOfWork;
 using Application.Behaviors;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using SharedLibrary.Common;
-
+using Infrastructure.Repositories;
 namespace Application
 {
     public static class DependencyInjection

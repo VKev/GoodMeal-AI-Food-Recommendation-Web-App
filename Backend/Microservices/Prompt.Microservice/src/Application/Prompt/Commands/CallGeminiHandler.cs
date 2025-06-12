@@ -1,6 +1,6 @@
 using System.Text;
-using Application.Abstractions.Messaging;
-using Application.Common.ResponseModel;
+using SharedLibrary.Common.Messaging;
+using SharedLibrary.Common.ResponseModel;
 using Application.Prompt.GeminiApi;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
