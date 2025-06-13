@@ -2,7 +2,7 @@ using Application.Prompt.Commands;
 using Application.Prompt.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Common;
+using SharedLibrary.Common;
 
 namespace WebApi.Controllers;
 
