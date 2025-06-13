@@ -91,6 +91,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
+            entity.Property(e => e.TestField)
+                .HasMaxLength(255)
+                .HasColumnName("test_field");
             entity.Property(e => e.UpdateAt)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("update_at");
