@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AutoMigration_20250113144209 : Migration
+    public partial class New : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -45,7 +45,11 @@ namespace Infrastructure.Migrations
                     user_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP")
+                    created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    identityId = table.Column<string>(type: "text", nullable: true),
+                    update_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: true, defaultValue: false),
+                    test_field = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -93,6 +97,13 @@ namespace Infrastructure.Migrations
                 table: "users",
                 column: "email",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "users_identity_key",
+                table: "users",
+                column: "identityId",
+                unique: true,
+                filter: "\"identityId\" IS NOT NULL AND \"identityId\" != ''");
         }
 
         /// <inheritdoc />

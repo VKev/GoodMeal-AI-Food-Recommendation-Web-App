@@ -21,13 +21,13 @@ namespace WebApi.Controllers
         public async Task<IActionResult> Create([FromBody] CreateGuestCommand request, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(request, cancellationToken);
-            var aggregatedResult = ResultAggregator.Aggregate(result);
+            var aggregatedResult = ResultAggregator.AggregateWithNumbers(result);
             
             if (aggregatedResult.IsFailure)
             {
                 return HandleFailure(aggregatedResult);
             }
-            return Ok(result);
+            return Ok(aggregatedResult.Value);
         }
 
         [HttpGet("read")]

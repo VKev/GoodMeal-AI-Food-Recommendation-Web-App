@@ -30,7 +30,14 @@ namespace SharedLibrary.Common
             // Check for failures in all results (even those not shown)
             var firstFailure = results.FirstOrDefault(r => r.result.IsFailure);
             if (firstFailure.result != null)
+            {
+                // Preserve validation errors if the failed result is a ValidationResult
+                if (firstFailure.result is IValidationResult validationResult)
+                {
+                    return ValidationResult<AggregatedResults>.WithErrors(validationResult.Errors);
+                }
                 return Result.Failure<AggregatedResults>(firstFailure.result.Error);
+            }
 
             // All successful - create structured response with numbered names, only for results marked to show
             var namedResults = results
@@ -52,7 +59,19 @@ namespace SharedLibrary.Common
             if (results == null || !results.Any())
                 return Result.Success(new AggregatedResults { Results = new List<NamedResult>() });
 
-            // Convert to tuples with default show = false
+            // Check for failures first
+            var firstFailure = results.FirstOrDefault(r => r.IsFailure);
+            if (firstFailure != null)
+            {
+                // Preserve validation errors if the failed result is a ValidationResult
+                if (firstFailure is IValidationResult validationResult)
+                {
+                    return ValidationResult<AggregatedResults>.WithErrors(validationResult.Errors);
+                }
+                return Result.Failure<AggregatedResults>(firstFailure.Error);
+            }
+
+            // Convert to tuples with default show = false for backward compatibility
             var resultsWithVisibility = results.Select(r => (r, false)).ToArray();
             return AggregateWithNumbers(resultsWithVisibility);
         }
