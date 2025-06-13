@@ -4,9 +4,9 @@ using Application.Common;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Repositories;
-using MassTransit;
 using SharedLibrary.Contracts.UserCreating;
 using SharedLibrary.Common;
+using SharedLibrary.Common.Event;
 
 namespace Application.Users.Commands
 {
@@ -19,25 +19,31 @@ namespace Application.Users.Commands
         private readonly IUserRepository _userRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IEventUnitOfWork _events;
 
-        private readonly IPublishEndpoint _publishEndpoint;
-
-        public CreateUserCommandHandler(IUserRepository userRepository, IMapper mapper, IUnitOfWork unitOfWork, IPublishEndpoint publishEndpoint)
+        public CreateUserCommandHandler(
+            IUserRepository userRepository, 
+            IMapper mapper, 
+            IUnitOfWork unitOfWork, 
+            IEventUnitOfWork events)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
-            _publishEndpoint = publishEndpoint;
+            _events = events;
         }
+
         public async Task<Result> Handle(CreateUserCommand command, CancellationToken cancellationToken)
         {
             await _userRepository.AddAsync(_mapper.Map<User>(command), cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _publishEndpoint.Publish(new UserCreatingSagaStart{
-                CorrelationId= Guid.NewGuid(),
+            
+            _events.Add(new UserCreatingSagaStart
+            {
+                CorrelationId = Guid.NewGuid(),
                 Name = command.Name,
                 Email = command.Email
-            }, cancellationToken);
+            });
+
             return Result.Success();
         }
     }

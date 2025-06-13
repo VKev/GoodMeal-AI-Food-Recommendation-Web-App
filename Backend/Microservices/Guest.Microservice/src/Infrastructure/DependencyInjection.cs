@@ -8,7 +8,7 @@ using Infrastructure.Repositories;
 using SharedLibrary.Common;
 using Infrastructure.Common;
 using MassTransit;
-using Application.Consumers;
+using SharedLibrary.Common.Event;
 
 namespace Infrastructure
 {
@@ -16,11 +16,22 @@ namespace Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
+            return AddInfrastructure(services, null);
+        }
 
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, Action<IBusRegistrationConfigurator>? configureConsumers)
+        {
             services.AddScoped<IGuestRepository, GuestRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddSingleton<EnvironmentConfig>();
+            
+            // Register EventBuffer as a single scoped instance for all interfaces
+            services.AddScoped<EventBuffer>();
+            services.AddScoped<IEventBuffer>(sp => sp.GetRequiredService<EventBuffer>());
+            services.AddScoped<IEventUnitOfWork>(sp => sp.GetRequiredService<EventBuffer>());
+            services.AddScoped<IEventFlusher>(sp => sp.GetRequiredService<EventBuffer>());
+
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             using var serviceProvider = services.BuildServiceProvider();
             var logger = serviceProvider.GetRequiredService<ILogger<AutoScaffold>>();
@@ -41,8 +52,9 @@ namespace Infrastructure
                 DotNetEnv.Env.Load(Path.Combine(solutionDirectory, ".env"));
             }
             services.AddMassTransit(busConfigurator => {
+                // Allow WebApi to configure consumers first
+                configureConsumers?.Invoke(busConfigurator);
                 busConfigurator.SetKebabCaseEndpointNameFormatter();
-                busConfigurator.AddConsumer<UserCreatedConsumer>();
                 busConfigurator.UsingRabbitMq((context, configurator) =>{
                     if (config.IsRabbitMqCloud)
                     {

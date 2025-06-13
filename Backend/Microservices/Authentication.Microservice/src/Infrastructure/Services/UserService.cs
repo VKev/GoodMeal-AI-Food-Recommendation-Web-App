@@ -8,12 +8,12 @@ namespace Infrastructure.Services;
 
 public class UserService : IUserService
 {
-    private readonly IRequestClient<GetUserRolesRequest> _requestClient;
+    private readonly IBus _bus;
     private readonly ILogger<UserService> _logger;
 
-    public UserService(IRequestClient<GetUserRolesRequest> requestClient, ILogger<UserService> logger)
+    public UserService(IBus bus, ILogger<UserService> logger)
     {
-        _requestClient = requestClient;
+        _bus = bus;
         _logger = logger;
     }
 
@@ -24,7 +24,8 @@ public class UserService : IUserService
         {
             var request = new GetUserRolesRequest { IdentityId = identityId };
             
-            var response = await _requestClient.GetResponse<GetUserRolesResponse>(request, cancellationToken);
+            var requestClient = _bus.CreateRequestClient<GetUserRolesRequest>();
+            var response = await requestClient.GetResponse<GetUserRolesResponse>(request, cancellationToken);
             
             var userRoles = response.Message;
             

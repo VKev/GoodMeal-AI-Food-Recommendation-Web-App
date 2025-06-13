@@ -10,6 +10,7 @@ using Infrastructure.Common;
 using MassTransit;
 using Application.Sagas;
 using Application.Users.Consumers;
+using SharedLibrary.Common.Event;
 
 namespace Infrastructure
 {
@@ -17,12 +18,17 @@ namespace Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-
-            
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddSingleton<EnvironmentConfig>();
+            
+            // Register EventBuffer as a single scoped instance for all interfaces
+            services.AddScoped<EventBuffer>();
+            services.AddScoped<IEventBuffer>(sp => sp.GetRequiredService<EventBuffer>());
+            services.AddScoped<IEventUnitOfWork>(sp => sp.GetRequiredService<EventBuffer>());
+            services.AddScoped<IEventFlusher>(sp => sp.GetRequiredService<EventBuffer>());
+
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             using var serviceProvider = services.BuildServiceProvider();
             var logger = serviceProvider.GetRequiredService<ILogger<AutoScaffold>>();
