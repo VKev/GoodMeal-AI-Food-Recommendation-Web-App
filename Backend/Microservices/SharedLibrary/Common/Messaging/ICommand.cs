@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Application.Common;
 using SharedLibrary.Common.ResponseModel;
 using MediatR;
 
-namespace Application.Abstractions.Messaging
+namespace SharedLibrary.Common.Messaging
 {
     public interface ICommand: IRequest<Result>
     {

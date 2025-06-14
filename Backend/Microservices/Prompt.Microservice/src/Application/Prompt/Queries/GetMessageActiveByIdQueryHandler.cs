@@ -1,5 +1,5 @@
-using Application.Abstractions.Messaging;
-using Application.Common.ResponseModel;
+using SharedLibrary.Common.Messaging;
+using SharedLibrary.Common.ResponseModel;
 using AutoMapper;
 using Domain.Repositories;
 

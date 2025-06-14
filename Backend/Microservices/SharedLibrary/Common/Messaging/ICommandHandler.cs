@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Application.Common;
 using SharedLibrary.Common.ResponseModel;
 using MediatR;
 
-namespace Application.Abstractions.Messaging
+namespace SharedLibrary.Common.Messaging
 {
     public interface ICommandHandler<TCommand>: IRequestHandler<TCommand, Result> where TCommand : ICommand 
     {

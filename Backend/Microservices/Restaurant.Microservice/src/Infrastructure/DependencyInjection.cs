@@ -4,11 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Infrastructure.Configs;
 using Infrastructure.Repositories;
-using Application.Abstractions.UnitOfWork;
-using Domain.Common;
 using Domain.Repositories;
 using Infrastructure.Common;
 using MassTransit;
+using SharedLibrary.Common;
 
 namespace Infrastructure
 {

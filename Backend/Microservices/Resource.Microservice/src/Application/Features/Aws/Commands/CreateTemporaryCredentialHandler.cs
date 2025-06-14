@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
-using Application.Abstractions.Messaging;
+using SharedLibrary.Common.Messaging;
 using Application.Configs;
 using SharedLibrary.Common.ResponseModel;
 
