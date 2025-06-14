@@ -25,12 +25,6 @@ builder.Services
     .AddApplication()
     .AddInfrastructure();
 
-builder.Services.AddHttpClient<IJwtProvider, JwtProvider>((client, provider) =>
-{
-    provider.BaseAddress = new Uri(builder.Configuration["Authentication:Uri"] ??
-                                   "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword");
-});
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

@@ -1,10 +1,15 @@
-using SharedLibrary.Common.Messaging;
 using Domain.Repositories;
+using FluentValidation;
 using MassTransit;
+using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
-using SharedLibrary.Contracts.UserCreating;
 
-namespace Application.Auths.Commands;
+namespace Application.Auths.Commands.RegisterUserCommand;
+public sealed record RegisterUserCommand(
+    string Email,
+    string Password,
+    string Name
+) : ICommand;
 
 public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand>
 {
@@ -20,16 +25,18 @@ public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand>
 
     public async Task<Result> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        var identityId = await _authRepository.RegisterAsync(request.Email, request.Password, cancellationToken);
-
-        await _publishEndpoint.Publish(new AuthenticationUserCreatingSagaStart()
-        {
-            CorrelationId = Guid.NewGuid(),
-            Email = request.Email,
-            Name = request.Name,
-            IdentityId = identityId,
-        }, cancellationToken);
-
+        await _authRepository.RegisterAsync(request.Email, request.Password, cancellationToken);
+        
         return Result.Success();
     }
 }
+
+public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
+{
+    public RegisterUserCommandValidator()
+    {
+        RuleFor(x => x.Email).NotEmpty().MaximumLength(70).EmailAddress();
+        RuleFor(x => x.Password).NotEmpty().MinimumLength(6).MaximumLength(70);
+        RuleFor(x => x.Name).NotEmpty().MinimumLength(3).MaximumLength(70);
+    }
+} 

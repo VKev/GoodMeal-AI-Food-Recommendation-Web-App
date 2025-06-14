@@ -1,4 +1,3 @@
-using Application.Consumers;
 using SharedLibrary.Utils;
 using SharedLibrary.Configs;
 using SharedLibrary.Common;
@@ -9,7 +8,6 @@ using Infrastructure.Repositories;
 using Infrastructure.Common;
 using MassTransit;
 using Application.Sagas;
-using Application.Users.Consumers;
 
 namespace Infrastructure
 {
@@ -43,8 +41,6 @@ namespace Infrastructure
             }
             services.AddMassTransit(busConfigurator =>
             {
-                busConfigurator.AddConsumer<AuthenticationUserCreatedConsumer>();
-                busConfigurator.AddConsumer<GetUserRolesConsumer>();
                 busConfigurator.AddSagaStateMachine<UserCreatingSaga, UserCreatingSagaData>()
                     .RedisRepository(r =>
                     {
