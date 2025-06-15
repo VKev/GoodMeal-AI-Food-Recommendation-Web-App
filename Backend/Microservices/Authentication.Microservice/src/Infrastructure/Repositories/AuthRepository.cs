@@ -1,4 +1,3 @@
-using Domain.Entities;
 using Domain.Repositories;
 using FirebaseAdmin.Auth;
 
