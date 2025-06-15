@@ -1,10 +1,10 @@
 "use client"
 import React, { useState } from "react";
-import { EyeInvisibleOutlined, EyeOutlined, UserOutlined, ShopOutlined } from '@ant-design/icons';
+import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import Link from "next/link";
 
 const CreateAccount: React.FC = () => {
-  const [selectedRole, setSelectedRole] = useState<"US" | "BU" | null>(null);
+  const [ ] = useState<"US" | "BU" | null>(null);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -22,7 +22,7 @@ const CreateAccount: React.FC = () => {
   };
 
   return (
-    <div className="max-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -38,40 +38,6 @@ const CreateAccount: React.FC = () => {
             <p className="text-gray-400 text-sm">Join us and start your culinary journey</p>
           </div>
 
-          {/* Role Selection */}
-          <div className="mb-6">
-            <label className="text-white text-sm font-medium mb-3 block">Select Role</label>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => setSelectedRole("US")}
-                className={`flex-1 p-4 rounded-2xl border transition-all duration-300 ${
-                  selectedRole === "US"
-                    ? "bg-orange-500/20 border-orange-500 text-orange-400"
-                    : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
-                }`}
-              >
-                <div className="flex flex-col items-center space-y-2">
-                  <UserOutlined className="text-xl" />
-                  <span className="text-sm font-medium">User</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedRole("BU")}
-                className={`flex-1 p-4 rounded-2xl border transition-all duration-300 ${
-                  selectedRole === "BU"
-                    ? "bg-orange-500/20 border-orange-500 text-orange-400"
-                    : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
-                }`}
-              >
-                <div className="flex flex-col items-center space-y-2">
-                  <ShopOutlined className="text-xl" />
-                  <span className="text-sm font-medium">Business</span>
-                </div>
-              </button>
-            </div>
-          </div>
 
 
           {/* Form Inputs */}
