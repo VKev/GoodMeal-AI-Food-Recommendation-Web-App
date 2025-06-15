@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SharedLibrary.Common.ResponseModel;
-using Application.Abstractions.Messaging;
+using SharedLibrary.Common.Messaging;
 using AutoMapper;
 using Domain.Repositories;
 using MediatR;
@@ -11,6 +11,7 @@ using MediatR;
 namespace Application.Guests.Queries
 {
     public sealed record GetAllGuestsQuery : IQuery<IEnumerable<GetGuestResponse>>;
+
     internal sealed class GetAllGuestsQueryHandler : IQueryHandler<GetAllGuestsQuery, IEnumerable<GetGuestResponse>>
     {
         private readonly IGuestRepository _guestRepository;
@@ -23,7 +24,8 @@ namespace Application.Guests.Queries
         }
 
 
-        public async Task<Result<IEnumerable<GetGuestResponse>>> Handle(GetAllGuestsQuery request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<GetGuestResponse>>> Handle(GetAllGuestsQuery request,
+            CancellationToken cancellationToken)
         {
             var users = await _guestRepository.GetAllAsync(cancellationToken);
             var userResponses = _mapper.Map<IEnumerable<GetGuestResponse>>(users);

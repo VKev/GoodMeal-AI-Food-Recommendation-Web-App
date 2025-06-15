@@ -13,6 +13,18 @@
       "DownstreamPathTemplate": "/api/User/{everything}"
     },
     {
+      "UpstreamPathTemplate": "/api/Auth/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "authentication-microservice",
+          "Port": "5004"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Auth/{everything}"
+    },
+    {
       "UpstreamPathTemplate": "/api/Resource/{everything}",
       "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
       "DownstreamScheme": "http",
@@ -24,7 +36,6 @@
       ],
       "DownstreamPathTemplate": "/api/Resource/{everything}"
     },
-
     {
       "UpstreamPathTemplate": "/api/Guest/{everything}",
       "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
@@ -36,8 +47,81 @@
         }
       ],
       "DownstreamPathTemplate": "/api/Guest/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/PromptSession/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "prompt-microservice",
+          "Port": "5026"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/PromptSession/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Message/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "prompt-microservice",
+          "Port": "5026"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Message/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Gemini/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "prompt-microservice",
+          "Port": "5026"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Gemini/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Restaurant/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "restaurant-microservice",
+          "Port": "5303"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Restaurant/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Food/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "restaurant-microservice",
+          "Port": "5303"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Food/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Rating/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "restaurant-microservice",
+          "Port": "5303"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Rating/{everything}"
     }
   ],
+
   "GlobalConfiguration": {
     "BaseUrl": "http://localhost:2406"
   }

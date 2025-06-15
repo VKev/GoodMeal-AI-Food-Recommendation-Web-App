@@ -1,4 +1,4 @@
-using System;
+using Application.Consumers;
 using SharedLibrary.Utils;
 using SharedLibrary.Configs;
 using SharedLibrary.Common;
@@ -6,11 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Domain.Repositories;
 using Infrastructure.Repositories;
-using Application.Abstractions.UnitOfWork;
 using Infrastructure.Common;
 using MassTransit;
 using Application.Sagas;
-using Infrastructure.Context;
+using Application.Users.Consumers;
+using SharedLibrary.Common.Event;
 
 namespace Infrastructure
 {
@@ -18,12 +18,17 @@ namespace Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-
-            
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddSingleton<EnvironmentConfig>();
+            
+            // Register EventBuffer as a single scoped instance for all interfaces
+            services.AddScoped<EventBuffer>();
+            services.AddScoped<IEventBuffer>(sp => sp.GetRequiredService<EventBuffer>());
+            services.AddScoped<IEventUnitOfWork>(sp => sp.GetRequiredService<EventBuffer>());
+            services.AddScoped<IEventFlusher>(sp => sp.GetRequiredService<EventBuffer>());
+
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             using var serviceProvider = services.BuildServiceProvider();
             var logger = serviceProvider.GetRequiredService<ILogger<AutoScaffold>>();
@@ -44,7 +49,8 @@ namespace Infrastructure
             }
             services.AddMassTransit(busConfigurator =>
             {
-
+                busConfigurator.AddConsumer<AuthenticationUserCreatedConsumer>();
+                busConfigurator.AddConsumer<GetUserRolesConsumer>();
                 busConfigurator.AddSagaStateMachine<UserCreatingSaga, UserCreatingSagaData>()
                     .RedisRepository(r =>
                     {

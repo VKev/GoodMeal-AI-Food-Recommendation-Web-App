@@ -1,0 +1,7 @@
+**/Build
+**/.vscode/
+**/.env
+**/.fake
+**/bin
+**/obj
+.git

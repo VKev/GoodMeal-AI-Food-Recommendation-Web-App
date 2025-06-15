@@ -1,7 +1,7 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using System;
-using Application.Abstractions.Messaging;
+using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 
 namespace Application.Features.Aws.Commands
