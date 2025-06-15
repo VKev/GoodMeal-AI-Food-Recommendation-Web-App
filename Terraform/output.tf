@@ -1,23 +1,23 @@
-output "cloudfront_distribution_id" {
-  description = "The ID of the CloudFront distribution"
-  value       = module.cloudfront.cloudfront_distribution_id
-}
+# output "cloudfront_distribution_id" {
+#   description = "The ID of the CloudFront distribution"
+#   value       = module.cloudfront.cloudfront_distribution_id
+# }
 
-output "cloudfront_domain_name" {
-  description = "The domain name of the CloudFront distribution"
-  value       = module.cloudfront.cloudfront_domain_name
-}
+# output "cloudfront_domain_name" {
+#   description = "The domain name of the CloudFront distribution"
+#   value       = module.cloudfront.cloudfront_domain_name
+# }
 
-output "cloudfront_private_key_pem" {
-  description = "Private key for CloudFront signed URLs/cookies."
-  value       = module.cloudfront.cloudfront_private_key_pem
-  sensitive   = true
-}
+# output "cloudfront_private_key_pem" {
+#   description = "Private key for CloudFront signed URLs/cookies."
+#   value       = module.cloudfront.cloudfront_private_key_pem
+#   sensitive   = true
+# }
 
-output "cloudfront_key_group_id" {
-  description = "The ID of the CloudFront key group."
-  value       = module.cloudfront.cloudfront_key_group_id
-}
+# output "cloudfront_key_group_id" {
+#   description = "The ID of the CloudFront key group."
+#   value       = module.cloudfront.cloudfront_key_group_id
+# }
 
 
 # # VPC Outputs
