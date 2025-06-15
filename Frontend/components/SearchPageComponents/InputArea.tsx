@@ -3,7 +3,6 @@ import { Flex } from 'antd';
 import ImageUploadArea from './ImageUploadArea';
 import MessageInput from './MessageInput';
 import SendButton from './SendButton';
-import InputAreaFooter from './InputAreaFooter';
 import { useImageUpload } from './hooks/useImageUpload';
 import { InputAreaProps, UploadedImage } from './types';
 
@@ -64,7 +63,6 @@ const InputArea: React.FC<InputAreaProps> = ({ inputMessage, setInputMessage }) 
                     />
                 </Flex>
                 
-                <InputAreaFooter inputMessageLength={inputMessage.length} />
             </div>
         </div>
     );

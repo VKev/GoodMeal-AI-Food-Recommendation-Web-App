@@ -1,10 +1,10 @@
 "use client"
 import React, { useState } from "react";
-import { EyeInvisibleOutlined, EyeOutlined, UserOutlined, ShopOutlined } from '@ant-design/icons';
+import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import Link from "next/link";
 
 const CreateAccount: React.FC = () => {
-  const [selectedRole, setSelectedRole] = useState<"US" | "BU" | null>(null);
+  const [ ] = useState<"US" | "BU" | null>(null);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
