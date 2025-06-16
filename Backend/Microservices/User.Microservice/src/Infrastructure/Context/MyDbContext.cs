@@ -68,7 +68,10 @@ public partial class MyDbContext : DbContext
 
             entity.HasIndex(e => e.Email, "users_email_key").IsUnique();
 
-            entity.HasIndex(e => e.IdentityId, "users_identity_key").IsUnique();
+            // Create a unique partial index that only applies to non-null IdentityId values
+            entity.HasIndex(e => e.IdentityId, "users_identity_key")
+                .IsUnique()
+                .HasFilter("\"identityId\" IS NOT NULL AND \"identityId\" != ''");
 
             entity.Property(e => e.UserId)
                 .HasDefaultValueSql("gen_random_uuid()")
@@ -81,7 +84,6 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("email");
             entity.Property(e => e.IdentityId)
-                .HasDefaultValueSql("''::text")
                 .HasColumnName("identityId");
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
@@ -89,6 +91,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
+            entity.Property(e => e.TestField)
+                .HasMaxLength(255)
+                .HasColumnName("test_field");
             entity.Property(e => e.UpdateAt)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("update_at");

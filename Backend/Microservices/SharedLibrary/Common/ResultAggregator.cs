@@ -7,98 +7,107 @@ namespace SharedLibrary.Common
 {
     public static class ResultAggregator
     {
-        /// <summary>
-        /// Aggregates multiple results. Returns success if all results are successful, otherwise returns the first failure.
-        /// </summary>
-        /// <param name="results">Collection of results to aggregate</param>
-        /// <returns>Success result if all are successful, otherwise the first failure</returns>
         public static Result Aggregate(params Result[] results)
         {
             if (results == null || !results.Any())
-                return Result.Failure(new Error("ResultAggregator.NoResults", "No results provided for aggregation"));
-
-            var firstFailure = results.FirstOrDefault(r => r.IsFailure);
-            return firstFailure ?? Result.Success();
-        }
-
-        /// <summary>
-        /// Aggregates multiple results. Returns success if all results are successful, otherwise returns the first failure.
-        /// </summary>
-        /// <param name="results">Collection of results to aggregate</param>
-        /// <returns>Success result if all are successful, otherwise the first failure</returns>
-        public static Result Aggregate(IEnumerable<Result> results)
-        {
-            return Aggregate(results.ToArray());
-        }
-
-        /// <summary>
-        /// Aggregates multiple results with values. Returns aggregated values if all are successful, otherwise returns the first failure.
-        /// </summary>
-        /// <typeparam name="T">Type of the result values</typeparam>
-        /// <param name="results">Collection of results with values to aggregate</param>
-        /// <returns>Success result with aggregated values if all are successful, otherwise the first failure</returns>
-        public static Result<IEnumerable<T>> AggregateValues<T>(params Result<T>[] results)
-        {
-            if (results == null || !results.Any())
-                return Result.Failure<IEnumerable<T>>(new Error("ResultAggregator.NoResults", "No results provided for aggregation"));
+                return Result.Success();
 
             var firstFailure = results.FirstOrDefault(r => r.IsFailure);
             if (firstFailure != null)
-                return Result.Failure<IEnumerable<T>>(firstFailure.Error);
+                return firstFailure;
 
-            var values = results.Select(r => r.Value);
-            return Result.Success(values);
+            return Result.Success();
         }
 
-        /// <summary>
-        /// Aggregates multiple results with values. Returns aggregated values if all are successful, otherwise returns the first failure.
-        /// </summary>
-        /// <typeparam name="T">Type of the result values</typeparam>
-        /// <param name="results">Collection of results with values to aggregate</param>
-        /// <returns>Success result with aggregated values if all are successful, otherwise the first failure</returns>
-        public static Result<IEnumerable<T>> AggregateValues<T>(IEnumerable<Result<T>> results)
-        {
-            return AggregateValues(results.ToArray());
-        }
 
-        /// <summary>
-        /// Aggregates multiple results with different value types into a list of objects.
-        /// Returns aggregated values if all are successful, otherwise returns the first failure.
-        /// </summary>
-        /// <param name="results">Collection of results with different value types to aggregate</param>
-        /// <returns>Success result with aggregated values as objects if all are successful, otherwise the first failure</returns>
-        public static Result<IEnumerable<object>> AggregateValues(params object[] results)
+
+        // New method for aggregating results with automatic numbering and visibility control
+        public static Result<AggregatedResults> AggregateWithNumbers(params (Result result, bool show)[] results)
         {
             if (results == null || !results.Any())
-                return Result.Failure<IEnumerable<object>>(new Error("ResultAggregator.NoResults", "No results provided for aggregation"));
+                return Result.Success(new AggregatedResults { Results = new List<NamedResult>() });
 
-            var resultObjects = new List<object>();
-            
-            foreach (var result in results)
+            // Check for failures in all results (even those not shown)
+            var firstFailure = results.FirstOrDefault(r => r.result.IsFailure);
+            if (firstFailure.result != null)
             {
-                if (result is Result baseResult)
+                // Preserve validation errors if the failed result is a ValidationResult
+                if (firstFailure.result is IValidationResult validationResult)
                 {
-                    if (baseResult.IsFailure)
-                        return Result.Failure<IEnumerable<object>>(baseResult.Error);
-                    
-                    // For Result<T>, extract the value
-                    if (result.GetType().IsGenericType && 
-                        result.GetType().GetGenericTypeDefinition() == typeof(Result<>))
-                    {
-                        var valueProperty = result.GetType().GetProperty("Value");
-                        if (valueProperty != null)
-                        {
-                            resultObjects.Add(valueProperty.GetValue(result)!);
-                        }
-                    }
+                    return ValidationResult<AggregatedResults>.WithErrors(validationResult.Errors);
                 }
-                else
+                return Result.Failure<AggregatedResults>(firstFailure.result.Error);
+            }
+
+            // All successful - create structured response with numbered names, only for results marked to show
+            var namedResults = results
+                .Select((item, index) => new { item, index })
+                .Where(x => x.item.show)
+                .Select(x => new NamedResult
                 {
-                    resultObjects.Add(result);
+                    Name = (x.index + 1).ToString(),
+                    IsSuccess = x.item.result.IsSuccess,
+                    Data = GetResultData(x.item.result)
+                }).ToList();
+
+            return Result.Success(new AggregatedResults { Results = namedResults });
+        }
+
+        // Overload for backward compatibility - defaults all to not show (false)
+        public static Result<AggregatedResults> AggregateWithNumbers(params Result[] results)
+        {
+            if (results == null || !results.Any())
+                return Result.Success(new AggregatedResults { Results = new List<NamedResult>() });
+
+            // Check for failures first
+            var firstFailure = results.FirstOrDefault(r => r.IsFailure);
+            if (firstFailure != null)
+            {
+                // Preserve validation errors if the failed result is a ValidationResult
+                if (firstFailure is IValidationResult validationResult)
+                {
+                    return ValidationResult<AggregatedResults>.WithErrors(validationResult.Errors);
+                }
+                return Result.Failure<AggregatedResults>(firstFailure.Error);
+            }
+
+            // Convert to tuples with default show = false for backward compatibility
+            var resultsWithVisibility = results.Select(r => (r, false)).ToArray();
+            return AggregateWithNumbers(resultsWithVisibility);
+        }
+
+
+
+        private static object GetResultData(Result result)
+        {
+            if (result == null) return null;
+
+            // Use reflection to get the Value property for Result<T>
+            var resultType = result.GetType();
+            if (resultType.IsGenericType && resultType.GetGenericTypeDefinition() == typeof(Result<>))
+            {
+                var valueProperty = resultType.GetProperty("Value");
+                if (valueProperty != null && result.IsSuccess)
+                {
+                    return valueProperty.GetValue(result);
                 }
             }
 
-            return Result.Success(resultObjects.AsEnumerable());
+            // For non-generic Result, return success status
+            return new { IsSuccess = result.IsSuccess };
         }
+    }
+
+    // Supporting classes for structured response
+    public class AggregatedResults
+    {
+        public List<NamedResult> Results { get; set; } = new();
+    }
+
+    public class NamedResult
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsSuccess { get; set; }
+        public object? Data { get; set; }
     }
 } 

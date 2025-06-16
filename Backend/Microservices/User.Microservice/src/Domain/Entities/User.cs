@@ -16,5 +16,7 @@ public partial class User
 
     public bool? IsDeleted { get; set; }
 
+    public string? TestField { get; set; }
+
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

@@ -87,7 +87,7 @@ const SearchPage = () => {
                     
                     {/* Content Area */}
                     <MainContent selectedChat={selectedChat} />                      {/* Input Area */}
-                    <InputArea inputMessage={inputMessage} setInputMessage={setInputMessage} />
+                        <InputArea inputMessage={inputMessage} setInputMessage={setInputMessage} />
                 </Layout>
             </Layout>
         </ConfigProvider>

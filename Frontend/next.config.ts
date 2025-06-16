@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Ensure standalone output for AWS Amplify SSR
+  output: 'standalone',
+  
   images: {
     remotePatterns: [
       {

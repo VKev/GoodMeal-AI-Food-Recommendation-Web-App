@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20250113074219_AutoMigration_20250113144209")]
-    partial class AutoMigration_20250113144209
+    [Migration("20250613175438_New")]
+    partial class New
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -86,17 +86,40 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("email");
 
+                    b.Property<string>("IdentityId")
+                        .HasColumnType("text")
+                        .HasColumnName("identityId");
+
+                    b.Property<bool?>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("name");
 
+                    b.Property<string>("TestField")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("test_field");
+
+                    b.Property<DateTime?>("UpdateAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("update_at");
+
                     b.HasKey("UserId")
                         .HasName("users_pkey");
 
                     b.HasIndex(new[] { "Email" }, "users_email_key")
                         .IsUnique();
+
+                    b.HasIndex(new[] { "IdentityId" }, "users_identity_key")
+                        .IsUnique()
+                        .HasFilter("\"identityId\" IS NOT NULL AND \"identityId\" != ''");
 
                     b.ToTable("users", (string)null);
                 });
@@ -120,7 +143,7 @@ namespace Infrastructure.Migrations
                     b.HasKey("UserId", "RoleId")
                         .HasName("user_roles_pkey");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex(new[] { "RoleId" }, "IX_user_roles_role_id");
 
                     b.ToTable("user_roles", (string)null);
                 });

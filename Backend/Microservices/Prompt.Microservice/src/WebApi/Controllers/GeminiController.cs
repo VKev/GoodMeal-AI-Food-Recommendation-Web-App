@@ -2,7 +2,7 @@ using System.Text.Json;
 using Application.Prompt.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Common;
+using SharedLibrary.Common;
 
 namespace WebApi.Controllers;
 
@@ -19,16 +19,12 @@ public class GeminiController : ApiController
         CancellationToken cancellationToken)
     {
         var geminiResult = await _mediator.Send(new CallGeminiCommand(request.PromptMessage), cancellationToken);
-        if (geminiResult.IsFailure)
-        {
-            return HandleFailure(geminiResult);
-        }
+        var createMessageResult = await _mediator.Send(request with { ResponseMessage = geminiResult.Value }, cancellationToken);
 
-        var createMessageResult =
-            await _mediator.Send(request with { ResponseMessage = geminiResult.Value }, cancellationToken);
-        if (createMessageResult.IsFailure)
+        var aggregatedResult = ResultAggregator.Aggregate(geminiResult, createMessageResult);
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(createMessageResult);
+            return HandleFailure(aggregatedResult);
         }
 
         return Ok(geminiResult);
