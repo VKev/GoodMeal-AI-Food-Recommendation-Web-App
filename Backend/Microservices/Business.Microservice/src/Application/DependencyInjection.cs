@@ -16,7 +16,6 @@ namespace Application
             services.AddAutoMapper(assembly);
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
             services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
-            
             return services;
 
         }

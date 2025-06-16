@@ -9,7 +9,7 @@ namespace Application.Admin.Commands.AddUserRoleCommand;
 public sealed record AddUserRoleCommand(string IdentityId, string RoleName) : ICommand;
 
 internal sealed class AddUserRoleCommandHandler : ICommandHandler<AddUserRoleCommand>
-{
+{ 
     private readonly ILogger<AddUserRoleCommandHandler> _logger;
     private readonly IAuthenticationRepository _authenticationRepository;
 

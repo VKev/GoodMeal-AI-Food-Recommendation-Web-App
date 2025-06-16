@@ -1,4 +1,3 @@
-using System;
 using SharedLibrary.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,6 +7,7 @@ using Domain.Repositories;
 using Infrastructure.Common;
 using MassTransit;
 using SharedLibrary.Common;
+using Infrastructure.Services;
 
 namespace Infrastructure
 {
@@ -17,9 +17,9 @@ namespace Infrastructure
         {
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<IRestaurantRepository, RestaurantRepository>();
-            services.AddScoped<IFoodRepository, FoodRepository>();
-            services.AddScoped<IRestaurantRatingRepository, RestaurantRatingRepository>();
+            services.AddScoped<IBusinessRestaurantRepository, BusinessRestaurantRepository>();
+            services.AddScoped<IBusinessRepository, BusinessRepository>();
+            services.AddScoped<IRestaurantRepository, RestaurantRepsitory>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddSingleton<EnvironmentConfig>();
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -43,11 +43,6 @@ namespace Infrastructure
             }
             services.AddMassTransit(busConfigurator => {
                 busConfigurator.SetKebabCaseEndpointNameFormatter();
-                
-                // Add consumers
-                busConfigurator.AddConsumer<Application.Consumers.GetRestaurantByIdConsumer>();
-                busConfigurator.AddConsumer<Application.Consumers.GetRestaurantsByIdsConsumer>();
-                
                 busConfigurator.UsingRabbitMq((context, configurator) =>{
                     configurator.Host(new Uri($"rabbitmq://{config.RabbitMqHost}:{config.RabbitMqPort}/"), h=>{
                         h.Username(config.RabbitMqUser);

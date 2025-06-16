@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 using Application.Services;
-using SharedLibrary.Contracts.Authentication;
 
 namespace Application.Admin.Queries.SearchUsersQuery;
 

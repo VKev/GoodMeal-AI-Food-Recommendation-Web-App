@@ -119,6 +119,30 @@
         }
       ],
       "DownstreamPathTemplate": "/api/Rating/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Business/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": "4161"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Rating/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Admin/{everything}",
+      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": "1034"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Rating/{everything}"
     }
   ],
   "GlobalConfiguration": {
