@@ -48,10 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [userRoles, setUserRoles] = useState<string[]>([]);
     const router = useRouter();
 
-    // Function để extract dữ liệu từ token
     const extractTokenData = async (user: User): Promise<TokenData | null> => {
         try {
             const idToken = await user.getIdToken();
+            console.log('id token:', idToken);
+
             const idTokenResult = await user.getIdTokenResult();
 
             const claims = idTokenResult.claims;
@@ -69,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 exp: typeof claims.exp === 'number' ? claims.exp : undefined,
             };
 
-            console.log('Extracted token data:', tokenData);
             return tokenData;
         } catch (error) {
             console.error('Error extracting token data:', error);
@@ -77,11 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    // Function để navigate dựa trên role
     const navigateByRole = () => {
         if (!userRoles.length) return;
 
-        // Logic navigation dựa trên roles - ưu tiên role cao nhất
         if (userRoles.includes(UserRole.ADMIN)) {
             router.push('/admin');
         } else if (userRoles.includes(UserRole.BUSINESS)) {
@@ -89,27 +87,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (userRoles.includes(UserRole.USER)) {
             router.push('/');
         } else {
-            // Default route cho roles không xác định
+
             router.push('/');
         }
     };
 
-    // Function để check role
     const hasRole = (role: string): boolean => {
         return userRoles.includes(role);
     };
 
-    // Function để check admin role
     const isAdmin = (): boolean => {
         return hasRole(UserRole.ADMIN);
     };
 
-    // Function để check business role
     const isBusiness = (): boolean => {
         return hasRole(UserRole.BUSINESS);
     };
 
-    // Function để refresh token và extract lại data
     const refreshToken = async (): Promise<void> => {
         if (!currentUser) return;
 
@@ -131,7 +125,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setAuthenticated(!!user);
 
             if (user) {
-                // Extract token data khi user đăng nhập
                 const extractedData = await extractTokenData(user);
                 setTokenData(extractedData);
 
@@ -139,7 +132,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setUserRoles(extractedData.roles);
                 }
             } else {
-                // Clear data khi user đăng xuất
                 setTokenData(null);
                 setUserRoles([]);
             }
@@ -149,11 +141,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => unsubscribe();
     }, []);
 
-    // Auto navigate khi roles thay đổi (có thể tắt nếu không muốn auto redirect)
     useEffect(() => {
         if (authenticated && userRoles.length > 0 && !loading) {
-            // Có thể comment dòng này nếu không muốn auto navigate
-            // navigateByRole();
+
         }
     }, [userRoles, authenticated, loading]);
 
@@ -181,4 +171,4 @@ export function useAuth(): AuthContextType {
         throw new Error("useAuth must be used within an AuthProvider");
     }
     return context;
-} 
+}

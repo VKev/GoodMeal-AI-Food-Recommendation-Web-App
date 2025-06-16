@@ -130,7 +130,7 @@
           "Port": "4161"
         }
       ],
-      "DownstreamPathTemplate": "/api/Rating/{everything}"
+      "DownstreamPathTemplate": "/api/Business/{everything}"
     },
     {
       "UpstreamPathTemplate": "/api/Admin/{everything}",
@@ -142,7 +142,7 @@
           "Port": "1034"
         }
       ],
-      "DownstreamPathTemplate": "/api/Rating/{everything}"
+      "DownstreamPathTemplate": "/api/Admin/{everything}"
     }
   ],
   "GlobalConfiguration": {

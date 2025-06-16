@@ -8,9 +8,9 @@ namespace Infrastructure.Repositories;
 
 public class BusinessRepository : Repository<Business>, IBusinessRepository
 {
-    private readonly RestaurantFoodContext _context;
+    private readonly BusinessRestaurantContext _context;
 
-    public BusinessRepository(RestaurantFoodContext context) : base(context)
+    public BusinessRepository(BusinessRestaurantContext context) : base(context)
     {
         _context = context;
     }

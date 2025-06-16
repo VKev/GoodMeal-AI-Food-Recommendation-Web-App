@@ -3,6 +3,7 @@ using FirebaseAdmin.Auth;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using SharedLibrary.Contracts.Authentication;
+using Newtonsoft.Json.Linq;
 
 namespace Application.Consumers;
 
@@ -24,9 +25,21 @@ public class GetUserRolesConsumer : IConsumer<GetUserRolesRequest>
             var roles = new List<string>();
             if (userRecord.CustomClaims != null && userRecord.CustomClaims.TryGetValue("roles", out var rolesObj))
             {
-                if (rolesObj is string[] rolesArray)
+                if (rolesObj is string[] roleArray)
                 {
-                    roles = rolesArray.ToList();
+                    roles = roleArray.ToList();
+                }
+                else if (rolesObj is JArray jArray)
+                {
+                    roles = jArray.ToObject<string[]>()?.ToList() ?? new List<string>();
+                }
+                else if (rolesObj is List<string> roleList)
+                {
+                    roles = roleList;
+                }
+                else if (rolesObj is string singleRole)
+                {
+                    roles = new List<string> { singleRole };
                 }
             }
 

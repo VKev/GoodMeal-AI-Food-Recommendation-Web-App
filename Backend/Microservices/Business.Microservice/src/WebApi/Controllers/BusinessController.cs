@@ -6,6 +6,7 @@ using Application.Business.Queries.GetBusinessByIdQuery;
 using Application.Business.Queries.GetMyBusinessQuery;
 using Application.Business.Queries.GetBusinessRestaurantsQuery;
 using SharedLibrary.Utils;
+using SharedLibrary.Utils.AuthenticationExtention;
 
 namespace WebApi.Controllers;
 

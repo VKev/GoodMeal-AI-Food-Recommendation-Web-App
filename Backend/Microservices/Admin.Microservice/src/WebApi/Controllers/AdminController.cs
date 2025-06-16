@@ -11,6 +11,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
 using SharedLibrary.Utils;
+using SharedLibrary.Utils.AuthenticationExtention;
 
 namespace WebApi.Controllers
 {
@@ -35,6 +36,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost("add-role")]
+        [ApiGatewayUser(Roles = "Admin")]
         public async Task<IActionResult> AddRole([FromBody] AddUserRoleCommand request,
             CancellationToken cancellationToken)
         {
@@ -120,7 +122,7 @@ namespace WebApi.Controllers
 
         [HttpPut("users")]
         [ApiGatewayUser(Roles = "Admin")]
-        public async Task<IActionResult> UpdateUser(string identityId, [FromBody] UpdateUserCommand request,
+        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserCommand request,
             CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(request, cancellationToken);
@@ -136,8 +138,7 @@ namespace WebApi.Controllers
         [ApiGatewayUser(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(string identityId, CancellationToken cancellationToken)
         {
-            var command = new DeleteUserCommand(identityId);
-            var result = await _mediator.Send(command, cancellationToken);
+            var result = await _mediator.Send(new DeleteUserCommand(identityId), cancellationToken);
             if (result.IsFailure)
             {
                 return HandleFailure(result);

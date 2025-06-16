@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Context;
 
-public partial class RestaurantFoodContext : DbContext
+public partial class BusinessRestaurantContext : DbContext
 {
-    public RestaurantFoodContext()
+    public BusinessRestaurantContext()
     {
     }
 
-    public RestaurantFoodContext(DbContextOptions<RestaurantFoodContext> options)
+    public BusinessRestaurantContext(DbContextOptions<BusinessRestaurantContext> options)
         : base(options)
     {
     }

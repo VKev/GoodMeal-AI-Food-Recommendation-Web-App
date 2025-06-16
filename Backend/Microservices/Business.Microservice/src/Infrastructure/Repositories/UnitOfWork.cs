@@ -1,15 +1,15 @@
+﻿using SharedLibrary.Common;
 using Infrastructure.Common;
 using Infrastructure.Context;
-using SharedLibrary.Common;
 
 namespace Infrastructure.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly RestaurantFoodContext _context;
+        private readonly BusinessRestaurantContext _context;
         private readonly Dictionary<Type, object> _repositories = new();
 
-        public UnitOfWork(RestaurantFoodContext context)
+        public UnitOfWork(BusinessRestaurantContext context)
         {
             _context = context;
         }

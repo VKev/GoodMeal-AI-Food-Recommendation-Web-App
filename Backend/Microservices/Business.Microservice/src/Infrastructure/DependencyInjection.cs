@@ -7,7 +7,6 @@ using Domain.Repositories;
 using Infrastructure.Common;
 using MassTransit;
 using SharedLibrary.Common;
-using Infrastructure.Services;
 
 namespace Infrastructure
 {
@@ -19,7 +18,7 @@ namespace Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IBusinessRestaurantRepository, BusinessRestaurantRepository>();
             services.AddScoped<IBusinessRepository, BusinessRepository>();
-            services.AddScoped<IRestaurantRepository, RestaurantRepsitory>();
+            services.AddScoped<IRestaurantRepository, RestaurantRepository>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddSingleton<EnvironmentConfig>();
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");

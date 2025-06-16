@@ -32,7 +32,7 @@ builder.Services.AddLogging(loggingBuilder =>
 });
 
 builder.Services.ConfigureOptions<DatabaseConfigSetup>();
-builder.Services.AddDbContext<RestaurantFoodContext>((serviceProvider, options) =>
+builder.Services.AddDbContext<BusinessRestaurantContext>((serviceProvider, options) =>
 {
     var databaseConfig = serviceProvider.GetService<IOptions<DatabaseConfig>>()!.Value;
     options.UseNpgsql(databaseConfig.ConnectionString, actions =>

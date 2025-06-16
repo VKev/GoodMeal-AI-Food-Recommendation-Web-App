@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
 using SharedLibrary.Utils;
+using SharedLibrary.Utils.AuthenticationExtention;
 
 namespace WebApi.Controllers
 {

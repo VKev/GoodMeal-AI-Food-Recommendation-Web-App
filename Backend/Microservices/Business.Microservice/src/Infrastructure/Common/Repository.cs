@@ -12,10 +12,10 @@ namespace Infrastructure.Common
 {
     public class Repository<T> : IRepository<T> where T : class
     {
-        protected readonly RestaurantFoodContext _context;
+        protected readonly BusinessRestaurantContext _context;
         private readonly DbSet<T> _dbSet;
 
-        public Repository(RestaurantFoodContext context)
+        public Repository(BusinessRestaurantContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();

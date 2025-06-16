@@ -8,7 +8,7 @@ namespace Infrastructure.Repositories;
 
 public class BusinessRestaurantRepository : Repository<BusinessRestaurant>, IBusinessRestaurantRepository
 {
-    public BusinessRestaurantRepository(RestaurantFoodContext context) : base(context)
+    public BusinessRestaurantRepository(BusinessRestaurantContext context) : base(context)
     {
     }
 

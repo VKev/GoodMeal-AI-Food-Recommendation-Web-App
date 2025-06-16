@@ -4,14 +4,14 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using SharedLibrary.Contracts.Restaurant;
 
-namespace Infrastructure.Services;
+namespace Infrastructure.Repositories;
 
-public class RestaurantRepsitory : IRestaurantRepository
+public class RestaurantRepository : IRestaurantRepository
 {
     private readonly IBus _bus;
-    private readonly ILogger<RestaurantRepsitory> _logger;
+    private readonly ILogger<RestaurantRepository> _logger;
 
-    public RestaurantRepsitory(IBus bus, ILogger<RestaurantRepsitory> logger)
+    public RestaurantRepository(IBus bus, ILogger<RestaurantRepository> logger)
     {
         _bus = bus;
         _logger = logger;

@@ -1,24 +1,20 @@
 namespace SharedLibrary.Contracts.Authentication;
 
-// Enable User Command
 public class EnableUserRequest
 {
     public string IdentityId { get; set; } = null!;
 }
 
-// Disable User Command  
 public class DisableUserRequest
 {
     public string IdentityId { get; set; } = null!;
 }
 
-// Delete User Command
 public class DeleteUserRequest
 {
     public string IdentityId { get; set; } = null!;
 }
 
-// Generic Response for User Commands
 public class UserCommandResponse
 {
     public bool IsSuccess { get; set; }
@@ -26,7 +22,6 @@ public class UserCommandResponse
     public string? ErrorCode { get; set; }
 }
 
-// Search Users Request
 public class SearchUsersRequest
 {
     public string? SearchTerm { get; set; }
