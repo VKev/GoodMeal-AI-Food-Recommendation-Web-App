@@ -103,6 +103,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Business.Microservice", "Business.Microservice", "{12E083B0-77AD-C5B6-77D6-79956D9AF0A4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EFFC3F65-0ABF-CD9B-8517-2039C45B84CE}"
+	ProjectSection(SolutionItems) = preProject
+		Business.Microservice\src\.env = Business.Microservice\src\.env
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Business.Microservice\src\Application\Application.csproj", "{5C8AF183-7BB1-47E7-8975-24A86AE31BEB}"
 EndProject

@@ -36,20 +36,7 @@ namespace WebApi.Controllers
 
             return Ok(aggregatedResult.Value);
         }
-
-        [HttpPost("delete")]
-        public async Task<IActionResult> Delete([FromBody] DeleteUserCommand request,
-            CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(request, cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
-
-            return Ok(result);
-        }
-
+        
         [HttpGet("read")]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {

@@ -32,51 +32,53 @@ public partial class BusinessRestaurantContext : DbContext
 
             entity.ToTable("businesses");
 
-            entity.HasIndex(e => e.OwnerId)
-                .HasDatabaseName("ix_businesses_owner_id");
+            entity.HasIndex(e => e.OwnerId, "ix_businesses_owner_id").UseCollation(new[] { "C.utf8" });
 
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("id");
-            entity.Property(e => e.OwnerId)
-                .UseCollation("C.utf8")
-                .HasColumnName("owner_id");
-            entity.Property(e => e.Name)
-                .IsRequired()
-                .UseCollation("C.utf8")
-                .HasColumnName("name");
-            entity.Property(e => e.Description)
-                .UseCollation("C.utf8")
-                .HasColumnName("description");
             entity.Property(e => e.Address)
                 .UseCollation("C.utf8")
                 .HasColumnName("address");
-            entity.Property(e => e.Phone)
-                .UseCollation("C.utf8")
-                .HasColumnName("phone");
-            entity.Property(e => e.Email)
-                .UseCollation("C.utf8")
-                .HasColumnName("email");
-            entity.Property(e => e.Website)
-                .UseCollation("C.utf8")
-                .HasColumnName("website");
-            entity.Property(e => e.IsActive)
-                .HasDefaultValue(true)
-                .HasColumnName("is_active");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
             entity.Property(e => e.CreatedBy)
                 .UseCollation("C.utf8")
                 .HasColumnName("created_by");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnName("created_at");
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("updated_at");
-            entity.Property(e => e.IsDisable).HasColumnName("is_disable");
-            entity.Property(e => e.DisableAt).HasColumnName("disable_at");
+            entity.Property(e => e.Description)
+                .UseCollation("C.utf8")
+                .HasColumnName("description");
+            entity.Property(e => e.DisableAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("disable_at");
             entity.Property(e => e.DisableBy)
                 .UseCollation("C.utf8")
                 .HasColumnName("disable_by");
+            entity.Property(e => e.Email)
+                .UseCollation("C.utf8")
+                .HasColumnName("email");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
+            entity.Property(e => e.IsDisable).HasColumnName("is_disable");
+            entity.Property(e => e.Name)
+                .UseCollation("C.utf8")
+                .HasColumnName("name");
+            entity.Property(e => e.OwnerId)
+                .UseCollation("C.utf8")
+                .HasColumnName("owner_id");
+            entity.Property(e => e.Phone)
+                .UseCollation("C.utf8")
+                .HasColumnName("phone");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.Website)
+                .UseCollation("C.utf8")
+                .HasColumnName("website");
         });
 
         modelBuilder.Entity<BusinessRestaurant>(entity =>
@@ -85,31 +87,37 @@ public partial class BusinessRestaurantContext : DbContext
 
             entity.ToTable("business_restaurants");
 
-            entity.HasIndex(e => new { e.BusinessId, e.RestaurantId })
-                .IsUnique()
-                .HasDatabaseName("ix_business_restaurants_business_restaurant_unique");
+            entity.HasIndex(e => new { e.BusinessId, e.RestaurantId }, "ix_business_restaurants_business_restaurant_unique").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("id");
             entity.Property(e => e.BusinessId).HasColumnName("business_id");
-            entity.Property(e => e.RestaurantId).HasColumnName("restaurant_id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
             entity.Property(e => e.CreatedBy)
                 .UseCollation("C.utf8")
                 .HasColumnName("created_by");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnName("created_at");
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("updated_at");
-            entity.Property(e => e.IsDisable).HasColumnName("is_disable");
-            entity.Property(e => e.DisableAt).HasColumnName("disable_at");
+            entity.Property(e => e.DisableAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("disable_at");
             entity.Property(e => e.DisableBy)
                 .UseCollation("C.utf8")
                 .HasColumnName("disable_by");
-        });
+            entity.Property(e => e.IsDisable).HasColumnName("is_disable");
+            entity.Property(e => e.RestaurantId).HasColumnName("restaurant_id");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("updated_at");
 
+            entity.HasOne(d => d.Business).WithMany(p => p.BusinessRestaurants)
+                .HasForeignKey(d => d.BusinessId)
+                .HasConstraintName("fk_business_restaurants_business_id");
+        });
+        
         OnModelCreatingPartial(modelBuilder);
     }
 

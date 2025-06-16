@@ -14,3 +14,5 @@ Terraform/modules/lambda_edge/lambda_edge.zip
 Terraform/modules/lambda_edge/node_modules
 Terraform/modules/lambda_edge/lambda.zip
 Terraform/modules/lambda_edge/node_modules
+/Backend/Microservices/Business.Microservice/src/WebApi/obj
+/Backend/Microservices/Business.Microservice/src/Infrastructure/obj

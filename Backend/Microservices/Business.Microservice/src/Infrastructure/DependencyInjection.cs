@@ -7,6 +7,9 @@ using Domain.Repositories;
 using Infrastructure.Common;
 using MassTransit;
 using SharedLibrary.Common;
+using Application.Sagas;
+using Application.Consumers;
+using SharedLibrary.Common.Event;
 
 namespace Infrastructure
 {
@@ -21,6 +24,12 @@ namespace Infrastructure
             services.AddScoped<IRestaurantRepository, RestaurantRepository>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddSingleton<EnvironmentConfig>();
+            
+            services.AddScoped<EventBuffer>();
+            services.AddScoped<IEventBuffer>(sp => sp.GetRequiredService<EventBuffer>());
+            services.AddScoped<IEventUnitOfWork>(sp => sp.GetRequiredService<EventBuffer>());
+            services.AddScoped<IEventFlusher>(sp => sp.GetRequiredService<EventBuffer>());
+            
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             using var serviceProvider = services.BuildServiceProvider();
             var logger = serviceProvider.GetRequiredService<ILogger<AutoScaffold>>();
@@ -41,6 +50,16 @@ namespace Infrastructure
                 DotNetEnv.Env.Load(Path.Combine(solutionDirectory, ".env"));
             }
             services.AddMassTransit(busConfigurator => {
+                busConfigurator.AddSagaStateMachine<RestaurantCreatingSaga, RestaurantCreatingSagaData>()
+                    .RedisRepository(r =>
+                    {
+                        r.DatabaseConfiguration($"{config.RedisHost}:{config.RedisPort},password={config.RedisPassword}");
+                        r.KeyPrefix = "restaurant-creating-saga";
+                        r.Expiry = TimeSpan.FromMinutes(30);
+                    });
+                
+                busConfigurator.AddConsumer<CreateBusinessRestaurantConsumer>();
+                
                 busConfigurator.SetKebabCaseEndpointNameFormatter();
                 busConfigurator.UsingRabbitMq((context, configurator) =>{
                     configurator.Host(new Uri($"rabbitmq://{config.RabbitMqHost}:{config.RabbitMqPort}/"), h=>{

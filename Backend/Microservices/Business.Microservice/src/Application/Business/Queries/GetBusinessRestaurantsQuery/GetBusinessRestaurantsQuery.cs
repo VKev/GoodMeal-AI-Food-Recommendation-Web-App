@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 using Domain.Repositories;
+using AutoMapper;
 
 namespace Application.Business.Queries.GetBusinessRestaurantsQuery;
 
@@ -31,17 +32,20 @@ internal sealed class
     private readonly IBusinessRestaurantRepository _businessRestaurantRepository;
     private readonly IBusinessRepository _businessRepository;
     private readonly IRestaurantRepository _restaurantRepository;
+    private readonly IMapper _mapper;
 
     public GetBusinessRestaurantsQueryHandler(
         ILogger<GetBusinessRestaurantsQueryHandler> logger,
         IBusinessRestaurantRepository businessRestaurantRepository,
         IBusinessRepository businessRepository,
-        IRestaurantRepository restaurantRepository)
+        IRestaurantRepository restaurantRepository,
+        IMapper mapper)
     {
         _logger = logger;
         _businessRestaurantRepository = businessRestaurantRepository;
         _businessRepository = businessRepository;
         _restaurantRepository = restaurantRepository;
+        _mapper = mapper;
     }
 
     public async Task<Result<GetBusinessRestaurantsResponse>> Handle(GetBusinessRestaurantsQuery request,
@@ -57,7 +61,8 @@ internal sealed class
                     "Business not found"));
             }
 
-            var businessRestaurants = await _businessRestaurantRepository.GetByBusinessIdAsync(request.BusinessId);
+            var businessRestaurants =
+                await _businessRestaurantRepository.GetByBusinessIdAsync(request.BusinessId, cancellationToken);
 
             if (!businessRestaurants.Any())
             {
@@ -74,18 +79,12 @@ internal sealed class
 
             foreach (var businessRestaurant in businessRestaurants)
             {
-                RestaurantInfo? restaurantInfo = null;
+                var restaurantInfo = restaurantsResult.FirstOrDefault(r => r.Id == businessRestaurant.RestaurantId);
 
-                restaurantInfo = restaurantsResult.FirstOrDefault(r => r.Id == businessRestaurant.RestaurantId);
+                var businessRestaurantInfo = _mapper.Map<BusinessRestaurantInfo>(businessRestaurant);
+                businessRestaurantInfo = businessRestaurantInfo with { Restaurant = restaurantInfo };
 
-                restaurantInfos.Add(new BusinessRestaurantInfo(
-                    businessRestaurant.Id,
-                    businessRestaurant.BusinessId,
-                    businessRestaurant.RestaurantId,
-                    restaurantInfo,
-                    businessRestaurant.CreatedAt,
-                    businessRestaurant.IsDisable
-                ));
+                restaurantInfos.Add(businessRestaurantInfo);
             }
 
             var response = new GetBusinessRestaurantsResponse(

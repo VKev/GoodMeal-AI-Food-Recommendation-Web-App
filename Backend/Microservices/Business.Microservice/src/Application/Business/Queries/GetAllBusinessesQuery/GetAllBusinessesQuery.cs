@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 using Domain.Repositories;
+using AutoMapper;
 
 namespace Application.Business.Queries.GetAllBusinessesQuery;
 
@@ -31,11 +32,13 @@ internal sealed class GetAllBusinessesQueryHandler : IQueryHandler<GetAllBusines
 {
     private readonly ILogger<GetAllBusinessesQueryHandler> _logger;
     private readonly IBusinessRepository _businessRepository;
+    private readonly IMapper _mapper;
 
-    public GetAllBusinessesQueryHandler(ILogger<GetAllBusinessesQueryHandler> logger, IBusinessRepository businessRepository)
+    public GetAllBusinessesQueryHandler(ILogger<GetAllBusinessesQueryHandler> logger, IBusinessRepository businessRepository, IMapper mapper)
     {
         _logger = logger;
         _businessRepository = businessRepository;
+        _mapper = mapper;
     }
 
     public async Task<Result<GetAllBusinessesResponse>> Handle(GetAllBusinessesQuery request, CancellationToken cancellationToken)
@@ -44,19 +47,7 @@ internal sealed class GetAllBusinessesQueryHandler : IQueryHandler<GetAllBusines
         {
             var businesses = await _businessRepository.GetAllAsync();
             
-            var businessInfos = businesses.Select(b => new BusinessInfo(
-                b.Id,
-                b.OwnerId,
-                b.Name,
-                b.Description,
-                b.Address,
-                b.Phone,
-                b.Email,
-                b.Website,
-                b.IsActive,
-                b.CreatedAt,
-                b.UpdatedAt
-            ));
+            var businessInfos = _mapper.Map<IEnumerable<BusinessInfo>>(businesses);
 
             var response = new GetAllBusinessesResponse(businessInfos, businessInfos.Count());
 
@@ -75,6 +66,5 @@ public class GetAllBusinessesQueryValidator : AbstractValidator<GetAllBusinesses
 {
     public GetAllBusinessesQueryValidator()
     {
-        // No validation needed for this query
     }
 } 

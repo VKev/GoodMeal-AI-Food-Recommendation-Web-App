@@ -5,6 +5,7 @@ using SharedLibrary.Common.ResponseModel;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using AutoMapper;
 
 namespace Application.Business.Queries.GetMyBusinessQuery;
 
@@ -29,13 +30,15 @@ internal sealed class GetMyBusinessQueryHandler : IQueryHandler<GetMyBusinessQue
     private readonly ILogger<GetMyBusinessQueryHandler> _logger;
     private readonly IBusinessRepository _businessRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IMapper _mapper;
 
     public GetMyBusinessQueryHandler(ILogger<GetMyBusinessQueryHandler> logger, IBusinessRepository businessRepository,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor, IMapper mapper)
     {
         _logger = logger;
         _businessRepository = businessRepository;
         _httpContextAccessor = httpContextAccessor;
+        _mapper = mapper;
     }
 
     public async Task<Result<GetMyBusinessResponse>> Handle(GetMyBusinessQuery request,
@@ -43,7 +46,7 @@ internal sealed class GetMyBusinessQueryHandler : IQueryHandler<GetMyBusinessQue
     {
         try
         {
-            var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst("user_id");
+            var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim is null)
             {
                 _logger.LogWarning("User ID not found in claims");
@@ -60,19 +63,7 @@ internal sealed class GetMyBusinessQueryHandler : IQueryHandler<GetMyBusinessQue
                     "Business not found for current user"));
             }
 
-            var response = new GetMyBusinessResponse(
-                business.Id,
-                business.OwnerId,
-                business.Name,
-                business.Description,
-                business.Address,
-                business.Phone,
-                business.Email,
-                business.Website,
-                business.IsActive,
-                business.CreatedAt,
-                business.UpdatedAt
-            );
+            var response = _mapper.Map<GetMyBusinessResponse>(business);
 
             _logger.LogInformation("Successfully retrieved business for user {UserId}", userId);
             return Result.Success(response);

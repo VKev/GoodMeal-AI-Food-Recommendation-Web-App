@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 using Domain.Repositories;
+using AutoMapper;
 
 namespace Application.Business.Queries.GetBusinessByIdQuery;
 
@@ -26,11 +27,13 @@ internal sealed class GetBusinessByIdQueryHandler : IQueryHandler<GetBusinessByI
 {
     private readonly ILogger<GetBusinessByIdQueryHandler> _logger;
     private readonly IBusinessRepository _businessRepository;
+    private readonly IMapper _mapper;
 
-    public GetBusinessByIdQueryHandler(ILogger<GetBusinessByIdQueryHandler> logger, IBusinessRepository businessRepository)
+    public GetBusinessByIdQueryHandler(ILogger<GetBusinessByIdQueryHandler> logger, IBusinessRepository businessRepository, IMapper mapper)
     {
         _logger = logger;
         _businessRepository = businessRepository;
+        _mapper = mapper;
     }
 
     public async Task<Result<GetBusinessByIdResponse>> Handle(GetBusinessByIdQuery request, CancellationToken cancellationToken)
@@ -45,19 +48,7 @@ internal sealed class GetBusinessByIdQueryHandler : IQueryHandler<GetBusinessByI
                 return Result.Failure<GetBusinessByIdResponse>(new Error("Business.NotFound", "Business not found"));
             }
 
-            var response = new GetBusinessByIdResponse(
-                business.Id,
-                business.OwnerId,
-                business.Name,
-                business.Description,
-                business.Address,
-                business.Phone,
-                business.Email,
-                business.Website,
-                business.IsActive,
-                business.CreatedAt,
-                business.UpdatedAt
-            );
+            var response = _mapper.Map<GetBusinessByIdResponse>(business);
 
             _logger.LogInformation("Successfully retrieved business {BusinessId}", request.BusinessId);
             return Result.Success(response);

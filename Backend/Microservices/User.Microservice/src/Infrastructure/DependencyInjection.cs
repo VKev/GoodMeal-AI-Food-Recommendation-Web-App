@@ -8,7 +8,6 @@ using Infrastructure.Repositories;
 using Infrastructure.Common;
 using MassTransit;
 using Application.Sagas;
-using Application.Users.Consumers;
 using SharedLibrary.Common.Event;
 
 namespace Infrastructure
