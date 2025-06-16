@@ -1,7 +1,7 @@
 using System.Text;
 using Application.Abstractions.Messaging;
+using Application.Common.GeminiApi;
 using Application.Common.ResponseModel;
-using Application.Prompt.GeminiApi;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

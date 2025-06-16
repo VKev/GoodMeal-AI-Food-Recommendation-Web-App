@@ -49,8 +49,7 @@ public class MessageController : ApiController
 
     [HttpGet("read-active/{promptSessionId}")]
     public async Task<IActionResult> GetMessageActiveById(Guid promptSessionId, CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(new GetMessageActiveByIdQuery(promptSessionId), cancellationToken);
+    { var result = await _mediator.Send(new GetMessageActiveByIdQuery(promptSessionId), cancellationToken);
         return Ok(result);
     }
     

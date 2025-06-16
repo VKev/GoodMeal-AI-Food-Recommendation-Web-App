@@ -1,8 +1,8 @@
 using System.Text;
 using Application.Abstractions.Messaging;
 using Application.Abstractions.UnitOfWork;
+using Application.Common.GeminiApi;
 using Application.Common.ResponseModel;
-using Application.Prompt.GeminiApi;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Repositories;
