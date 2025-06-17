@@ -20,7 +20,6 @@ namespace SharedLibrary.Common
         }
 
 
-
         // New method for aggregating results with automatic numbering and visibility control
         public static Result<AggregatedResults> AggregateWithNumbers(params (Result result, bool show)[] results)
         {
@@ -36,6 +35,7 @@ namespace SharedLibrary.Common
                 {
                     return ValidationResult<AggregatedResults>.WithErrors(validationResult.Errors);
                 }
+
                 return Result.Failure<AggregatedResults>(firstFailure.result.Error);
             }
 
@@ -68,6 +68,7 @@ namespace SharedLibrary.Common
                 {
                     return ValidationResult<AggregatedResults>.WithErrors(validationResult.Errors);
                 }
+
                 return Result.Failure<AggregatedResults>(firstFailure.Error);
             }
 
@@ -75,7 +76,6 @@ namespace SharedLibrary.Common
             var resultsWithVisibility = results.Select(r => (r, false)).ToArray();
             return AggregateWithNumbers(resultsWithVisibility);
         }
-
 
 
         private static object GetResultData(Result result)
@@ -110,4 +110,4 @@ namespace SharedLibrary.Common
         public bool IsSuccess { get; set; }
         public object? Data { get; set; }
     }
-} 
+}

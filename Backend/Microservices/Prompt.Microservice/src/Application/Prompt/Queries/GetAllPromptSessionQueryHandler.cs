@@ -1,7 +1,6 @@
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 using AutoMapper;
-using Domain.Entities;
 using Domain.Repositories;
 using SharedLibrary.Common;
 

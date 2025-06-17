@@ -1,5 +1,4 @@
 using Infrastructure.Common;
-using Infrastructure.Context;
 using SharedLibrary.Common;
 
 namespace Infrastructure.Repositories
@@ -34,5 +33,4 @@ namespace Infrastructure.Repositories
             _context.Dispose();
         }
     }
-
 }

@@ -1,10 +1,10 @@
 using System.Text;
+using Application.Common.GeminiApi;
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
-using Application.Prompt.GeminiApi;
 using AutoMapper;
-using Domain.Entities;
 using Domain.Repositories;
+using Infrastructure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SharedLibrary.Common;
@@ -20,7 +20,6 @@ public sealed record UpdateMessageCommand(
 internal sealed class UpdateMessageHandler : ICommandHandler<UpdateMessageCommand>
 {
     private readonly IMessageRepository _messageRepository;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly HttpClient _httpClient;
     private readonly string? _apiKey;
     private readonly string _model;
@@ -32,7 +31,6 @@ internal sealed class UpdateMessageHandler : ICommandHandler<UpdateMessageComman
         HttpClient httpClient)
     {
         _messageRepository = messageRepository;
-        _unitOfWork = unitOfWork;
         _httpClient = httpClient;
         _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
         _model = "gemini-2.5-flash-preview-05-20";
@@ -86,8 +84,6 @@ internal sealed class UpdateMessageHandler : ICommandHandler<UpdateMessageComman
             x => x.PromptMessage,
             x => x.ResponseMessage,
             x => x.UpdatedAt);
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

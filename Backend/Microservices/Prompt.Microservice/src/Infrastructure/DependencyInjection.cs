@@ -7,6 +7,7 @@ using Infrastructure.Configs;
 using Infrastructure.Repositories;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
+using SharedLibrary.Common.Event;
 
 namespace Infrastructure
 {
@@ -18,7 +19,11 @@ namespace Infrastructure
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IMessageRestaurantRepository, MessageRestaurantRepository>();
             services.AddSingleton<EnvironmentConfig>();
-            
+            services.AddScoped<EventBuffer>();
+            services.AddScoped<IEventBuffer>(sp => sp.GetRequiredService<EventBuffer>());
+            services.AddScoped<IEventUnitOfWork>(sp => sp.GetRequiredService<EventBuffer>());
+            services.AddScoped<IEventFlusher>(sp => sp.GetRequiredService<EventBuffer>());
+
             services.AddMassTransit(busConfigurator =>
             {
                 busConfigurator.SetKebabCaseEndpointNameFormatter();

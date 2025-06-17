@@ -13,18 +13,15 @@ public sealed record SoftDeleteMessageCommand(
 internal sealed class SoftDeleteMessageHandler : ICommandHandler<SoftDeleteMessageCommand>
 {
     private readonly IMessageRepository _messageRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
     public SoftDeleteMessageHandler(IMessageRepository messageRepository, IUnitOfWork unitOfWork)
     {
         _messageRepository = messageRepository;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> Handle(SoftDeleteMessageCommand request, CancellationToken cancellationToken)
     {
         await _messageRepository.SoftDeleteByIdAsync(request.Id, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

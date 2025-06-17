@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Context;
+namespace Infrastructure;
 
 public partial class PromptDbContext : DbContext
 {
@@ -23,7 +22,9 @@ public partial class PromptDbContext : DbContext
     public virtual DbSet<PromptSession> PromptSessions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql("Name=DefaultConnection");
+    {
+    }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -114,6 +115,7 @@ public partial class PromptDbContext : DbContext
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
+            entity.Property(e => e.SessionName).HasColumnName("session_name");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.UpdatedBy)
                 .UseCollation("C.utf8")

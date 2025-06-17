@@ -1,7 +1,6 @@
 using Application;
 using Infrastructure;
 using Infrastructure.Configs;
-using Infrastructure.Context;
 using SharedLibrary.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

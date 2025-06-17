@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Domain.Entities;
+namespace Infrastructure;
 
 public partial class PromptSession
 {
@@ -22,6 +22,8 @@ public partial class PromptSession
     public string? UpdatedBy { get; set; }
 
     public string? DeletedBy { get; set; }
+
+    public string? SessionName { get; set; }
 
     public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 }

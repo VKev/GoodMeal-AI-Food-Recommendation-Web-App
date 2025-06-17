@@ -1,8 +1,12 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Application.Prompt.Commands;
 using Application.Prompt.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
+using SharedLibrary.Common.Messaging.Commands;
 
 namespace WebApi.Controllers;
 
@@ -18,53 +22,97 @@ public class MessageController : ApiController
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregateResult);
         }
 
-        return Ok(result);
+        return Ok(aggregateResult);
     }
 
     [HttpGet("read")]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetAllMessageQuery(), cancellationToken);
-        return Ok(result);
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
+        {
+            return HandleFailure(aggregateResult);
+        }
+
+        return Ok(aggregateResult);
     }
 
     [HttpGet("read-active")]
     public async Task<IActionResult> GetAllActive(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetAllMessageActiveQuery(), cancellationToken);
-        return Ok(result);
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
+        {
+            return HandleFailure(aggregateResult);
+        }
+
+        return Ok(aggregateResult);
     }
 
     [HttpGet("read/{id}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetMessageByIdQuery(id), cancellationToken);
-        return Ok(result);
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
+        {
+            return HandleFailure(aggregateResult);
+        }
+
+        return Ok(aggregateResult);
     }
 
     [HttpGet("read-active/{promptSessionId}")]
     public async Task<IActionResult> GetMessageActiveById(Guid promptSessionId, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetMessageActiveByIdQuery(promptSessionId), cancellationToken);
-        return Ok(result);
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
+        {
+            return HandleFailure(aggregateResult);
+        }
+
+        return Ok(aggregateResult);
     }
-    
+
     [HttpPut("update")]
     public async Task<IActionResult> Update([FromBody] UpdateMessageCommand request,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregateResult);
         }
 
-        return Ok(result);
+        return Ok(aggregateResult);
     }
 
     [HttpDelete("soft-delete")]
@@ -72,12 +120,16 @@ public class MessageController : ApiController
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregateResult);
         }
 
-        return Ok(result);
+        return Ok(aggregateResult);
     }
 
     [HttpDelete("delete")]
@@ -85,11 +137,15 @@ public class MessageController : ApiController
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregateResult);
         }
 
-        return Ok(result);
+        return Ok(aggregateResult);
     }
 }

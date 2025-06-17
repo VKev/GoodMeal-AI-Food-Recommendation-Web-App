@@ -1,8 +1,12 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Application.Prompt.Commands;
 using Application.Prompt.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
+using SharedLibrary.Common.Messaging.Commands;
 
 namespace WebApi.Controllers;
 
@@ -18,39 +22,62 @@ public class PromptSessionController : ApiController
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregateResult);
         }
 
-        return Ok(result);
+        return Ok(aggregateResult);
     }
 
     [HttpGet("read")]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetAllPromptSessionQuery(), cancellationToken);
-        return Ok(result);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true));
+        if (aggregateResult.IsFailure)
+        {
+            return HandleFailure(aggregateResult);
+        }
+
+        return Ok(aggregateResult);
     }
 
     [HttpGet("read/{id}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetPromptSessionByIdQuery(id), cancellationToken);
-        return Ok(result);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true));
+        if (aggregateResult.IsFailure)
+        {
+            return HandleFailure(aggregateResult);
+        }
+
+        return Ok(aggregateResult);
     }
+
 
     [HttpDelete("soft-delete")]
     public async Task<IActionResult> SoftDelete([FromBody] SoftDeletePromptSessionCommand request,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregateResult);
         }
 
-        return Ok(result);
+        return Ok(aggregateResult);
     }
 
     [HttpDelete("delete")]
@@ -58,11 +85,15 @@ public class PromptSessionController : ApiController
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregateResult);
         }
 
-        return Ok(result);
+        return Ok(aggregateResult);
     }
 }
