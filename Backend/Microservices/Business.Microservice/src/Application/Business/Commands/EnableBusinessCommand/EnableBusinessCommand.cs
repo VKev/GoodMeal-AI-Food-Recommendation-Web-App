@@ -25,20 +25,17 @@ internal sealed class EnableBusinessCommandHandler : ICommandHandler<EnableBusin
 {
     private readonly ILogger<EnableBusinessCommandHandler> _logger;
     private readonly IBusinessRepository _businessRepository;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public EnableBusinessCommandHandler(
         ILogger<EnableBusinessCommandHandler> logger,
         IBusinessRepository businessRepository,
-        IUnitOfWork unitOfWork,
         IMapper mapper, 
         IHttpContextAccessor httpContextAccessor)
     {
         _logger = logger;
         _businessRepository = businessRepository;
-        _unitOfWork = unitOfWork;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
     }
@@ -93,7 +90,6 @@ internal sealed class EnableBusinessCommandHandler : ICommandHandler<EnableBusin
             business.UpdatedAt = DateTime.Now;
 
             _businessRepository.Update(business);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var response = _mapper.Map<EnableBusinessResponse>(business);
 

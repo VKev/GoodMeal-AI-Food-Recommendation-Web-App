@@ -5,7 +5,6 @@ using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 using Domain.Repositories;
 using Microsoft.AspNetCore.Http;
-using SharedLibrary.Common;
 using SharedLibrary.Common.Event;
 using SharedLibrary.Contracts.RestaurantCreating;
 
@@ -73,7 +72,6 @@ internal sealed class AddRestaurantToBusinessCommandHandler : ICommandHandler<Ad
                 return Result.Failure<AddRestaurantToBusinessResponse>(new Error("Business.NotFound", "Business not found"));
             }
 
-            // Kiểm tra quyền sở hữu
             if (business.OwnerId != userId)
             {
                 _logger.LogWarning("User {UserId} is not authorized to add restaurant to business {BusinessId}", userId,
@@ -89,11 +87,9 @@ internal sealed class AddRestaurantToBusinessCommandHandler : ICommandHandler<Ad
                     "Cannot add restaurant to a disabled business"));
             }
 
-            // Tạo GUID cho restaurant trước khi publish event
             var restaurantId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
 
-            // Publish saga start event
             _events.Add(new RestaurantCreatingSagaStart
             {
                 CorrelationId = correlationId,

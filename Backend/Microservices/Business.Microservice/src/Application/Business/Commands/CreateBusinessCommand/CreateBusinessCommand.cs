@@ -36,19 +36,16 @@ internal sealed class CreateBusinessCommandHandler : ICommandHandler<CreateBusin
 {
     private readonly ILogger<CreateBusinessCommandHandler> _logger;
     private readonly IBusinessRepository _businessRepository;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public CreateBusinessCommandHandler(
         ILogger<CreateBusinessCommandHandler> logger,
         IBusinessRepository businessRepository,
-        IUnitOfWork unitOfWork,
         IMapper mapper, IHttpContextAccessor httpContextAccessor)
     {
         _logger = logger;
         _businessRepository = businessRepository;
-        _unitOfWork = unitOfWork;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
     }
@@ -99,7 +96,6 @@ internal sealed class CreateBusinessCommandHandler : ICommandHandler<CreateBusin
             };
 
             await _businessRepository.AddAsync(business, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var response = _mapper.Map<CreateBusinessResponse>(business);
 

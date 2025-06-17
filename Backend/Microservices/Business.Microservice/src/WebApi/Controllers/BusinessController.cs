@@ -1,6 +1,5 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Common;
 using Application.Business.Queries.GetAllBusinessesQuery;
 using Application.Business.Queries.GetBusinessByIdQuery;
 using Application.Business.Queries.GetMyBusinessQuery;
@@ -10,7 +9,8 @@ using Application.Business.Commands.UpdateBusinessCommand;
 using Application.Business.Commands.DisableBusinessCommand;
 using Application.Business.Commands.EnableBusinessCommand;
 using Application.Business.Commands.AddRestaurantToBusinessCommand;
-using SharedLibrary.Utils;
+using SharedLibrary.Common;
+using SharedLibrary.Common.Messaging.Commands;
 using SharedLibrary.Utils.AuthenticationExtention;
 
 namespace WebApi.Controllers;
@@ -79,13 +79,22 @@ public class BusinessController : ApiController
     public async Task<IActionResult> CreateBusiness([FromBody] CreateBusinessCommand command,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(command, cancellationToken);
-        if (result.IsFailure)
+        var createResult = await _mediator.Send(command, cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(createResult.Value?.Id ?? Guid.Empty), cancellationToken);
+        
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (createResult, true),
+            (saveResult, false),
+            (getBusinessResult, true)
+        );
+        
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
 
-        return CreatedAtAction(nameof(GetBusinessById), new { businessId = result.Value.Id }, result);
+        return Ok(aggregatedResult.Value);
     }
 
     [HttpPut("{businessId}")]
@@ -103,39 +112,66 @@ public class BusinessController : ApiController
             request.Website
         );
 
-        var result = await _mediator.Send(command, cancellationToken);
-        if (result.IsFailure)
+        var updateResult = await _mediator.Send(command, cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(businessId), cancellationToken);
+        
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (updateResult, true),
+            (saveResult, false),
+            (getBusinessResult, true)
+        );
+        
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
 
-        return Ok(result);
+        return Ok(aggregatedResult.Value);
     }
 
     [HttpDelete("{businessId}")]
     [ApiGatewayUser]
     public async Task<IActionResult> DisableBusiness(Guid businessId, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new DisableBusinessCommand(businessId), cancellationToken);
-        if (result.IsFailure)
+        var disableResult = await _mediator.Send(new DisableBusinessCommand(businessId), cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(businessId), cancellationToken);
+        
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (disableResult, true),
+            (saveResult, false),
+            (getBusinessResult, true)
+        );
+        
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
 
-        return Ok(result);
+        return Ok(aggregatedResult.Value);
     }
 
-    [HttpPatch("{businessId}/enable")]
+    [HttpPost("{businessId}/enable")]
     [ApiGatewayUser]
     public async Task<IActionResult> EnableBusiness(Guid businessId, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new EnableBusinessCommand(businessId), cancellationToken);
-        if (result.IsFailure)
+        var enableResult = await _mediator.Send(new EnableBusinessCommand(businessId), cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(businessId), cancellationToken);
+        
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (enableResult, true),
+            (saveResult, false),
+            (getBusinessResult, true)
+        );
+        
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
 
-        return Ok(result);
+        return Ok(aggregatedResult.Value);
     }
 
     [HttpPost("{businessId}/restaurants")]
@@ -151,16 +187,22 @@ public class BusinessController : ApiController
             request.Phone
         );
 
-        var result = await _mediator.Send(command, cancellationToken);
-        if (result.IsFailure)
+        var addResult = await _mediator.Send(command, cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var getRestaurantsResult = await _mediator.Send(new GetBusinessRestaurantsQuery(businessId), cancellationToken);
+        
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (addResult, true),
+            (saveResult, false),
+            (getRestaurantsResult, true)
+        );
+        
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
 
-        // Trigger SaveChanges to flush events
-        await _mediator.Send(new SharedLibrary.Common.Messaging.Commands.SaveChangesCommand(), cancellationToken);
-
-        return Accepted(result);
+        return Ok(aggregatedResult.Value);
     }
 
     [HttpGet("health")]

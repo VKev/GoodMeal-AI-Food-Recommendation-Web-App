@@ -14,6 +14,7 @@ import {
     CrownOutlined,
     LogoutOutlined
 } from '@ant-design/icons';
+import { logOut } from '@/firebase/firebase';
 
 const { Header } = Layout;
 const { Title, Text } = Typography;
@@ -25,15 +26,20 @@ interface SearchHeaderProps {
 const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed }) => {
     const router = useRouter();
 
-    const handleMenuClick = (key: string) => {
+    const handleMenuClick = async (key: string) => {
         switch (key) {
             case 'subscription':
                 router.push('/my-subscription');
                 break;
             case 'logout':
-                message.success('Đăng xuất thành công!');
-                // Thêm logic đăng xuất ở đây
-                router.push('/sign-in');
+                try {
+                    await logOut();
+                    message.success('Đăng xuất thành công!');
+                    router.push('/sign-in');
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    message.error('Có lỗi xảy ra khi đăng xuất');
+                }
                 break;
             default:
                 break;
