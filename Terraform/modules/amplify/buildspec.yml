@@ -14,12 +14,18 @@ applications:
             - find . -name "tsconfig.json" -o -name "next.config.*" | head -20
             - echo 'Installing dependencies...'
             - npm ci --verbose
+            - echo 'Verifying TypeScript installation...'
+            - npm list typescript @types/react @types/node || true
+            - echo 'Checking TypeScript version...'
+            - npx tsc --version || echo 'TypeScript not found, installing...'
             - echo 'preBuild phase completed'
         build:
           commands:
             - echo 'Starting build phase'
             - echo 'Verifying path aliases...'
             - ls -la components/
+            - echo 'Final TypeScript check...'
+            - npx tsc --version
             - echo 'Building Next.js application...'
             - npx next build
             - echo 'Build phase completed'

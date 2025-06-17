@@ -15,6 +15,9 @@
     "@nextui-org/react": "^2.6.11",
     "@react-spring/web": "^10.0.1",
     "@tailwindcss/postcss": "^4.1.7",
+    "@types/node": "^20.17.52",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "antd": "^5.25.2",
     "framer-motion": "^11.18.2",
     "fullpage.js": "^4.0.35",
@@ -26,16 +29,13 @@
     "react-fullpage": "^0.1.19",
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
-    "tailwindcss": "^4.1.7"
+    "tailwindcss": "^4.1.7",
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@types/node": "^20.17.52",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
     "@types/react-slick": "^0.23.13",
     "eslint": "^9",
-    "eslint-config-next": "15.3.2",
-    "typescript": "^5"
+    "eslint-config-next": "15.3.2"
   }
 }
