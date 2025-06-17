@@ -36,20 +36,7 @@ namespace WebApi.Controllers
 
             return Ok(aggregatedResult.Value);
         }
-
-        [HttpPost("delete")]
-        public async Task<IActionResult> Delete([FromBody] DeleteUserCommand request,
-            CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(request, cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
-
-            return Ok(result);
-        }
-
+        
         [HttpGet("read")]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
@@ -75,49 +62,7 @@ namespace WebApi.Controllers
 
             return Ok(result);
         }
-
-        [HttpPost("add-role")]
-        [ApiGatewayUser]
-        public async Task<IActionResult> AddRole([FromBody] AddUserRoleCommand request,
-            CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(request, cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
-
-            return Ok(result);
-        }
-
-        [HttpPost("remove-role")]
-        [ApiGatewayUser]
-        public async Task<IActionResult> RemoveRole([FromBody] RemoveUserRoleCommand request,
-            CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(request, cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
-
-            return Ok(result);
-        }
-
-        [HttpPost("edit-name")]
-        [ApiGatewayUser]
-        public async Task<IActionResult> EditName([FromBody] EditUserNameCommand request,
-            CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(request, cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
-
-            return Ok(result);
-        }
-
+        
         [HttpGet("health")]
         public async Task<IActionResult> Health()
         {

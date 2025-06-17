@@ -19,6 +19,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "antd": "^5.25.2",
+    "firebase": "^11.9.0",
     "framer-motion": "^11.18.2",
     "fullpage.js": "^4.0.35",
     "lucide-react": "^0.511.0",

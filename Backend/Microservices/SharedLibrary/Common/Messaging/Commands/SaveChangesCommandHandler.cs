@@ -32,7 +32,6 @@ namespace SharedLibrary.Common.Messaging.Commands
             {
                 var result = await _unitOfWork.SaveChangesAsync(cancellationToken);
                 
-                // Flush all buffered events after successful save
                 await _eventFlusher.FlushAsync(_publishEndpoint, cancellationToken);
                 
                 return Result.Success(result);

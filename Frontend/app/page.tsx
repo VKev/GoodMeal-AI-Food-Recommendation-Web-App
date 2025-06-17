@@ -20,8 +20,8 @@ export default function Home() {
 
                 </div>
               </div>
-   
-             
+
+
               <div className="section">
                 <div className="content-wrapper">
                   <Background1 />

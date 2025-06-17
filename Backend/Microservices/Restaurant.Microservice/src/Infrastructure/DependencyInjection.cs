@@ -43,6 +43,12 @@ namespace Infrastructure
             }
             services.AddMassTransit(busConfigurator => {
                 busConfigurator.SetKebabCaseEndpointNameFormatter();
+                
+                // Add consumers
+                busConfigurator.AddConsumer<Application.Consumers.GetRestaurantByIdConsumer>();
+                busConfigurator.AddConsumer<Application.Consumers.GetRestaurantsByIdsConsumer>();
+                busConfigurator.AddConsumer<Application.Consumers.CreateRestaurantConsumer>();
+                
                 busConfigurator.UsingRabbitMq((context, configurator) =>{
                     configurator.Host(new Uri($"rabbitmq://{config.RabbitMqHost}:{config.RabbitMqPort}/"), h=>{
                         h.Username(config.RabbitMqUser);

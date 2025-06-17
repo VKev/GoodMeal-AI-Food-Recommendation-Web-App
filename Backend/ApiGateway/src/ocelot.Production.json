@@ -2,7 +2,12 @@
   "Routes": [
     {
       "UpstreamPathTemplate": "/api/User/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -14,7 +19,12 @@
     },
     {
       "UpstreamPathTemplate": "/api/Auth/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -26,7 +36,12 @@
     },
     {
       "UpstreamPathTemplate": "/api/Resource/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -38,7 +53,12 @@
     },
     {
       "UpstreamPathTemplate": "/api/Guest/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -50,7 +70,12 @@
     },
     {
       "UpstreamPathTemplate": "/api/PromptSession/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -62,7 +87,12 @@
     },
     {
       "UpstreamPathTemplate": "/api/Message/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -74,7 +104,12 @@
     },
     {
       "UpstreamPathTemplate": "/api/Gemini/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -86,7 +121,12 @@
     },
     {
       "UpstreamPathTemplate": "/api/Restaurant/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -98,7 +138,12 @@
     },
     {
       "UpstreamPathTemplate": "/api/Food/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -110,7 +155,12 @@
     },
     {
       "UpstreamPathTemplate": "/api/Rating/{everything}",
-      "UpstreamHttpMethod": ["Get", "Post", "Put", "Delete"],
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -119,9 +169,42 @@
         }
       ],
       "DownstreamPathTemplate": "/api/Rating/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Business/{everything}",
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "business-microservice",
+          "Port": "4161"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Business/{everything}"
+    },
+    {
+      "UpstreamPathTemplate": "/api/Admin/{everything}",
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "admin-microservice",
+          "Port": "1034"
+        }
+      ],
+      "DownstreamPathTemplate": "/api/Admin/{everything}"
     }
   ],
-
   "GlobalConfiguration": {
     "BaseUrl": "http://localhost:2406"
   }

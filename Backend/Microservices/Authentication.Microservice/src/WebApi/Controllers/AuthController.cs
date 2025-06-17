@@ -1,9 +1,8 @@
-using Application.Auths.Commands;
+using Application.Auths.Commands.RegisterUserCommand;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
-using SharedLibrary.Utils;
+using SharedLibrary.Utils.AuthenticationExtention;
 
 namespace WebApi.Controllers
 {
@@ -27,32 +26,6 @@ namespace WebApi.Controllers
             return Ok(result);
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(command, cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
-
-            return Ok(result);
-        }
-
-
-        [HttpPost("login-token")]
-        public async Task<IActionResult> LoginWithToken([FromBody] LoginWithExternalProviderCommand command,
-            CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(command, cancellationToken);
-            if (result.IsFailure)
-            {
-                return HandleFailure(result);
-            }
-
-            return Ok(result);
-        }
-
         [HttpGet("check-authorization")]
         [ApiGatewayUser]
         public IActionResult CheckAuthorization()
@@ -63,8 +36,9 @@ namespace WebApi.Controllers
             }
 
             var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
-            var roles = User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
-            
+            var roles = User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value)
+                .ToList();
+
             return Ok(new
             {
                 message = "Authorized",
@@ -93,7 +67,7 @@ namespace WebApi.Controllers
         {
             return Ok(new { message = "You have user access!", timestamp = DateTime.UtcNow });
         }
-
+        
         [HttpGet("health")]
         public async Task<IActionResult> Health()
         {
