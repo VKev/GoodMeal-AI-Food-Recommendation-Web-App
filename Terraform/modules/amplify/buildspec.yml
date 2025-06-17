@@ -10,12 +10,17 @@ applications:
             - ls -la
             - node --version
             - npm --version
+            - echo 'Checking directory structure...'
+            - find . -name "tsconfig.json" -o -name "next.config.*" | head -20
             - echo 'Installing dependencies...'
             - npm ci --verbose
             - echo 'preBuild phase completed'
         build:
           commands:
             - echo 'Starting build phase'
+            - echo 'Verifying path aliases...'
+            - ls -la components/
+            - echo 'Building Next.js application...'
             - npx next build
             - echo 'Build phase completed'
       artifacts:
