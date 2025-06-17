@@ -1,4 +1,4 @@
-using Application.Abstractions.Messaging;
+using SharedLibrary.Common.Messaging;
 using Domain.Entities;
 using Domain.Repositories;
 using Domain.Services;

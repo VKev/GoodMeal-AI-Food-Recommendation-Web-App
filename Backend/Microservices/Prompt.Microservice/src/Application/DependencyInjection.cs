@@ -1,9 +1,10 @@
-using Application.Abstractions.UnitOfWork;
 using Application.Behaviors;
+using Application.Common.GeminiApi;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using SharedLibrary.Common;
+using Infrastructure.Repositories;
 
 namespace Application
 {
@@ -15,6 +16,7 @@ namespace Application
             services.AddHttpClient("GeminiClient",
                 client => { client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/"); });
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddSingleton<GoogleSearchBuilder>();
             services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
             services.AddValidatorsFromAssembly(assembly);
             services.AddAutoMapper(assembly);

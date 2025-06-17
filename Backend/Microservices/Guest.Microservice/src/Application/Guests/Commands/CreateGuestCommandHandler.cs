@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SharedLibrary.Common.ResponseModel;
-using Application.Abstractions.Messaging;
+using SharedLibrary.Common.Messaging;
 using Application.Common;
 using AutoMapper;
 using Domain.Entities;
@@ -17,19 +17,17 @@ namespace Application.Guests.Commands
     internal sealed class CreateGuestCommandHandler : ICommandHandler<CreateGuestCommand>
     {
         private readonly IGuestRepository _guestRepository;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CreateGuestCommandHandler(IGuestRepository guestRepository, IMapper mapper, IUnitOfWork unitOfWork)
+        public CreateGuestCommandHandler(IGuestRepository guestRepository, IMapper mapper)
         {
             _guestRepository = guestRepository;
             _mapper = mapper;
-            _unitOfWork = unitOfWork;
         }
+        
         public async Task<Result> Handle(CreateGuestCommand command, CancellationToken cancellationToken)
         {
             await _guestRepository.AddAsync(_mapper.Map<Guest>(command), cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result.Success();
         }
     }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.Common.ResponseModel;
+using SharedLibrary.Common.ResponseModel;
 using FluentValidation;
 using MediatR;
 

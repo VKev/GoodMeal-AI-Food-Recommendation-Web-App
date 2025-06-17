@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Application.Common.ResponseModel;
+using SharedLibrary.Common.ResponseModel;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

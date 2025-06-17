@@ -1,7 +1,7 @@
 using System.Text;
-using Application.Abstractions.Messaging;
 using Application.Common.GeminiApi;
-using Application.Common.ResponseModel;
+using SharedLibrary.Common.Messaging;
+using SharedLibrary.Common.ResponseModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -45,8 +45,7 @@ internal sealed class CallGeminiHandler : ICommandHandler<CallGeminiCommand, str
         var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync(requestUrl, content, cancellationToken);
-
-
+        
         var responseString = await response.Content.ReadAsStringAsync();
 
         var responseText = JObject.Parse(responseString)["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]

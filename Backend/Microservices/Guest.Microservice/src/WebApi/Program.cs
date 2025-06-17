@@ -6,6 +6,8 @@ using SharedLibrary.Configs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
+using MassTransit;
+using WebApi.Consumers;
 
 string solutionDirectory = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName ?? "";
 if (solutionDirectory != null)
@@ -47,7 +49,12 @@ builder.Services.AddDbContext<MyDbContext>((serviceProvider, options) =>
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure();
+    .AddInfrastructure(busConfigurator =>
+    {
+        busConfigurator.AddConsumer<UserCreatedConsumer>();
+    });
+
+
 
 var app = builder.Build();
 

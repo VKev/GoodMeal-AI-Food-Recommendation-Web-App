@@ -1,5 +1,6 @@
 using Domain.Common;
-using Domain.Entities;
+
+using Infrastructure;
 
 namespace Domain.Repositories;
 

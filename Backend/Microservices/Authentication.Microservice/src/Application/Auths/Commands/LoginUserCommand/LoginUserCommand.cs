@@ -1,4 +1,4 @@
-using Application.Abstractions.Messaging;
+using SharedLibrary.Common.Messaging;
 
 namespace Application.Auths.Commands;
 

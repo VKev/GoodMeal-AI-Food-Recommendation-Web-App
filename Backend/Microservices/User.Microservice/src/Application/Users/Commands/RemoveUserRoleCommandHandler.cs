@@ -1,4 +1,4 @@
-using Application.Abstractions.Messaging;
+using SharedLibrary.Common.Messaging;
 using Domain.Repositories;
 using FluentValidation;
 using SharedLibrary.Common.ResponseModel;

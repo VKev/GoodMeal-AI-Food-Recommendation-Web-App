@@ -13,10 +13,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Entities\"/>
-    </ItemGroup>
-
-    <ItemGroup>
       <Content Include="Build\obj\Debug\net9.0\Domain.csproj.CoreCompileInputs.cache" />
       <Content Include="Build\obj\Debug\net9.0\Domain.csproj.FileListAbsolute.txt" />
       <Content Include="Build\obj\Debug\net9.0\Domain.dll" />

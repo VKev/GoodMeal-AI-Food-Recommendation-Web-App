@@ -9,7 +9,9 @@ namespace Application.Common.Mapper
     {
         public AutoMapperProfile()
         {
-            CreateMap<CreateUserCommand, User>().ReverseMap();
+            CreateMap<CreateUserCommand, User>()
+                .ForMember(dest => dest.IdentityId, opt => opt.MapFrom(src => (string?)null))
+                .ReverseMap();
             CreateMap<User, GetUserResponse>().ReverseMap();
         }
     }

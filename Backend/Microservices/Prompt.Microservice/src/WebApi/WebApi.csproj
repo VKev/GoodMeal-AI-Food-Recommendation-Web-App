@@ -31,6 +31,9 @@
       <_ContentIncludedByDefault Remove="bin\Debug\net9.0\WebApi.deps.json" />
       <_ContentIncludedByDefault Remove="bin\Debug\net9.0\WebApi.runtimeconfig.json" />
       <_ContentIncludedByDefault Remove="bin\Debug\net9.0\WebApi.staticwebassets.endpoints.json" />
+      <_ContentIncludedByDefault Remove="obj\project.assets.json" />
+      <_ContentIncludedByDefault Remove="obj\project.packagespec.json" />
+      <_ContentIncludedByDefault Remove="obj\WebApi.csproj.nuget.dgspec.json" />
     </ItemGroup>
 
     <ItemGroup>

@@ -3,6 +3,7 @@ using Application.Users.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
+using SharedLibrary.Common.Messaging.Commands;
 using SharedLibrary.Utils;
 
 namespace WebApi.Controllers
@@ -18,17 +19,26 @@ namespace WebApi.Controllers
         public async Task<IActionResult> Create([FromBody] CreateUserCommand request,
             CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(request, cancellationToken);
-            if (result.IsFailure)
+            var createResult = await _mediator.Send(request, cancellationToken);
+            var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+            var getAllResult = await _mediator.Send(new GetAllUsersQuery(), cancellationToken);
+            
+            var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+                (createResult, true),
+                (saveResult, false),
+                (getAllResult, true)
+            );
+            
+            if (aggregatedResult.IsFailure)
             {
-                return HandleFailure(result);
+                return HandleFailure(aggregatedResult);
             }
 
-            return Ok(result);
+            return Ok(aggregatedResult.Value);
         }
 
         [HttpPost("delete")]
-        public async Task<IActionResult> Create([FromBody] DeleteUserCommand request,
+        public async Task<IActionResult> Delete([FromBody] DeleteUserCommand request,
             CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(request, cancellationToken);
