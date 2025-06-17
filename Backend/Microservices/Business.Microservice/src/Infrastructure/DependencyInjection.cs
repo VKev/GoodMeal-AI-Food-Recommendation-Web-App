@@ -54,8 +54,8 @@ namespace Infrastructure
                     .RedisRepository(r =>
                     {
                         r.DatabaseConfiguration($"{config.RedisHost}:{config.RedisPort},password={config.RedisPassword}");
-                        r.KeyPrefix = "restaurant-creating-saga";
-                        r.Expiry = TimeSpan.FromMinutes(30);
+                        r.KeyPrefix = "businessRestaurant-creating-saga";
+                        r.Expiry = TimeSpan.FromMinutes(10);
                     });
                 
                 busConfigurator.AddConsumer<CreateBusinessRestaurantConsumer>();
