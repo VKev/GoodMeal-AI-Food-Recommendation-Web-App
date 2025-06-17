@@ -1,0 +1,28 @@
+version: 1
+applications:
+  - appRoot: Frontend
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - echo 'Starting preBuild phase'
+            - pwd
+            - ls -la
+            - node --version
+            - npm --version
+            - echo 'Installing dependencies...'
+            - npm ci --verbose
+            - echo 'preBuild phase completed'
+        build:
+          commands:
+            - echo 'Starting build phase'
+            - npx next build
+            - echo 'Build phase completed'
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/* 
