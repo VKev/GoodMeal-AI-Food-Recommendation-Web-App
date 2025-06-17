@@ -1,8 +1,9 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using SharedLibrary.Common.ResponseModel;
 
-namespace SharedLibrary.Utils;
+namespace SharedLibrary.Utils.AuthenticationExtention;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class ApiGatewayUserAttribute : Attribute, IActionFilter
@@ -62,14 +63,19 @@ public class ApiGatewayUserAttribute : Attribute, IActionFilter
 
         if (!string.IsNullOrEmpty(Roles))
         {
-            var allowedRoles = Roles.Split(',').Select(r => r.Trim());
+            var allowedRoles = Roles.Split(',').Select(r => r.Trim()).Select(r => r.ToLower());
             var userRoles = context.HttpContext.User.Claims
                 .Where(c => c.Type == ClaimTypes.Role)
                 .Select(c => c.Value);
 
             if (!allowedRoles.Intersect(userRoles).Any())
             {
-                context.Result = new ForbidResult();
+                var forbiddenError = new Error("Authorization.InsufficientPermissions", 
+                    "You do not have sufficient permissions to access this resource.");
+                context.Result = new ObjectResult(forbiddenError.ToResult())
+                {
+                    StatusCode = 403
+                };
             }
         }
     }

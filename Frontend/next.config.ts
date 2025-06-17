@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
+import path from 'path';
 
 const nextConfig: NextConfig = {
-  // Ensure standalone output for AWS Amplify SSR
-  output: 'standalone',
-  
   images: {
     remotePatterns: [
       {
@@ -43,6 +41,14 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  // Add webpack configuration for better path resolution
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, '.'),
+    };
+    return config;
   },
 };
 
