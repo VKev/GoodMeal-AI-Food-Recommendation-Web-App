@@ -22,3 +22,12 @@ variable "project_name" {
   description = "The name of the project"
   type        = string
 }
+
+variable "cloudfront_allow_origins" {
+  description = "List of allowed origins for CORS"
+  type        = list(string)
+  default     = [
+    "http://localhost:3000",
+    "localhost:3000"
+  ]
+}

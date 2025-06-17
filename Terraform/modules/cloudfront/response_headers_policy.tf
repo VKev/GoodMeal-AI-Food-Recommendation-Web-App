@@ -30,10 +30,7 @@ resource "aws_cloudfront_response_headers_policy" "cors_and_security_policy" {
     }
 
     access_control_allow_origins {
-      items = [
-        "http://localhost:3000",
-        "localhost:3000",
-      ]
+      items = var.cloudfront_allow_origins
     }
 
     access_control_expose_headers {

@@ -15,7 +15,13 @@ module "amplify" {
   github_repository_url         = var.amplify_github_repository_url
   github_access_token          = var.amplify_github_access_token
   branch_name                  = var.amplify_branch_name
-  environment_variables        = var.amplify_environment_variables
+  environment_variables        = concat(
+    var.amplify_environment_variables,
+    {
+      BACKEND_BASE_URL = "https://${module.alb.alb_dns_name}"
+      NEXT_PUBLIC_CLOUDFRONT_BASE_URL = "https://${module.cloudfront.cloudfront_domain_name}"
+    }
+  )
   build_spec                   = var.amplify_build_spec
   enable_auto_branch_creation  = var.amplify_enable_auto_branch_creation
   enable_branch_auto_build     = var.amplify_enable_branch_auto_build
@@ -28,23 +34,30 @@ module "amplify" {
     Environment = "production"
     Service     = "frontend"
   }
+  
 }
 
 
+module "lambda_edge" {
+  source = "./modules/lambda_edge"
+  lambda_edge_secret = var.lambda_edge_secret
+}
 
-# module "lambda_edge" {
-#   source = "./modules/lambda_edge"
-#   lambda_edge_secret = var.lambda_edge_secret
-# }
-
-# module "cloudfront" {
-#   source                = "./modules/cloudfront"
-#   project_name          = var.project_name
-#   origin_domain_name    = var.origin_domain_name
-#   origin_path           = var.origin_path
-#   set_cookie_lambda_arn = module.lambda_edge.lambda_function_qualified_arn
-#   bucket_secret_referer = var.bucket_secret_referer
-# }
+module "cloudfront" {
+  source                = "./modules/cloudfront"
+  project_name          = var.project_name
+  origin_domain_name    = var.origin_domain_name
+  origin_path           = var.origin_path
+  set_cookie_lambda_arn = module.lambda_edge.lambda_function_qualified_arn
+  bucket_secret_referer = var.bucket_secret_referer
+  cloudfront_allow_origins = concat(
+    [
+      "http://localhost:3000",
+      "localhost:3000"
+    ],
+    [module.amplify.app_url]
+  )
+}
 
 # module "alb" {
 #   source              = "./modules/alb"
