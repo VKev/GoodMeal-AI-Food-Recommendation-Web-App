@@ -12,19 +12,16 @@ public sealed record DeleteMessageCommand(
 internal sealed class DeleteMessageHandler : ICommandHandler<DeleteMessageCommand>
 {
     private readonly IMessageRepository _messageRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
     public DeleteMessageHandler(IMessageRepository messageRepository, IUnitOfWork unitOfWork)
     {
         _messageRepository = messageRepository;
-        _unitOfWork = unitOfWork;
     }
 
 
     public async Task<Result> Handle(DeleteMessageCommand request, CancellationToken cancellationToken)
     {
         await _messageRepository.DeleteByIdAsync(request.Id, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

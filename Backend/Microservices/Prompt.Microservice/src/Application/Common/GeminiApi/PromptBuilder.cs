@@ -7,7 +7,8 @@ namespace Application.Common.GeminiApi
             return $@"Trả lời duy nhất bằng một JSON object có định dạng sau:
 
         {{
-          ""ResponseMessage"": ""string mô tả ngắn về kết quả hoặc 'Yêu cầu nhập lại'"",
+          ""Error"":""null hoặc 'Yêu cầu nhập lại'""
+          ""Title"": ""string mô tả ngắn về kết quả "",
           ""Foods"": [
             {{
               ""FoodName"": ""string"",
@@ -24,7 +25,8 @@ namespace Application.Common.GeminiApi
         - Nếu câu yêu cầu dưới đây là một yêu cầu có thể trả về danh sách món ăn Việt Nam (ví dụ: đề xuất món ăn, gợi ý món ăn, liệt kê món ăn...), hãy trả về 10 món ăn Việt Nam kèm mô tả ngắn và địa điểm nếu có.
         - Nếu trong câu yêu cầu có đề cập đến địa điểm nào, lấy đúng tên địa điểm đó và điền vào trường ""Location"". Nếu không có thì ghi ""null"".
         - Nếu câu yêu cầu không phải là một yêu cầu về món ăn, hoặc không thể trả về danh sách món ăn hợp lệ (ví dụ: hỏi về lịch sử, thời tiết, hay thông tin ngoài lĩnh vực ẩm thực), trả về JSON với:
-          - ""ResponseMessage"": ""Yêu cầu nhập lại""
+          - ""Error"":""'Yêu cầu nhập lại'""
+          - ""Title"": ""null""
           - ""Foods"": [] (mảng rỗng)
           - ""FoodNames"": [] (mảng rỗng)
           - ""Location"": ""null""

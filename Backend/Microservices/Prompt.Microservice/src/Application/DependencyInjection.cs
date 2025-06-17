@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using SharedLibrary.Common;
 using Infrastructure.Repositories;
+using SharedLibrary.Common.Messaging.Commands;
 
 namespace Application
 {
@@ -13,6 +14,12 @@ namespace Application
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             var assembly = typeof(DependencyInjection).Assembly;
+            var sharedLibraryAssembly = typeof(SaveChangesCommandHandler).Assembly;
+            services.AddMediatR(configuration => 
+            {
+                configuration.RegisterServicesFromAssembly(assembly);
+                configuration.RegisterServicesFromAssembly(sharedLibraryAssembly);
+            });
             services.AddHttpClient("GeminiClient",
                 client => { client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/"); });
             services.AddScoped<IUnitOfWork, UnitOfWork>();

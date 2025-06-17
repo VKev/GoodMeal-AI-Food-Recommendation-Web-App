@@ -8,6 +8,7 @@ using Application.Prompt.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
+using SharedLibrary.Common.Messaging.Commands;
 using SharedLibrary.Common.ResponseModel;
 
 namespace WebApi.Controllers;
@@ -34,7 +35,7 @@ public class GeminiController : ApiController
             return HandleFailure(aggregatedResult);
         }
 
-        return Ok(geminiResult);
+        return Ok(aggregatedResult);
     }
 
     [HttpPost("search-images")]
@@ -73,19 +74,16 @@ public class GeminiController : ApiController
     public async Task<IActionResult> RateCommentAsync([FromBody] RateByGeminiCommand request,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.UserComment))
-            return BadRequest(Result.Failure(Error.NullValue));
-
         var result = await _mediator.Send(new RateByGeminiCommand(request.UserComment), cancellationToken);
 
-        if (result.IsFailure)
-            return HandleFailure(result);
-
-        return Ok(new
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true));
+        if (aggregateResult.IsFailure)
         {
-            Comment = request.UserComment,
-            Stars = result.Value
-        });
+            return HandleFailure(aggregateResult);
+        }
+
+        return Ok(aggregateResult);
     }
 
 
@@ -96,54 +94,39 @@ public class GeminiController : ApiController
     {
         var geminiResult = await _mediator.Send(new CallGeminiCommand(request.PromptMessage), cancellationToken);
 
-        GeminiResponse? geminiResponse = null;
-        if (geminiResult.IsSuccess)
-        {
-            var cleanedJson = CleanGeminiResponse.CleanResponse(geminiResult.Value);
+        var cleanedJson = CleanGeminiResponse.CleanResponse(geminiResult.Value);
 
-            geminiResponse = JsonSerializer.Deserialize<GeminiResponse>(
-                cleanedJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var geminiResponse = JsonSerializer.Deserialize<GeminiResponse>(
+            cleanedJson,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            if (geminiResponse == null || !geminiResponse.FoodNames.Any())
-            {
-                geminiResponse = null;
-            }
-        }
 
         Result<Dictionary<string, string>> imageSearchResult =
             Result.Failure<Dictionary<string, string>>(Error.NullValue);
-        if (geminiResponse != null)
-        {
-            imageSearchResult =
-                await _mediator.Send(new GoogleImageSearchCommand(geminiResponse.FoodNames), cancellationToken);
 
-            if (imageSearchResult.IsSuccess)
+        imageSearchResult =
+            await _mediator.Send(new GoogleImageSearchCommand(geminiResponse.FoodNames), cancellationToken);
+
+
+        foreach (var food in geminiResponse.Foods)
+        {
+            if (imageSearchResult.Value.TryGetValue(food.FoodName, out var imageUrl))
             {
-                foreach (var food in geminiResponse.Foods)
-                {
-                    if (imageSearchResult.Value.TryGetValue(food.FoodName, out var imageUrl))
-                    {
-                        food.ImageUrl = imageUrl;
-                    }
-                }
+                food.ImageUrl = imageUrl;
             }
         }
 
-        Result saveResult = Result.Failure(Error.NullValue);
-        if (geminiResponse != null)
-        {
-            var finalResponseJson = JsonSerializer.Serialize(geminiResponse);
+        var finalResponseJson = JsonSerializer.Serialize(geminiResponse);
 
-            saveResult = await _mediator.Send(
-                request with { ResponseMessage = finalResponseJson }, cancellationToken);
-        }
+        var saveResult = await _mediator.Send(
+            request with { ResponseMessage = finalResponseJson }, cancellationToken);
 
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
 
         var aggregateResult = ResultAggregator.AggregateWithNumbers(
             (geminiResult, false),
             (imageSearchResult, false),
-            (saveResult, true)
+            (saveResult, true), (save, false)
         );
 
         if (aggregateResult.IsFailure)
