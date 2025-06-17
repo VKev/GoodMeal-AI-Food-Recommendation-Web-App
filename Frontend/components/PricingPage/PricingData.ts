@@ -12,24 +12,23 @@ export interface PricingPlan {
     icon: string;
 }
 
-export const pricingPlans: PricingPlan[] = [
-    {
+export const pricingPlans: PricingPlan[] = [    {
         id: 'free',
-        name: 'Free',
+        name: 'Miễn phí',
         monthlyPrice: '$0',
         yearlyPrice: '$0',
-        description: 'Explore basic AI food recommendation features',
+        description: 'Khám phá các tính năng gợi ý món ăn AI cơ bản',
         features: [
-            '3 AI Bot chats per day',
-            'Food suggestions based on emotions & situations',
-            'View food images from recommendations',
-            'Find restaurants on Google Maps',
-            'Save up to 5 favorite dishes',
-            'Email support',
-            'Basic web app access'
+            '3 cuộc trò chuyện AI Bot mỗi ngày',
+            'Gợi ý món ăn dựa trên cảm xúc & tình huống',
+            'Xem hình ảnh món ăn từ gợi ý',
+            'Tìm nhà hàng trên Google Maps',
+            'Lưu tối đa 5 món ăn yêu thích',
+            'Hỗ trợ qua email',
+            'Truy cập ứng dụng web cơ bản'
         ],
         popular: false,
-        buttonText: 'Current Plan',
+        buttonText: 'Gói hiện tại',
         buttonType: 'default',
         color: '#52c41a',
         icon: '🆓'
@@ -38,47 +37,46 @@ export const pricingPlans: PricingPlan[] = [
         name: 'Pro',
         monthlyPrice: '$19',
         yearlyPrice: '$182', // $19 * 12 * 0.8 = $182.4 ≈ $182
-        description: 'Unlimited AI food recommendation experience',
+        description: 'Trải nghiệm gợi ý món ăn AI không giới hạn',
         features: [
-            'Unlimited AI Bot chats',
-            'Smart AI food suggestions using natural language',
-            'Emotion analysis & personalized food recommendations',
-            'View HD images of all dishes',
-            'Google Maps integration with restaurant reviews',
-            'Save unlimited favorite dishes',
-            'Chat history & personalized suggestions',
-            'Share dishes with friends',
-            '24/7 support',
-            'Mobile app access',
-            'Export food lists to PDF'
+            'Trò chuyện AI Bot không giới hạn',
+            'Gợi ý món ăn AI thông minh sử dụng ngôn ngữ tự nhiên',
+            'Phân tích cảm xúc & gợi ý món ăn cá nhân hóa',
+            'Xem hình ảnh HD của tất cả món ăn',
+            'Tích hợp Google Maps với đánh giá nhà hàng',
+            'Lưu món ăn yêu thích không giới hạn',
+            'Lịch sử trò chuyện & gợi ý cá nhân hóa',
+            'Chia sẻ món ăn với bạn bè',
+            'Hỗ trợ 24/7',
+            'Truy cập ứng dụng di động',
+            'Xuất danh sách món ăn ra PDF'
         ],
         popular: true,
-        buttonText: 'Upgrade to Pro',
+        buttonText: 'Nâng cấp lên Pro',
         buttonType: 'primary',
         color: '#ff7a00',
         icon: '⭐'
-    },
-    {
+    },    {
         id: 'business',
-        name: 'Business',
+        name: 'Doanh nghiệp',
         monthlyPrice: '$49',
         yearlyPrice: '$470', // $49 * 12 * 0.8 = $470.4 ≈ $470
-        description: 'Complete solution for restaurants & businesses',
+        description: 'Giải pháp hoàn chỉnh cho nhà hàng & doanh nghiệp',
         features: [
-            'All Pro features',
-            'Restaurant advertising registration',
-            'Priority display in recommendation results',
-            'Restaurant menu management system',
-            'Customer data & trend analysis',
-            'POS system API integration',
-            'Brand customization in app',
-            'Detailed view & interaction reports',
-            'Multiple restaurant management',
-            'Priority support & expert consultation',
-            'Daily data backup'
+            'Tất cả tính năng Pro',
+            'Đăng ký quảng cáo nhà hàng',
+            'Hiển thị ưu tiên trong kết quả gợi ý',
+            'Hệ thống quản lý thực đơn nhà hàng',
+            'Phân tích dữ liệu khách hàng & xu hướng',
+            'Tích hợp API hệ thống POS',
+            'Tùy chỉnh thương hiệu trong ứng dụng',
+            'Báo cáo lượt xem & tương tác chi tiết',
+            'Quản lý nhiều nhà hàng',
+            'Hỗ trợ ưu tiên & tư vấn chuyên gia',
+            'Sao lưu dữ liệu hàng ngày'
         ],
         popular: false,
-        buttonText: 'Contact Sales',
+        buttonText: 'Liên hệ bán hàng',
         buttonType: 'default',
         color: '#722ed1',
         icon: '🏢'

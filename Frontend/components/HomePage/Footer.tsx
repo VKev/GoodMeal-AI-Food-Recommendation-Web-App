@@ -8,34 +8,32 @@ export default function Footer() {
 
     useEffect(() => {
         setIsVisible(true);
-    }, []);
-
-    const footerLinks = {
+    }, []);    const footerLinks = {
         product: {
-            title: "Product",
+            title: "Sản phẩm",
             links: [
-                { name: "AI Recommendations", href: "/features" },
-                { name: "Meal Planning", href: "/meal-planning" },
-                { name: "Smart Suggestions", href: "/smart-suggestions" },
-                { name: "Nutrition Tracking", href: "/nutrition" }
+                { name: "Gợi ý AI", href: "/features" },
+                { name: "Lập kế hoạch bữa ăn", href: "/meal-planning" },
+                { name: "Đề xuất thông minh", href: "/smart-suggestions" },
+                { name: "Theo dõi dinh dưỡng", href: "/nutrition" }
             ]
         },
         company: {
-            title: "Company",
+            title: "Công ty",
             links: [
-                { name: "About Us", href: "/about" },
-                { name: "Careers", href: "/careers" },
-                { name: "Press", href: "/press" },
-                { name: "Contact", href: "/contact" }
+                { name: "Về chúng tôi", href: "/about" },
+                { name: "Tuyển dụng", href: "/careers" },
+                { name: "Báo chí", href: "/press" },
+                { name: "Liên hệ", href: "/contact" }
             ]
         },
         support: {
-            title: "Support",
+            title: "Hỗ trợ",
             links: [
-                { name: "Help Center", href: "/help" },
-                { name: "Community", href: "/community" },
-                { name: "Privacy Policy", href: "/privacy" },
-                { name: "Terms of Service", href: "/terms" }
+                { name: "Trung tâm trợ giúp", href: "/help" },
+                { name: "Cộng đồng", href: "/community" },
+                { name: "Chính sách bảo mật", href: "/privacy" },
+                { name: "Điều khoản dịch vụ", href: "/terms" }
             ]
         }
     };
@@ -83,9 +81,8 @@ export default function Footer() {
                     
                     {/* Investors Section - Auto Scroll */}
                     <div className="mb-16 space-y-6">
-                        <div className="text-center">
-                            <h4 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-8">
-                                Trusted by leading investors worldwide
+                        <div className="text-center">                            <h4 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-8">
+                                Được tin tưởng bởi các nhà đầu tư hàng đầu trên thế giới
                             </h4>
                         </div>
                         
@@ -148,23 +145,21 @@ export default function Footer() {
                                     </h3>
                                 </div>
                             </div>
-                            
-                            <p className="text-gray-300 leading-relaxed max-w-md">
-                                Discover your perfect meal with intelligent AI recommendations tailored just for you. 
-                                Transform your dining experience with personalized suggestions.
+                              <p className="text-gray-300 leading-relaxed max-w-md">
+                                Khám phá bữa ăn hoàn hảo với các gợi ý AI thông minh được cá nhân hóa dành riêng cho bạn. 
+                                Biến đổi trải nghiệm ẩm thực của bạn với những đề xuất cá nhân hóa.
                             </p>
 
-                            {/* Newsletter */}
-                            <div className="space-y-3">
-                                <h4 className="text-white font-semibold">Stay Updated</h4>
+                            {/* Newsletter */}                            <div className="space-y-3">
+                                <h4 className="text-white font-semibold">Cập nhật thông tin</h4>
                                 <div className="flex gap-3">
                                     <input 
                                         type="email" 
-                                        placeholder="Enter your email"
+                                        placeholder="Nhập email của bạn"
                                         className="flex-1 bg-gray-800/60 border border-gray-700/50 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500/50 transition-colors"
                                     />
                                     <button className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-orange-500 hover:to-orange-600 transition-all duration-300 hover:scale-105">
-                                        Subscribe
+                                        Đăng ký
                                     </button>
                                 </div>
                             </div>
@@ -197,14 +192,12 @@ export default function Footer() {
 
                     {/* Bottom Section */}
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        {/* Copyright */}
-                        <div className="text-gray-400 text-sm">
-                            © 2025 GoodMeal. All rights reserved. Powered by AI.
+                        {/* Copyright */}                        <div className="text-gray-400 text-sm">
+                            © 2025 GoodMeal. Bảo lưu mọi quyền. Được hỗ trợ bởi AI.
                         </div>
 
-                        {/* Social Links */}
-                        <div className="flex items-center gap-4">
-                            <span className="text-gray-400 text-sm mr-2">Follow us:</span>
+                        {/* Social Links */}                        <div className="flex items-center gap-4">
+                            <span className="text-gray-400 text-sm mr-2">Theo dõi chúng tôi:</span>
                             {socialLinks.map((social, index) => (
                                 <a
                                     key={index}
@@ -224,10 +217,9 @@ export default function Footer() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="transform transition-all duration-300 hover:scale-110 hover:brightness-110"
-                            >
-                                <Image
+                            >                                <Image
                                     src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-                                    alt="Get it on Google Play"
+                                    alt="Tải về trên Google Play"
                                     width={120}
                                     height={40}
                                     className="h-10 filter drop-shadow-lg"
@@ -238,10 +230,9 @@ export default function Footer() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="transform transition-all duration-300 hover:scale-110 hover:brightness-110"
-                            >
-                                <Image
+                            >                                <Image
                                     src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-                                    alt="Download on the App Store"
+                                    alt="Tải về trên App Store"
                                     width={120}
                                     height={40}
                                     className="h-10 filter drop-shadow-lg"

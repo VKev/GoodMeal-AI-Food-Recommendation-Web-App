@@ -19,11 +19,10 @@ const Login: React.FC = () => {
       router.push("/id");
     }
   }, [authenticated, router]);
-
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      setError("Please fill in all fields");
+      setError("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
@@ -34,7 +33,7 @@ const Login: React.FC = () => {
       await signInWithEmail(email, password);
       router.push("/");
     } catch (error: any) {
-      setError(error.message || "Failed to sign in");
+      setError(error.message || "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
@@ -42,13 +41,11 @@ const Login: React.FC = () => {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    setError("");
-
-    try {
+    setError("");    try {
       await signInWithGoogle();
       router.push("/");
     } catch (error: any) {
-      setError(error.message || "Failed to sign in with Google");
+      setError(error.message || "Đăng nhập bằng Google thất bại");
     } finally {
       setLoading(false);
     }
@@ -65,10 +62,9 @@ const Login: React.FC = () => {
       <div className="relative w-full max-w-md">
         {/* Glassmorphism Card */}
         <div className="backdrop-blur-xl p-8">
-          {/* Welcome Section */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
-            <p className="text-gray-400 text-sm">Continue your culinary adventure</p>
+          {/* Welcome Section */}          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">Chào mừng trở lại</h2>
+            <p className="text-gray-400 text-sm">Tiếp tục hành trình ẩm thực của bạn</p>
           </div>
 
           {/* Error Message */}
@@ -82,10 +78,9 @@ const Login: React.FC = () => {
           <form onSubmit={handleEmailLogin}>
             {/* Form Inputs */}
             <div className="space-y-4 mb-6">
-              <div className="relative">
-                <input
+              <div className="relative">                <input
                   type="email"
-                  placeholder="Email address"
+                  placeholder="Địa chỉ email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
@@ -94,10 +89,9 @@ const Login: React.FC = () => {
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-orange-500/0 focus-within:from-orange-500/10 focus-within:to-orange-600/10 pointer-events-none transition-all duration-300"></div>
               </div>
 
-              <div className="relative">
-                <input
+              <div className="relative">                <input
                   type="password"
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
@@ -113,14 +107,14 @@ const Login: React.FC = () => {
               disabled={loading}
               className="w-full p-4 bg-gradient-to-r from-orange-300 to-orange-400 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-orange-700 hover:shadow-orange-500/40 transition-all duration-300 transform hover:scale-[1.02] mb-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {loading ? "Signing In..." : "Sign In"}
+              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </button>
           </form>
 
           {/* Divider */}
           <div className="flex items-center mb-6">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-            <span className="px-4 text-gray-400 text-sm font-medium">OR</span>
+            <span className="px-4 text-gray-400 text-sm font-medium">HOẶC</span>
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
           </div>
 
@@ -138,18 +132,17 @@ const Login: React.FC = () => {
                 <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                 <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
-              {loading ? "Signing In..." : "Continue with Google"}
+              {loading ? "Đang đăng nhập..." : "Tiếp tục với Google"}
             </div>
           </button>
 
-          {/* Footer */}
-          <div className="text-center">
-            <span className="text-gray-400 text-sm">Don't have an account? </span>
+          {/* Footer */}          <div className="text-center">
+            <span className="text-gray-400 text-sm">Chưa có tài khoản? </span>
             <Link
               href="/create-account"
               className="text-orange-500 font-semibold text-sm hover:text-orange-400 transition-colors duration-300"
             >
-              Sign up
+              Đăng ký
             </Link>
           </div>
         </div>

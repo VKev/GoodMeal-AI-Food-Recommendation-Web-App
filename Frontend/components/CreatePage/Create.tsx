@@ -37,34 +37,33 @@ const CreateAccount: React.FC = () => {
       [field]: value
     }));
   };
-
   const validateForm = () => {
     if (!selectedRole) {
-      setError("Please select a role");
+      setError("Vui lòng chọn vai trò");
       return false;
     }
     if (!formData.fullName.trim()) {
-      setError("Please enter your full name");
+      setError("Vui lòng nhập họ tên đầy đủ");
       return false;
     }
     if (!formData.email.trim()) {
-      setError("Please enter your email");
+      setError("Vui lòng nhập email");
       return false;
     }
     if (!formData.password) {
-      setError("Please enter a password");
+      setError("Vui lòng nhập mật khẩu");
       return false;
     }
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("Mật khẩu phải có ít nhất 6 ký tự");
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setError("Mật khẩu không khớp");
       return false;
     }
     if (!acceptTerms) {
-      setError("Please accept the terms and conditions");
+      setError("Vui lòng chấp nhận điều khoản và điều kiện");
       return false;
     }
     return true;
@@ -86,11 +85,9 @@ const CreateAccount: React.FC = () => {
         await updateProfile(userCredential.user, {
           displayName: formData.fullName
         });
-      }
-
-      router.push("/");
+      }      router.push("/");
     } catch (error: any) {
-      setError(error.message || "Failed to create account");
+      setError(error.message || "Tạo tài khoản thất bại");
     } finally {
       setLoading(false);
     }
@@ -101,10 +98,9 @@ const CreateAccount: React.FC = () => {
     setError("");
 
     try {
-      await signInWithGoogle();
-      router.push("/");
+      await signInWithGoogle();      router.push("/");
     } catch (error: any) {
-      setError(error.message || "Failed to sign up with Google");
+      setError(error.message || "Đăng ký bằng Google thất bại");
     } finally {
       setLoading(false);
     }
@@ -122,10 +118,9 @@ const CreateAccount: React.FC = () => {
       <div className="relative w-full max-w-md">
         {/* Glassmorphism Card */}
         <div className="backdrop-blur-xl p-8">
-          {/* Welcome Section */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Create Account</h2>
-            <p className="text-gray-400 text-sm">Join us and start your culinary journey</p>
+          {/* Welcome Section */}          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">Tạo tài khoản</h2>
+            <p className="text-gray-400 text-sm">Tham gia với chúng tôi và bắt đầu hành trình ẩm thực</p>
           </div>
 
           {/* Error Message */}
@@ -136,9 +131,8 @@ const CreateAccount: React.FC = () => {
           )}
 
           <form onSubmit={handleCreateAccount}>
-            {/* Role Selection */}
-            <div className="mb-6">
-              <label className="text-white text-sm font-medium mb-3 block">Select Role</label>
+            {/* Role Selection */}            <div className="mb-6">
+              <label className="text-white text-sm font-medium mb-3 block">Chọn vai trò</label>
               <div className="flex gap-4">
                 <button
                   type="button"
@@ -149,10 +143,9 @@ const CreateAccount: React.FC = () => {
                       ? "bg-orange-500/20 border-orange-500 text-orange-400"
                       : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
                   }`}
-                >
-                  <div className="flex flex-col items-center space-y-2">
+                >                  <div className="flex flex-col items-center space-y-2">
                     <UserOutlined className="text-xl" />
-                    <span className="text-sm font-medium">User</span>
+                    <span className="text-sm font-medium">Người dùng</span>
                   </div>
                 </button>
                 <button
@@ -164,10 +157,9 @@ const CreateAccount: React.FC = () => {
                       ? "bg-orange-500/20 border-orange-500 text-orange-400"
                       : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
                   }`}
-                >
-                  <div className="flex flex-col items-center space-y-2">
+                >                  <div className="flex flex-col items-center space-y-2">
                     <ShopOutlined className="text-xl" />
-                    <span className="text-sm font-medium">Business</span>
+                    <span className="text-sm font-medium">Doanh nghiệp</span>
                   </div>
                 </button>
               </div>
@@ -176,10 +168,9 @@ const CreateAccount: React.FC = () => {
             {/* Form Inputs */}
             <div className="space-y-4 mb-6">
               {/* Full Name */}
-              <div className="relative">
-                <input
+              <div className="relative">                <input
                   type="text"
-                  placeholder="Full name"
+                  placeholder="Họ và tên"
                   value={formData.fullName}
                   onChange={(e) => handleInputChange("fullName", e.target.value)}
                   disabled={loading}
@@ -189,10 +180,9 @@ const CreateAccount: React.FC = () => {
               </div>
 
               {/* Email */}
-              <div className="relative">
-                <input
+              <div className="relative">                <input
                   type="email"
-                  placeholder="Email address"
+                  placeholder="Địa chỉ email"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   disabled={loading}
@@ -202,10 +192,9 @@ const CreateAccount: React.FC = () => {
               </div>
 
               {/* Password */}
-              <div className="relative">
-                <input
+              <div className="relative">                <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                   value={formData.password}
                   onChange={(e) => handleInputChange("password", e.target.value)}
                   disabled={loading}
@@ -223,10 +212,9 @@ const CreateAccount: React.FC = () => {
               </div>
 
               {/* Confirm Password */}
-              <div className="relative">
-                <input
+              <div className="relative">                <input
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm password"
+                  placeholder="Xác nhận mật khẩu"
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                   disabled={loading}
@@ -253,15 +241,14 @@ const CreateAccount: React.FC = () => {
                   onChange={(e) => setAcceptTerms(e.target.checked)}
                   disabled={loading}
                   className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500 focus:ring-2 disabled:opacity-50"
-                />
-                <span className="text-gray-400 text-sm leading-relaxed">
-                  I agree to the{" "}
+                />                <span className="text-gray-400 text-sm leading-relaxed">
+                  Tôi đồng ý với{" "}
                   <button type="button" className="text-orange-500 hover:text-orange-400 transition-colors duration-200 underline">
-                    Terms of Service
+                    Điều khoản dịch vụ
                   </button>
-                  {" "}and{" "}
+                  {" "}và{" "}
                   <button type="button" className="text-orange-500 hover:text-orange-400 transition-colors duration-200 underline">
-                    Privacy Policy
+                    Chính sách bảo mật
                   </button>
                 </span>
               </label>
@@ -273,14 +260,14 @@ const CreateAccount: React.FC = () => {
               disabled={loading}
               className="w-full p-4 bg-gradient-to-r from-orange-300 to-orange-400 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-orange-700 hover:shadow-orange-500/40 transition-all duration-300 transform hover:scale-[1.02] mb-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {loading ? "Creating Account..." : "Create Account"}
+              {loading ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
             </button>
           </form>
 
           {/* Divider */}
           <div className="flex items-center mb-6">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-            <span className="px-4 text-gray-400 text-sm font-medium">OR</span>
+            <span className="px-4 text-gray-400 text-sm font-medium">HOẶC</span>
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
           </div>
 
@@ -298,17 +285,16 @@ const CreateAccount: React.FC = () => {
                 <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                 <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
-              {loading ? "Signing Up..." : "Continue with Google"}
+              {loading ? "Đang đăng ký..." : "Tiếp tục với Google"}
             </div>
           </button>
 
-          {/* Footer */}
-          <div className="text-center">
-            <span className="text-gray-400 text-sm">Already have an account? </span>
+          {/* Footer */}          <div className="text-center">
+            <span className="text-gray-400 text-sm">Đã có tài khoản? </span>
             <Link
               href="/sign-in"
               className="text-orange-500 font-semibold text-sm hover:text-orange-400 transition-colors duration-300">
-              Sign in
+              Đăng nhập
             </Link>
           </div>
         </div>

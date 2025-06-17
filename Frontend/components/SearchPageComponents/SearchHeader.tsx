@@ -64,7 +64,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed }) => {
                     padding: '12px 16px'
                 }}
             >
-                My Subscription
+                Quản lý tài khoản
             </Menu.Item>
             <Menu.Divider style={{ borderColor: 'rgba(255, 122, 0, 0.2)' }} />
             <Menu.Item
@@ -96,10 +96,10 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed }) => {
         >            <Flex justify="space-between" align="center">
                 <div style={{ marginLeft: collapsed ? '60px' : '0', transition: 'all 0.3s' }}>
                     <Title level={2} style={{ margin: 0, color: '#ffffff' }}>
-                        Hello! How can I help you?
+                        Xin chào! Tôi có thể giúp gì cho bạn
                     </Title>
                     <Text type="secondary" style={{ fontSize: '14px' }}>
-                        Tell me about your mood!
+                        Hãy nói tôi nghe tâm trạng của bạn!
                     </Text>
                 </div>
                   <Dropdown

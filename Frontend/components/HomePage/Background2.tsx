@@ -35,10 +35,9 @@ const SpawnText: React.FC<SpawnTextProps> = ({ text, delay = 0, className = "" }
                         index < visibleWords 
                             ? 'opacity-100 transform translate-y-0' 
                             : 'opacity-0 transform translate-y-4'
-                    }`}
-                    style={{ 
+                    }`}                    style={{ 
                         transitionDelay: `${index * 30}ms`,
-                        marginRight: '0.25rem'
+                        marginRight: '0.5rem'
                     }}
                 >
                     {word}
@@ -120,9 +119,7 @@ export default function BusinessSection() {
                             <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-2 mb-6">
                                 <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></span>
                                 <span className="text-orange-300 text-sm font-medium">{t.aiPlatform}</span>
-                            </div>
-                            
-                            <h2 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                            </div>                            <h2 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
                                 <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent text-white">
                                     <SpawnText text={t.header} delay={isVisible ? 200 : 0} />
                                 </span>
