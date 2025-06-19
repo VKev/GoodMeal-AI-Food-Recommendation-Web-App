@@ -18,9 +18,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '16px',
             height: 'fit-content'
-        }}>
-            <Title level={3} style={{ color: '#ffffff', marginBottom: '24px' }}>
-                Order Summary
+        }}>            <Title level={3} style={{ color: '#ffffff', marginBottom: '24px' }}>
+                Tóm tắt đơn hàng
             </Title>
             
             {/* Plan Details */}
@@ -47,19 +46,17 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                             color: '#ffffff', 
                             fontSize: '18px', 
                             fontWeight: 'bold',
-                            display: 'block'
-                        }}>
-                            {selectedPlan.name} Plan
+                            display: 'block'                        }}>
+                            Gói {selectedPlan.name}
                         </Text>
                         <Text style={{ color: '#b3b3b3', fontSize: '14px' }}>
                             {selectedPlan.description}
                         </Text>
                     </div>
                 </div>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text style={{ color: '#b3b3b3' }}>
-                        {isYearly ? 'Annual' : 'Monthly'} billing
+                        Thanh toán {isYearly ? 'hàng năm' : 'hàng tháng'}
                     </Text>
                     <div style={{ textAlign: 'right' }}>
                         <Text style={{ 
@@ -72,13 +69,12 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                         <Text style={{ color: '#b3b3b3', marginLeft: '4px' }}>
                             {period}
                         </Text>
-                        {savings && (
-                            <div style={{ 
+                        {savings && (                            <div style={{ 
                                 color: '#52c41a', 
                                 fontSize: '12px',
                                 marginTop: '4px'
                             }}>
-                                Save {savings}
+                                Tiết kiệm {savings}
                             </div>
                         )}
                     </div>
@@ -86,13 +82,12 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             </div>
 
             {/* Features Preview */}
-            <div>
-                <Text style={{ 
+            <div>                <Text style={{ 
                     color: '#ffffff', 
                     fontWeight: 'medium',
                     display: 'block',
                     marginBottom: '16px'                }}>
-                    What&apos;s included:
+                    Bao gồm những gì:
                 </Text>
                 <Space direction="vertical" size={8} style={{ width: '100%' }}>
                     {selectedPlan.features.slice(0, 5).map((feature: string, index: number) => (
@@ -111,13 +106,12 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                             </Text>
                         </div>
                     ))}
-                    {selectedPlan.features.length > 5 && (
-                        <Text style={{ 
+                    {selectedPlan.features.length > 5 && (                        <Text style={{ 
                             color: '#ff7a00', 
                             fontSize: '14px',
                             fontStyle: 'italic'
                         }}>
-                            +{selectedPlan.features.length - 5} more features
+                            +{selectedPlan.features.length - 5} tính năng khác
                         </Text>
                     )}
                 </Space>

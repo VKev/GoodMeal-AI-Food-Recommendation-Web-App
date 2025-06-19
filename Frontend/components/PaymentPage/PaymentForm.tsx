@@ -19,9 +19,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             background: 'rgba(255, 255, 255, 0.05)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '16px'
-        }}>
-            <Title level={3} style={{ color: '#ffffff', marginBottom: '24px' }}>
-                Payment Method
+        }}>            <Title level={3} style={{ color: '#ffffff', marginBottom: '24px' }}>
+                Phương thức thanh toán
             </Title>
             
             <Radio.Group 
@@ -91,12 +90,11 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
                             color: '#ffffff', 
                             fontWeight: 'medium',
                             display: 'block',
-                            marginBottom: '4px'
-                        }}>
-                            Secure Payment
+                            marginBottom: '4px'                        }}>
+                            Thanh toán an toàn
                         </Text>
                         <Text style={{ color: '#b3b3b3', fontSize: '14px' }}>
-                            Your payment information is encrypted and secure. We use industry-standard SSL encryption.
+                            Thông tin thanh toán của bạn được mã hóa và bảo mật. Chúng tôi sử dụng mã hóa SSL tiêu chuẩn công nghiệp.
                         </Text>
                     </div>
                 </div>
@@ -122,22 +120,19 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
                     boxShadow: selectedPayment ? '0 4px 15px rgba(255, 122, 0, 0.3)' : 'none',
                     opacity: !selectedPayment ? 0.6 : 1
                 }}
-            >
-                {isProcessing 
-                    ? 'Processing Payment...' 
-                    : `Pay ${currentPrice}${period} with ${paymentMethods.find(p => p.id === selectedPayment)?.name || 'Selected Method'}`
+            >                {isProcessing 
+                    ? 'Đang xử lý thanh toán...' 
+                    : `Thanh toán ${currentPrice}${period} với ${paymentMethods.find(p => p.id === selectedPayment)?.name || 'Phương thức đã chọn'}`
                 }
-            </Button>
-
-            <div style={{ 
+            </Button>            <div style={{ 
                 textAlign: 'center', 
                 marginTop: '16px',
                 color: '#b3b3b3',
                 fontSize: '12px'
             }}>
-                By proceeding, you agree to our Terms of Service and Privacy Policy.
+                Bằng cách tiếp tục, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của chúng tôi.
                 <br />
-                You can cancel your subscription at any time.
+                Bạn có thể hủy đăng ký bất cứ lúc nào.
             </div>
         </Card>
     );

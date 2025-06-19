@@ -12,11 +12,10 @@ const Prices: React.FC = () => {
     const [activePlan, setActivePlan] = useState<string>('pro'); // Default to Pro plan
     const router = useRouter();    const handleSelectPlan = (planId: string) => {
         console.log('Selected plan:', planId);
-        
-        // Handle free plan - show message instead of redirecting
+          // Handle free plan - show message instead of redirecting
         if (planId === 'free') {
             message.info({
-                content: '🆓 You are already on the Free plan! Enjoy the basic features.',
+                content: '🆓 Bạn đang sử dụng gói Miễn phí! Hãy tận hưởng các tính năng cơ bản.',
                 duration: 3,
                 style: {
                     marginTop: '20vh',
@@ -36,25 +35,25 @@ const Prices: React.FC = () => {
 
     const handleClose = () => {
         router.push('/id');
-    };// FAQ data
+    };    // FAQ data
     const faqs = [
         {
-            question: 'Can I cancel my subscription anytime?',
-            answer: 'Yes, you can cancel your subscription at any time without any fees. Your subscription will continue to work until the end of your current billing cycle.'
+            question: 'Tôi có thể hủy đăng ký bất cứ lúc nào không?',
+            answer: 'Có, bạn có thể hủy đăng ký bất cứ lúc nào mà không mất phí. Đăng ký của bạn sẽ tiếp tục hoạt động cho đến hết chu kỳ thanh toán hiện tại.'
         },
         {
-            question: 'Do you offer refunds?',
-            answer: 'We offer a 100% money-back guarantee within the first 30 days if you are not satisfied with our service.'
+            question: 'Bạn có hoàn tiền không?',
+            answer: 'Chúng tôi cung cấp bảo đảm hoàn tiền 100% trong vòng 30 ngày đầu tiên nếu bạn không hài lòng với dịch vụ của chúng tôi.'
         },
         {
-            question: 'Is my data secure?',
-            answer: 'Absolutely! We use 256-bit SSL encryption and comply with international security standards to protect your data.'
+            question: 'Dữ liệu của tôi có an toàn không?',
+            answer: 'Hoàn toàn an toàn! Chúng tôi sử dụng mã hóa SSL 256-bit và tuân thủ các tiêu chuẩn bảo mật quốc tế để bảo vệ dữ liệu của bạn.'
         },
         {
-            question: 'Can I change my subscription plan?',
-            answer: 'Yes, you can upgrade or downgrade your subscription plan at any time. Changes will take effect immediately.'
+            question: 'Tôi có thể thay đổi gói đăng ký của mình không?',
+            answer: 'Có, bạn có thể nâng cấp hoặc hạ cấp gói đăng ký bất cứ lúc nào. Thay đổi sẽ có hiệu lực ngay lập tức.'
         }
-    ];    return (
+    ];return (
         <div style={{ 
             minHeight: '100vh',
             background: 'linear-gradient(180deg, #0f0f12 0%, #1a1a1d 100%)',
@@ -109,7 +108,7 @@ const Prices: React.FC = () => {
                     fontSize: '48px',
                     fontWeight: 'bold'
                 }}>
-                    Upgrade your plan
+                    Nâng cấp gói của bạn
                 </Title>
                 
                 <Paragraph style={{ 
@@ -118,8 +117,8 @@ const Prices: React.FC = () => {
                     lineHeight: '1.6',
                     margin: '0 0 32px 0'
                 }}>
-                    From individual users to large enterprises, we have AI meal suggestion 
-                    solutions to fit every need
+                    Từ người dùng cá nhân đến doanh nghiệp lớn, chúng tôi có các 
+                    giải pháp gợi ý món ăn AI phù hợp với mọi nhu cầu
                 </Paragraph>
 
                 {/* Billing Toggle */}
@@ -136,7 +135,7 @@ const Prices: React.FC = () => {
                         color: isYearly ? '#b3b3b3' : '#ffffff',
                         fontWeight: isYearly ? 'normal' : 'medium'
                     }}>
-                        Monthly
+                        Hàng tháng
                     </Text>
                     <Switch
                         checked={isYearly}
@@ -149,7 +148,7 @@ const Prices: React.FC = () => {
                         color: isYearly ? '#ffffff' : '#b3b3b3',
                         fontWeight: isYearly ? 'medium' : 'normal'
                     }}>
-                        Yearly
+                        Hàng năm
                     </Text>
                     <div style={{
                         background: 'linear-gradient(45deg, #ff9800 0%, #ffb300 100%)',
@@ -161,7 +160,7 @@ const Prices: React.FC = () => {
                         letterSpacing: '0.5px',
                         boxShadow: '0 2px 8px rgba(255, 152, 0, 0.18)'
                     }}>
-                        Save 20%
+                        Tiết kiệm 20%
                     </div>
                 </div>
             </div>
@@ -188,7 +187,7 @@ const Prices: React.FC = () => {
                     color: '#ffffff',
                     marginBottom: '40px'
                 }}>
-                    Compare Features
+                    So sánh tính năng
                 </Title>
                 
                 <Card style={{
@@ -198,18 +197,18 @@ const Prices: React.FC = () => {
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', flexWrap: 'wrap' }}>                        <div style={{ textAlign: 'center' }}>
                             <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '24px', marginBottom: '8px' }} />
-                            <div style={{ color: '#ffffff', fontWeight: 'medium' }}>No commitment</div>
-                            <div style={{ color: '#b3b3b3', fontSize: '14px' }}>Cancel anytime</div>
+                            <div style={{ color: '#ffffff', fontWeight: 'medium' }}>Không cam kết</div>
+                            <div style={{ color: '#b3b3b3', fontSize: '14px' }}>Hủy bất cứ lúc nào</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
                             <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '24px', marginBottom: '8px' }} />
-                            <div style={{ color: '#ffffff', fontWeight: 'medium' }}>24/7 Support</div>
-                            <div style={{ color: '#b3b3b3', fontSize: '14px' }}>Always ready to help</div>
+                            <div style={{ color: '#ffffff', fontWeight: 'medium' }}>Hỗ trợ 24/7</div>
+                            <div style={{ color: '#b3b3b3', fontSize: '14px' }}>Luôn sẵn sàng giúp đỡ</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
                             <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '24px', marginBottom: '8px' }} />
-                            <div style={{ color: '#ffffff', fontWeight: 'medium' }}>High Security</div>
-                            <div style={{ color: '#b3b3b3', fontSize: '14px' }}>256-bit SSL encryption</div>
+                            <div style={{ color: '#ffffff', fontWeight: 'medium' }}>Bảo mật cao</div>
+                            <div style={{ color: '#b3b3b3', fontSize: '14px' }}>Mã hóa SSL 256-bit</div>
                         </div>
                     </div>
                 </Card>
@@ -221,7 +220,7 @@ const Prices: React.FC = () => {
                     color: '#ffffff',
                     marginBottom: '40px'
                 }}>
-                    Frequently Asked Questions
+                    Câu hỏi thường gặp
                 </Title>
                 
                 <Row gutter={[0, 16]}>

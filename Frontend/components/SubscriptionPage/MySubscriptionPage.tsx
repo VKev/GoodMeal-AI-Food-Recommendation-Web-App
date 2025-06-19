@@ -4,18 +4,14 @@ import { useRouter } from 'next/navigation';
 import {
     Layout,
     Typography,
-    Card,
+   
     Row,
     Col,
     Button,
     Tag,
-    Progress,
-    Table,
-    Space,
-    Divider,
-    Avatar,
     Modal,
-    message
+    message,
+    Tooltip
 } from 'antd';
 import {
     ArrowLeftOutlined,
@@ -23,10 +19,17 @@ import {
     CheckCircleOutlined,
     HistoryOutlined,
     WarningOutlined,
+    PlayCircleOutlined,
+    StarFilled,
+    CalendarOutlined,
+    CreditCardOutlined,
+    SettingOutlined,
+    DownloadOutlined,
+    QuestionCircleOutlined
 } from '@ant-design/icons';
 
-const { Content, Header } = Layout;
-const { Title, Text, Paragraph } = Typography;
+const {  } = Layout;
+const {  } = Typography;
 
 interface PaymentHistory {
     id: string;
@@ -112,14 +115,7 @@ const MySubscriptionPage: React.FC = () => {
         setCancelModalVisible(false);
     };
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'active': return '#52c41a';
-            case 'expired': return '#f5222d';
-            case 'cancelled': return '#faad14';
-            default: return '#d9d9d9';
-        }
-    };
+
 
     const getStatusText = (status: string) => {
         switch (status) {
@@ -130,310 +126,556 @@ const MySubscriptionPage: React.FC = () => {
         }
     };
 
-    const paymentColumns = [
-        {
-            title: 'Ngày',
-            dataIndex: 'date',
-            key: 'date',
-            render: (date: string) => (
-                <Text style={{ color: '#ffffff' }}>
-                    {new Date(date).toLocaleDateString('vi-VN')}
-                </Text>
-            )
-        },
-        {
-            title: 'Gói dịch vụ',
-            dataIndex: 'plan',
-            key: 'plan',
-            render: (plan: string) => (
-                <Text style={{ color: '#ff7a00', fontWeight: 'bold' }}>
-                    {plan}
-                </Text>
-            )
-        },
-        {
-            title: 'Số tiền',
-            dataIndex: 'amount',
-            key: 'amount',
-            render: (amount: number) => (
-                <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>
-                    {amount.toLocaleString('vi-VN')}đ
-                </Text>
-            )
-        },
-        {
-            title: 'Phương thức',
-            dataIndex: 'method',
-            key: 'method',
-            render: (method: string) => (
-                <Text style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                    {method}
-                </Text>
-            )
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status: string) => (
-                <Tag
-                    color={status === 'success' ? 'green' : status === 'failed' ? 'red' : 'orange'}
-                    style={{ borderRadius: '6px' }}
-                >
-                    {status === 'success' ? 'Thành công' : status === 'failed' ? 'Thất bại' : 'Đang xử lý'}
-                </Tag>
-            )
-        }
-    ];
+    
 
-    const progressPercent = Math.round(((31 - currentSubscription.daysRemaining) / 31) * 100);
-
-    return (
-        <Layout style={{
+    const progressPercent = Math.round(((31 - currentSubscription.daysRemaining) / 31) * 100);    return (
+        <div style={{
             minHeight: '100vh',
-            background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
+            background: '#000000',
+            fontFamily: "'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif"
         }}>
-            <Header style={{
-                background: 'rgba(0, 0, 0, 0.8)',
-                padding: '0 24px',
-                borderBottom: '1px solid rgba(255, 122, 0, 0.2)'
+            {/* Netflix-style Header */}
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 1000,
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 70%, transparent 100%)',
+                padding: '16px 0',
+                backdropFilter: 'blur(10px)'
             }}>
                 <div style={{
+                    maxWidth: '1400px',
+                    margin: '0 auto',
+                    padding: '0 24px',
                     display: 'flex',
                     alignItems: 'center',
-                    height: '100%'
+                    justifyContent: 'space-between'
                 }}>
-                    <Button
-                        type="text"
-                        icon={<ArrowLeftOutlined />}
-                        onClick={handleBackClick}
-                        style={{
-                            color: '#ff7a00',
-                            marginRight: '16px'
-                        }}
-                    />
-                    <Title level={3} style={{
-                        color: '#ffffff',
-                        margin: 0,
-                        flex: 1
-                    }}>
-                        My Subscription
-                    </Title>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Button
+                            type="text"
+                            icon={<ArrowLeftOutlined />}
+                            onClick={handleBackClick}
+                            style={{
+                                color: '#ff8c42',
+                                fontSize: '18px',
+                                marginRight: '20px',
+                                border: 'none',
+                                background: 'none'
+                            }}
+                        />
+                        <h1 style={{
+                            color: '#ffffff',
+                            fontSize: '28px',
+                            fontWeight: '700',
+                            margin: 0,
+                            letterSpacing: '0.5px'
+                        }}>
+                            Gói đăng ký của bạn
+                        </h1>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <Tooltip title="Cài đặt tài khoản">
+                            <Button
+                                type="text"
+                                icon={<SettingOutlined />}
+                                style={{
+                                    color: '#ffffff',
+                                    fontSize: '18px'
+                                }}
+                            />
+                        </Tooltip>
+                        <Tooltip title="Hỗ trợ">
+                            <Button
+                                type="text"
+                                icon={<QuestionCircleOutlined />}
+                                style={{
+                                    color: '#ffffff',
+                                    fontSize: '18px'
+                                }}
+                            />
+                        </Tooltip>
+                    </div>
                 </div>
-            </Header>
+            </div>
 
-            <Content style={{
-                padding: '32px',
-                overflow: 'auto'
+            {/* Main Content */}
+            <div style={{
+                paddingTop: '100px',
+                padding: '100px 24px 40px',
+                maxWidth: '1400px',
+                margin: '0 auto'
             }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                    {/* Current Subscription Card */}
-                    <Card
-                        style={{
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            border: '1px solid rgba(255, 122, 0, 0.3)',
-                            borderRadius: '16px',
-                            marginBottom: '32px'
-                        }}
-                        bodyStyle={{ padding: '32px' }}
-                    >
-                        <Row gutter={[24, 24]}>
-                            <Col xs={24} lg={12}>
-                                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                                    <Avatar
-                                        size={80}
-                                        style={{
-                                            background: 'linear-gradient(45deg, #ff7a00 0%, #ff9500 100%)',
-                                            marginBottom: '16px'
-                                        }}
-                                        icon={<CrownOutlined style={{ fontSize: '40px' }} />}
-                                    />
-                                    <Title level={2} style={{ color: '#ffffff', margin: 0 }}>
-                                        {currentSubscription.plan}
-                                    </Title>
-                                    <Tag
-                                        color={getStatusColor(currentSubscription.status)}
-                                        style={{
-                                            marginTop: '8px',
-                                            padding: '4px 12px',
+                {/* Hero Section - Netflix Style */}
+                <div style={{
+                    position: 'relative',
+                    background: 'linear-gradient(135deg, #1a0a00 0%, #000000 50%, #0a0a0a 100%)',
+                    borderRadius: '12px',
+                    padding: '48px',
+                    marginBottom: '40px',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(255, 140, 66, 0.2)'
+                }}>
+                    {/* Background Pattern */}
+                    <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        width: '60%',
+                        height: '100%',
+                        background: `radial-gradient(ellipse at top right, rgba(255, 140, 66, 0.1) 0%, transparent 70%)`,
+                        pointerEvents: 'none'
+                    }} />
+                    
+                    <Row gutter={[48, 32]} align="middle">
+                        <Col xs={24} lg={8}>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{
+                                    width: '120px',
+                                    height: '120px',
+                                    background: 'linear-gradient(135deg, #ff8c42 0%, #ff6b1a 100%)',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    margin: '0 auto 24px',
+                                    boxShadow: '0 8px 32px rgba(255, 140, 66, 0.3)',
+                                    position: 'relative'
+                                }}>
+                                    <CrownOutlined style={{ 
+                                        fontSize: '48px', 
+                                        color: '#ffffff'
+                                    }} />
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '-8px',
+                                        right: '-8px',
+                                        background: '#ff4757',
+                                        borderRadius: '50%',
+                                        width: '32px',
+                                        height: '32px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <StarFilled style={{ color: '#ffffff', fontSize: '16px' }} />
+                                    </div>
+                                </div>
+                                
+                                <h2 style={{
+                                    color: '#ffffff',
+                                    fontSize: '32px',
+                                    fontWeight: '700',
+                                    margin: '0 0 12px',
+                                    textShadow: '0 2px 8px rgba(0,0,0,0.5)'
+                                }}>
+                                    {currentSubscription.plan}
+                                </h2>
+                                
+                                <Tag
+                                    style={{
+                                        background: currentSubscription.status === 'active' 
+                                            ? 'linear-gradient(90deg, #2ecc71 0%, #27ae60 100%)'
+                                            : '#e74c3c',
+                                        border: 'none',
+                                        color: '#ffffff',
+                                        padding: '6px 16px',
+                                        borderRadius: '20px',
+                                        fontSize: '14px',
+                                        fontWeight: '600',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.5px'
+                                    }}
+                                >
+                                    {getStatusText(currentSubscription.status)}
+                                </Tag>
+                            </div>
+                        </Col>
+                        
+                        <Col xs={24} lg={8}>
+                            <div style={{ textAlign: 'center' }}>
+                                
+                                
+                                {/* Usage Progress */}
+                                <div style={{ marginTop: '32px' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '12px'
+                                    }}>
+                                        <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600' }}>
+                                            Thời gian sử dụng
+                                        </span>
+                                        <span style={{ color: '#ff8c42', fontSize: '16px', fontWeight: '600' }}>
+                                            {currentSubscription.daysRemaining} ngày còn lại
+                                        </span>
+                                    </div>
+                                    <div style={{
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '12px',
+                                        height: '8px',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <div style={{
+                                            background: 'linear-gradient(90deg, #ff8c42 0%, #ff6b1a 100%)',
+                                            height: '100%',
+                                            width: `${progressPercent}%`,
                                             borderRadius: '12px',
-                                            fontSize: '14px'
+                                            boxShadow: '0 0 12px rgba(255, 140, 66, 0.5)',
+                                            transition: 'all 0.3s ease'
+                                        }} />
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        marginTop: '8px'
+                                    }}>
+                                        <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '14px' }}>
+                                            {new Date(currentSubscription.startDate).toLocaleDateString('vi-VN')}
+                                        </span>
+                                        <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '14px' }}>
+                                            {new Date(currentSubscription.endDate).toLocaleDateString('vi-VN')}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </Col>
+                        
+                        <Col xs={24} lg={8}>
+                            <div>
+                                <h3 style={{
+                                    color: '#ffffff',
+                                    fontSize: '20px',
+                                    fontWeight: '600',
+                                    marginBottom: '20px'
+                                }}>
+                                    Premium Features
+                                </h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {currentSubscription.features.slice(0, 4).map((feature, index) => (
+                                        <div key={index} style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '12px'
+                                        }}>
+                                            <CheckCircleOutlined style={{
+                                                color: '#ff8c42',
+                                                fontSize: '18px'
+                                            }} />
+                                            <span style={{
+                                                color: 'rgba(255, 255, 255, 0.9)',
+                                                fontSize: '16px',
+                                                fontWeight: '500'
+                                            }}>
+                                                {feature}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </Col>
+                    </Row>
+                    
+                    {/* Action Buttons */}
+                    <div style={{
+                        marginTop: '40px',
+                        display: 'flex',
+                        gap: '16px',
+                        flexWrap: 'wrap',
+                        justifyContent: 'center'
+                    }}>
+                        <Button
+                            type="primary"
+                            size="large"
+                            icon={<PlayCircleOutlined />}
+                            style={{
+                                background: 'linear-gradient(135deg, #ff8c42 0%, #ff6b1a 100%)',
+                                border: 'none',
+                                borderRadius: '8px',
+                                height: '48px',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                padding: '0 32px',
+                                boxShadow: '0 4px 16px rgba(255, 140, 66, 0.3)',
+                                transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 140, 66, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 4px 16px rgba(255, 140, 66, 0.3)';
+                            }}
+                        >
+                            Gia hạn ngay
+                        </Button>
+                        
+                        <Button
+                            size="large"
+                            icon={<CrownOutlined />}
+                            style={{
+                                background: 'transparent',
+                                border: '2px solid #ff8c42',
+                                color: '#ff8c42',
+                                borderRadius: '8px',
+                                height: '48px',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                padding: '0 32px'
+                            }}
+                        >
+                            Nâng cấp gói
+                        </Button>
+                        
+                        <Button
+                            size="large"
+                            icon={<SettingOutlined />}
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                color: '#ffffff',
+                                borderRadius: '8px',
+                                height: '48px',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                padding: '0 32px'
+                            }}
+                        >
+                            Quản lý
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Stats Cards Row */}
+                <Row gutter={[24, 24]} style={{ marginBottom: '40px' }}>
+                    <Col xs={24} sm={8}>
+                        <div style={{
+                            background: 'linear-gradient(135deg, rgba(255, 140, 66, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)',
+                            border: '1px solid rgba(255, 140, 66, 0.2)',
+                            borderRadius: '12px',
+                            padding: '24px',
+                            textAlign: 'center'
+                        }}>
+                            <CalendarOutlined style={{ 
+                                fontSize: '32px', 
+                                color: '#ff8c42',
+                                marginBottom: '12px'
+                            }} />
+                            <div style={{ color: '#ffffff', fontSize: '24px', fontWeight: '700' }}>
+                                {currentSubscription.daysRemaining}
+                            </div>
+                            <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                                Ngày còn lại
+                            </div>
+                        </div>
+                    </Col>
+                    
+                    <Col xs={24} sm={8}>
+                        <div style={{
+                            background: 'linear-gradient(135deg, rgba(46, 204, 113, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)',
+                            border: '1px solid rgba(46, 204, 113, 0.2)',
+                            borderRadius: '12px',
+                            padding: '24px',
+                            textAlign: 'center'
+                        }}>
+                            <CreditCardOutlined style={{ 
+                                fontSize: '32px', 
+                                color: '#2ecc71',
+                                marginBottom: '12px'
+                            }} />
+                            <div style={{ color: '#ffffff', fontSize: '24px', fontWeight: '700' }}>
+                                {paymentHistory.filter(p => p.status === 'success').length}
+                            </div>
+                            <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                                Thanh toán thành công
+                            </div>
+                        </div>
+                    </Col>
+                    
+                    <Col xs={24} sm={8}>
+                        <div style={{
+                            background: 'linear-gradient(135deg, rgba(231, 76, 60, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)',
+                            border: '1px solid rgba(231, 76, 60, 0.2)',
+                            borderRadius: '12px',
+                            padding: '24px',
+                            textAlign: 'center'
+                        }}>
+                            <DownloadOutlined style={{ 
+                                fontSize: '32px', 
+                                color: '#e74c3c',
+                                marginBottom: '12px'
+                            }} />
+                            <div style={{ color: '#ffffff', fontSize: '24px', fontWeight: '700' }}>
+                                {currentSubscription.autoRenew ? 'ON' : 'OFF'}
+                            </div>
+                            <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                                Tự động gia hạn
+                            </div>
+                        </div>
+                    </Col>
+                </Row>
+
+                {/* Payment History Section */}
+                <div style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 140, 66, 0.1)',
+                    borderRadius: '12px',
+                    padding: '32px',
+                    marginBottom: '40px'
+                }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginBottom: '24px'
+                    }}>
+                        <HistoryOutlined style={{ 
+                            color: '#ff8c42', 
+                            fontSize: '24px',
+                            marginRight: '12px'
+                        }} />
+                        <h2 style={{
+                            color: '#ffffff',
+                            fontSize: '24px',
+                            fontWeight: '700',
+                            margin: 0
+                        }}>
+                            Payment History
+                        </h2>
+                    </div>
+                    
+                    <div style={{ overflow: 'auto' }}>
+                        {paymentHistory.map((payment, index) => (
+                            <div key={payment.id} style={{
+                                background: index % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+                                padding: '16px',
+                                borderRadius: '8px',
+                                marginBottom: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                border: '1px solid rgba(255, 255, 255, 0.05)'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        background: payment.status === 'success' 
+                                            ? 'rgba(46, 204, 113, 0.2)' 
+                                            : payment.status === 'failed' 
+                                                ? 'rgba(231, 76, 60, 0.2)' 
+                                                : 'rgba(255, 193, 7, 0.2)',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <CreditCardOutlined style={{
+                                            color: payment.status === 'success' 
+                                                ? '#2ecc71' 
+                                                : payment.status === 'failed' 
+                                                    ? '#e74c3c' 
+                                                    : '#f39c12',
+                                            fontSize: '20px'
+                                        }} />
+                                    </div>
+                                    <div>
+                                        <div style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600' }}>
+                                            {payment.plan}
+                                        </div>
+                                        <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                                            {new Date(payment.date).toLocaleDateString('vi-VN')} • {payment.method}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ color: '#ff8c42', fontSize: '18px', fontWeight: '700' }}>
+                                        {payment.amount.toLocaleString('vi-VN')}₫
+                                    </div>
+                                    <Tag
+                                        style={{
+                                            background: payment.status === 'success' 
+                                                ? 'rgba(46, 204, 113, 0.2)' 
+                                                : payment.status === 'failed' 
+                                                    ? 'rgba(231, 76, 60, 0.2)' 
+                                                    : 'rgba(255, 193, 7, 0.2)',
+                                            color: payment.status === 'success' 
+                                                ? '#2ecc71' 
+                                                : payment.status === 'failed' 
+                                                    ? '#e74c3c' 
+                                                    : '#f39c12',
+                                            border: 'none',
+                                            borderRadius: '16px',
+                                            fontSize: '12px',
+                                            fontWeight: '600'
                                         }}
                                     >
-                                        {getStatusText(currentSubscription.status)}
+                                        {payment.status === 'success' ? 'Thành công' : 
+                                         payment.status === 'failed' ? 'Thất bại' : 'Đang xử lý'}
                                     </Tag>
                                 </div>
-
-                                <div style={{ textAlign: 'center' }}>
-                                    <Text style={{ color: '#ff7a00', fontSize: '36px', fontWeight: 'bold' }}>
-                                        {currentSubscription.price.toLocaleString('vi-VN')}đ
-                                    </Text>
-                                    <Text style={{ color: 'rgba(255, 255, 255, 0.8)', display: 'block' }}>
-                                        /tháng
-                                    </Text>
-                                </div>
-                            </Col>
-
-                            <Col xs={24} lg={12}>
-                                <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                                    <div>
-                                        <Title level={4} style={{ color: '#ffffff', marginBottom: '16px' }}>
-                                            Thời gian sử dụng
-                                        </Title>
-                                        <div style={{ marginBottom: '16px' }}>
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                marginBottom: '8px'
-                                            }}>
-                                                <Text style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                                    Còn lại {currentSubscription.daysRemaining} ngày
-                                                </Text>
-                                                <Text style={{ color: '#ff7a00' }}>
-                                                    {progressPercent}%
-                                                </Text>
-                                            </div>
-                                            <Progress
-                                                percent={progressPercent}
-                                                strokeColor={{
-                                                    '0%': '#ff7a00',
-                                                    '100%': '#ff9500',
-                                                }}
-                                                trailColor="rgba(255, 255, 255, 0.1)"
-                                                showInfo={false}
-                                            />
-                                        </div>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between'
-                                        }}>
-                                            <div>
-                                                <Text style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px' }}>
-                                                    Bắt đầu
-                                                </Text>
-                                                <br />
-                                                <Text style={{ color: '#ffffff' }}>
-                                                    {new Date(currentSubscription.startDate).toLocaleDateString('vi-VN')}
-                                                </Text>
-                                            </div>
-                                            <div style={{ textAlign: 'right' }}>
-                                                <Text style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px' }}>
-                                                    Hết hạn
-                                                </Text>
-                                                <br />
-                                                <Text style={{ color: '#ff7a00' }}>
-                                                    {new Date(currentSubscription.endDate).toLocaleDateString('vi-VN')}
-                                                </Text>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Title level={4} style={{ color: '#ffffff', marginBottom: '16px' }}>
-                                            Tính năng bao gồm
-                                        </Title>
-                                        <Space direction="vertical" size="small">
-                                            {currentSubscription.features.map((feature, index) => (
-                                                <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
-                                                    <CheckCircleOutlined style={{ color: '#52c41a', marginRight: '8px' }} />
-                                                    <Text style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                                        {feature}
-                                                    </Text>
-                                                </div>
-                                            ))}
-                                        </Space>
-                                    </div>
-                                </Space>
-                            </Col>
-                        </Row>
-
-                        <Divider style={{ borderColor: 'rgba(255, 122, 0, 0.2)', margin: '32px 0' }} />
-
-                        <Row gutter={[16, 16]}>
-                            <Col xs={24} sm={8}>
-                                <Button
-                                    type="primary"
-                                    size="large"
-                                    block
-                                    style={{
-                                        background: 'linear-gradient(45deg, #ff7a00 0%, #ff9500 100%)',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        height: '48px'
-                                    }}
-                                >
-                                    Gia hạn ngay
-                                </Button>
-                            </Col>
-                            <Col xs={24} sm={8}>
-                                <Button
-                                    size="large"
-                                    block
-                                    style={{
-                                        background: 'rgba(255, 122, 0, 0.1)',
-                                        border: '1px solid rgba(255, 122, 0, 0.4)',
-                                        color: '#ff7a00',
-                                        borderRadius: '8px',
-                                        height: '48px'
-                                    }}
-                                >
-                                    Nâng cấp gói
-                                </Button>
-                            </Col>
-                            <Col xs={24} sm={8}>
-                                <Button
-                                    size="large"
-                                    block
-                                    danger
-                                    onClick={handleCancelSubscription}
-                                    style={{
-                                        borderRadius: '8px',
-                                        height: '48px'
-                                    }}
-                                >
-                                    Hủy đăng ký
-                                </Button>
-                            </Col>
-                        </Row>
-                    </Card>
-
-                    {/* Payment History */}
-                    <Card
-                        title={
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <HistoryOutlined style={{ color: '#ff7a00', marginRight: '8px' }} />
-                                <Text style={{ color: '#ffffff', fontSize: '18px', fontWeight: 'bold' }}>
-                                    Lịch sử thanh toán
-                                </Text>
                             </div>
-                        }
-                        style={{
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            border: '1px solid rgba(255, 122, 0, 0.2)',
-                            borderRadius: '16px'
-                        }}
-                        bodyStyle={{ padding: '24px' }}
-                    >
-                        <Table
-                            columns={paymentColumns}
-                            dataSource={paymentHistory}
-                            rowKey="id"
-                            pagination={false}
-                            style={{
-                                background: 'transparent'
-                            }}
-                            className="custom-table"
-                        />
-                    </Card>
+                        ))}
+                    </div>
                 </div>
-            </Content>
+
+                {/* Danger Zone */}
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(231, 76, 60, 0.05) 0%, rgba(0, 0, 0, 0.3) 100%)',
+                    border: '1px solid rgba(231, 76, 60, 0.2)',
+                    borderRadius: '12px',
+                    padding: '24px'
+                }}>
+                    <h3 style={{
+                        color: '#e74c3c',
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        marginBottom: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}>
+                        <WarningOutlined />
+                        Danger Zone
+                    </h3>
+                    <p style={{
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        marginBottom: '16px',
+                        fontSize: '14px'
+                    }}>
+                        Hủy đăng ký sẽ ngừng tự động gia hạn. Bạn vẫn có thể sử dụng dịch vụ đến hết thời hạn hiện tại.
+                    </p>
+                    <Button
+                        danger
+                        size="large"
+                        onClick={handleCancelSubscription}
+                        style={{
+                            borderRadius: '8px',
+                            fontWeight: '600'
+                        }}
+                    >
+                        Hủy đăng ký
+                    </Button>
+                </div>
+            </div>
 
             {/* Cancel Subscription Modal */}
             <Modal
                 title={
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <WarningOutlined style={{ color: '#faad14', marginRight: '8px' }} />
-                        <Text style={{ color: '#ffffff' }}>Xác nhận hủy đăng ký</Text>
+                    <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '12px',
+                        color: '#ffffff'
+                    }}>
+                        <WarningOutlined style={{ color: '#f39c12', fontSize: '24px' }} />
+                        <span style={{ fontSize: '18px', fontWeight: '600' }}>
+                            Xác nhận hủy đăng ký
+                        </span>
                     </div>
                 }
                 open={cancelModalVisible}
@@ -442,52 +684,90 @@ const MySubscriptionPage: React.FC = () => {
                 okText="Xác nhận hủy"
                 cancelText="Giữ lại"
                 okButtonProps={{
-                    danger: true
+                    danger: true,
+                    size: 'large',
+                    style: { fontWeight: '600' }
+                }}
+                cancelButtonProps={{
+                    size: 'large',
+                    style: { fontWeight: '600' }
+                }}
+                width={600}
+                centered
+                bodyStyle={{
+                    background: '#1a1a1a',
+                    color: '#ffffff',
+                    padding: '32px'
                 }}
                 style={{
                     top: '20%'
                 }}
-                bodyStyle={{
-                    background: '#2d2d2d',
-                    color: '#ffffff'
-                }}
             >
-                <Paragraph style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                    Bạn có chắc chắn muốn hủy đăng ký gói <strong style={{ color: '#ff7a00' }}>{currentSubscription.plan}</strong>?
-                </Paragraph>
-                <Paragraph style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                    Sau khi hủy, bạn sẽ vẫn có thể sử dụng dịch vụ đến ngày <strong style={{ color: '#ff7a00' }}>
-                        {new Date(currentSubscription.endDate).toLocaleDateString('vi-VN')}
-                    </strong> và không được gia hạn tự động.
-                </Paragraph>
+                <div style={{ padding: '16px 0' }}>
+                    <p style={{ 
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        fontSize: '16px',
+                        lineHeight: '1.6',
+                        marginBottom: '16px'
+                    }}>
+                        Bạn có chắc chắn muốn hủy đăng ký gói{' '}
+                        <strong style={{ color: '#ff8c42' }}>{currentSubscription.plan}</strong>?
+                    </p>
+                    <p style={{ 
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        fontSize: '14px',
+                        lineHeight: '1.6'
+                    }}>
+                        Sau khi hủy, bạn sẽ vẫn có thể sử dụng dịch vụ đến ngày{' '}
+                        <strong style={{ color: '#ff8c42' }}>
+                            {new Date(currentSubscription.endDate).toLocaleDateString('vi-VN')}
+                        </strong>{' '}
+                        và không được gia hạn tự động.
+                    </p>
+                </div>
             </Modal>
 
+            {/* Global Styles */}
             <style jsx global>{`
-                .custom-table .ant-table {
-                    background: transparent !important;
-                }
-                .custom-table .ant-table-thead > tr > th {
-                    background: rgba(255, 122, 0, 0.1) !important;
-                    border-bottom: 1px solid rgba(255, 122, 0, 0.2) !important;
-                    color: #ff7a00 !important;
-                    font-weight: bold !important;
-                }
-                .custom-table .ant-table-tbody > tr > td {
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-                    background: transparent !important;
-                }
-                .custom-table .ant-table-tbody > tr:hover > td {
-                    background: rgba(255, 122, 0, 0.05) !important;
-                }
                 .ant-modal-content {
-                    background: #2d2d2d !important;
+                    background: #1a1a1a !important;
+                    border-radius: 12px !important;
+                    border: 1px solid rgba(255, 140, 66, 0.2) !important;
                 }
                 .ant-modal-header {
-                    background: #2d2d2d !important;
-                    border-bottom: 1px solid rgba(255, 122, 0, 0.2) !important;
+                    background: #1a1a1a !important;
+                    border-bottom: 1px solid rgba(255, 140, 66, 0.2) !important;
+                    border-radius: 12px 12px 0 0 !important;
+                    padding: 24px 32px 16px !important;
+                }
+                .ant-modal-footer {
+                    background: #1a1a1a !important;
+                    border-top: 1px solid rgba(255, 140, 66, 0.2) !important;
+                    border-radius: 0 0 12px 12px !important;
+                    padding: 16px 32px 24px !important;
+                }
+                .ant-btn:hover {
+                    transform: translateY(-2px) !important;
+                    transition: all 0.3s ease !important;
+                }
+                
+                /* Scrollbar Styling */
+                ::-webkit-scrollbar {
+                    width: 8px;
+                }
+                ::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 4px;
+                }
+                ::-webkit-scrollbar-thumb {
+                    background: rgba(255, 140, 66, 0.6);
+                    border-radius: 4px;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 140, 66, 0.8);
                 }
             `}</style>
-        </Layout>
+        </div>
     );
 };
 

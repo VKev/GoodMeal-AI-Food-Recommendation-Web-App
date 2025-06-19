@@ -1,48 +1,48 @@
 const en = {
-    helpTitle: "Natural Language Searching",
-    helpDescription: "We provide utilities to help you have a better experience: Suggestions when you have trouble searching, Help you choose the right restaurant or dish, Introduction to outstanding features",
+    helpTitle: "Hỗ trợ ngôn ngữ tự nhiên",
+    helpDescription: "Chúng tôi cung cấp các tiện ích để giúp bạn có trải nghiệm tốt hơn: Gợi ý khi bạn gặp khó khăn trong việc tìm kiếm, Giúp bạn lựa chọn nhà hàng hoặc món ăn phù hợp, Giới thiệu về các tính năng nổi bật",
     businessSection: {
-        header: "Business Management",
-        subHeader: "Smart Platform",
-        description: "Register to create and manage your store, promote products, and increase brand awareness with AI-powered business tools.",
+        header: "Trở thành",
+        subHeader: "Doanh nghiệp",
+        description: "Đăng ký để tạo và quản lý cửa hàng của bạn, quảng bá sản phẩm và tăng nhận diện thương hiệu với các công cụ kinh doanh được hỗ trợ bởi AI.",
         stats: [
-            { value: "3M+", label: "Active users" },
-            { value: "24/7", label: "AI operates" },
-            { value: "5s", label: "Fast response" }
+            { value: "3M+", label: "Người dùng hoạt động" },
+            { value: "24/7", label: "AI hoạt động" },
+            { value: "5s", label: "Phản hồi nhanh" }
         ],
-        ctaRegister: "Register your store",
+        ctaRegister: "Đăng ký cửa hàng của bạn",
         
-        aiPlatform: "AI-Powered Platform",
+        aiPlatform: "Nền tảng được hỗ trợ bởi AI",
         benefits: [
             {
                 icon: "🏪",
-                title: "Store Creation & Management", 
-                desc: "Create your digital storefront and manage all business operations from one dashboard",
-                feature: "Store Setup"
+                title: "Tạo và Quản lý Cửa hàng", 
+                desc: "Tạo cửa hàng số của bạn và quản lý tất cả hoạt động kinh doanh từ một bảng điều khiển",
+                feature: "Thiết lập Cửa hàng"
             },
             {
                 icon: "📢",
-                title: "Smart Advertising",
-                desc: "AI-powered ads that target customers based on their natural language preferences",
-                feature: "Marketing Tools"
+                title: "Quảng cáo Thông minh",
+                desc: "Quảng cáo được hỗ trợ bởi AI nhắm đến khách hàng dựa trên sở thích ngôn ngữ tự nhiên của họ",
+                feature: "Công cụ Marketing"
             },
             {
                 icon: "🍽️",
-                title: "Food Management",
-                desc: "Track inventory, manage menu items, and optimize pricing with intelligent analytics",
-                feature: "Food Operations"
+                title: "Quản lý Thực phẩm",
+                desc: "Theo dõi tồn kho, quản lý các món trong thực đơn và tối ưu hóa giá cả với phân tích thông minh",
+                feature: "Vận hành Thực phẩm"
             },
             {
                 icon: "📊",
-                title: "Business Analytics",
-                desc: "Real-time insights on customer behavior, sales trends, and performance metrics",
-                feature: "Data Intelligence"
+                title: "Phân tích Kinh doanh",
+                desc: "Thông tin chi tiết thời gian thực về hành vi khách hàng, xu hướng bán hàng và các chỉ số hiệu suất",
+                feature: "Trí tuệ Dữ liệu"
             }
         ],
         trust: [
-            { icon: "🟢", color: "bg-green-400", text: "500+ trusted stores" },
-            { icon: "🔵", color: "bg-blue-400", text: "10M+ AI interactions" },
-            { icon: "🟣", color: "bg-purple-400", text: "30 days free trial" }
+            { icon: "🟢", color: "bg-green-400", text: "500+ cửa hàng tin cậy" },
+            { icon: "🔵", color: "bg-blue-400", text: "10M+ tương tác AI" },
+            { icon: "🟣", color: "bg-purple-400", text: "Dùng thử miễn phí 30 ngày" }
         ]
     }
 };
