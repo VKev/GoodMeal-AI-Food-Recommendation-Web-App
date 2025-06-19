@@ -144,7 +144,7 @@ const Login: React.FC = () => {
 
           {/* Footer */}
           <div className="text-center">
-            <span className="text-gray-400 text-sm">Don't have an account? </span>
+            <span className="text-gray-400 text-sm">Don&apos;t have an account? </span>
             <Link
               href="/create-account"
               className="text-orange-500 font-semibold text-sm hover:text-orange-400 transition-colors duration-300"

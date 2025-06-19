@@ -39,8 +39,8 @@ output "repository_url" {
   value       = var.github_repository_url
 }
 
-output "initial_deployment_triggered" {
-  description = "Whether the initial deployment was triggered automatically"
-  value       = "Initial deployment started automatically for ${aws_amplify_branch.main.branch_name} branch"
-  depends_on  = [null_resource.trigger_initial_deployment]
-} 
+# output "initial_deployment_triggered" {
+#   description = "Whether the initial deployment was triggered automatically"
+#   value       = "Initial deployment started automatically for ${aws_amplify_branch.main.branch_name} branch"
+#   depends_on  = [null_resource.trigger_initial_deployment]
+# } 

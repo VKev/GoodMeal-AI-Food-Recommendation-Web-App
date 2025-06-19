@@ -45,6 +45,9 @@ const MainContent: React.FC<MainContentProps> = ({ selectedChat }) => {
         { id: '4', title: 'Chè Đậu Xanh', image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=300', description: 'Chè ngọt mát', category: 'Món tráng miệng', location: 'Quận 3' },
         { id: '5', title: 'Salad Rau Củ', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300', description: 'Salad tươi mát', category: 'Món chay', location: 'Thủ Đức' },
         { id: '7', title: 'Sushi Nhật Bản', image: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=300', description: 'Sushi tươi ngon', category: 'Món Á', location: 'Quận 7' },
+        { id: '7', title: 'Sushi Nhật Bản', image: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=300', description: 'Sushi tươi ngon', category: 'Món Á', location: 'Quận 7' },
+        { id: '7', title: 'Sushi Nhật Bản', image: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=300', description: 'Sushi tươi ngon', category: 'Món Á', location: 'Quận 7' },
+        { id: '7', title: 'Sushi Nhật Bản', image: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=300', description: 'Sushi tươi ngon', category: 'Món Á', location: 'Quận 7' },
         { id: '9', title: 'Bánh Flan', image: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=300', description: 'Bánh flan mềm mịn', category: 'Món tráng miệng', location: 'Bình Thạnh' },
     ];
 

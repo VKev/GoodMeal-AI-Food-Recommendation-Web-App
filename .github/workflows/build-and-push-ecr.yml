@@ -1,4 +1,4 @@
-name: Build and Push Microservices to ECR
+name: Build and Push to ECR
 
 on:
   workflow_dispatch:  # Manual trigger
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   discover-services:
-    name: Discover Microservices
+    name: Discover Services
     runs-on: ubuntu-latest
     outputs:
       services: ${{ steps.get-services.outputs.services }}
@@ -24,18 +24,19 @@ jobs:
         id: get-services
         run: |
           # Find all directories in Backend/Microservices that contain Dockerfile (case insensitive)
-          # Exclude SharedLibrary and ApiGateway
+          # Exclude only SharedLibrary
           services=()
           
+          # Check microservices in Backend/Microservices
           if [ -d "Backend/Microservices" ]; then
             for dir in Backend/Microservices/*/; do
               if [ -d "$dir" ]; then
                 service_name=$(basename "$dir")
-                # Skip SharedLibrary and ApiGateway (case insensitive)
-                if [[ ! "$service_name" =~ ^(SharedLibrary|ApiGateway)$ ]] && [[ ! "$service_name" =~ ^(sharedlibrary|apigateway)$ ]]; then
+                # Skip only SharedLibrary (case insensitive)
+                if [[ ! "$service_name" =~ ^(SharedLibrary)$ ]] && [[ ! "$service_name" =~ ^(sharedlibrary)$ ]]; then
                   # Check if Dockerfile exists (case insensitive)
                   if [ -f "${dir}Dockerfile" ] || [ -f "${dir}dockerfile" ] || [ -f "${dir}DockerFile" ]; then
-                    services+=("$service_name")
+                    services+=("microservices/$service_name")
                     echo "Found microservice: $service_name with Dockerfile"
                   else
                     echo "Skipping $service_name (no Dockerfile found)"
@@ -45,9 +46,19 @@ jobs:
             done
           fi
           
+          # Check ApiGateway in Backend/ApiGateway
+          if [ -d "Backend/ApiGateway" ]; then
+            if [ -f "Backend/ApiGateway/Dockerfile" ] || [ -f "Backend/ApiGateway/dockerfile" ] || [ -f "Backend/ApiGateway/DockerFile" ]; then
+              services+=("apigateway/ApiGateway")
+              echo "Found ApiGateway with Dockerfile"
+            else
+              echo "Skipping ApiGateway (no Dockerfile found)"
+            fi
+          fi
+          
           # Ensure we have at least one service
           if [ ${#services[@]} -eq 0 ]; then
-            echo "No microservices found with Dockerfiles"
+            echo "No services found with Dockerfiles"
             echo "services=[]" >> $GITHUB_OUTPUT
           else
             # Convert array to JSON format for matrix strategy (compact format)
@@ -101,6 +112,23 @@ jobs:
           
           echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
 
+      - name: Set build context and dockerfile path
+        id: set-paths
+        run: |
+          if [[ "${{ matrix.service }}" == apigateway/* ]]; then
+            echo "CONTEXT=Backend" >> $GITHUB_OUTPUT
+            echo "DOCKERFILE=Backend/ApiGateway/dockerfile" >> $GITHUB_OUTPUT
+            echo "SERVICE_NAME=ApiGateway" >> $GITHUB_OUTPUT
+            echo "IMAGE_NAME=apigateway" >> $GITHUB_OUTPUT
+          else
+            # Extract service name from microservices/ServiceName format
+            SERVICE_NAME=$(echo "${{ matrix.service }}" | cut -d'/' -f2)
+            echo "CONTEXT=Backend/Microservices" >> $GITHUB_OUTPUT
+            echo "DOCKERFILE=Backend/Microservices/${SERVICE_NAME}/dockerfile" >> $GITHUB_OUTPUT
+            echo "SERVICE_NAME=${SERVICE_NAME}" >> $GITHUB_OUTPUT
+            echo "IMAGE_NAME=${SERVICE_NAME,,}" >> $GITHUB_OUTPUT  # Convert to lowercase
+          fi
+
       - name: Build and push image to Amazon ECR with cache
         id: build-image
         uses: docker/build-push-action@v5
@@ -108,35 +136,35 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ steps.set-tag.outputs.IMAGE_TAG }}
         with:
-          context: Backend/Microservices
-          file: Backend/Microservices/${{ matrix.service }}/dockerfile
+          context: ${{ steps.set-paths.outputs.CONTEXT }}
+          file: ${{ steps.set-paths.outputs.DOCKERFILE }}
           build-args: |
-            SERVICE_NAME=${{ matrix.service }}
+            SERVICE_NAME=${{ steps.set-paths.outputs.SERVICE_NAME }}
           push: true
           tags: |
-            ${{ env.ECR_REGISTRY }}/${{ env.PROJECT_NAME }}-ecr:${{ matrix.service }}-${{ env.IMAGE_TAG }}
-            ${{ env.ECR_REGISTRY }}/${{ env.PROJECT_NAME }}-ecr:${{ matrix.service }}-latest
+            ${{ env.ECR_REGISTRY }}/${{ env.PROJECT_NAME }}-ecr:${{ steps.set-paths.outputs.IMAGE_NAME }}-${{ env.IMAGE_TAG }}
+            ${{ env.ECR_REGISTRY }}/${{ env.PROJECT_NAME }}-ecr:${{ steps.set-paths.outputs.IMAGE_NAME }}-latest
           cache-from: |
-            type=gha,scope=${{ matrix.service }}
-            type=registry,ref=${{ env.ECR_REGISTRY }}/${{ env.PROJECT_NAME }}-ecr:${{ matrix.service }}-cache
+            type=gha,scope=${{ steps.set-paths.outputs.IMAGE_NAME }}
+            type=registry,ref=${{ env.ECR_REGISTRY }}/${{ env.PROJECT_NAME }}-ecr:${{ steps.set-paths.outputs.IMAGE_NAME }}-cache
           cache-to: |
-            type=gha,mode=max,scope=${{ matrix.service }}
-            type=registry,ref=${{ env.ECR_REGISTRY }}/${{ env.PROJECT_NAME }}-ecr:${{ matrix.service }}-cache,mode=max
+            type=gha,mode=max,scope=${{ steps.set-paths.outputs.IMAGE_NAME }}
+            type=registry,ref=${{ env.ECR_REGISTRY }}/${{ env.PROJECT_NAME }}-ecr:${{ steps.set-paths.outputs.IMAGE_NAME }}-cache,mode=max
           platforms: linux/amd64
 
       - name: Output build information
         run: |
-          echo "✅ Successfully built and pushed ${{ matrix.service }}"
-          echo "📦 Image: ${{ steps.login-ecr.outputs.registry }}/${{ env.PROJECT_NAME }}-ecr:${{ matrix.service }}-${{ steps.set-tag.outputs.IMAGE_TAG }}"
-          echo "image=${{ steps.login-ecr.outputs.registry }}/${{ env.PROJECT_NAME }}-ecr:${{ matrix.service }}-${{ steps.set-tag.outputs.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+          echo "✅ Successfully built and pushed ${{ steps.set-paths.outputs.SERVICE_NAME }}"
+          echo "📦 Image: ${{ steps.login-ecr.outputs.registry }}/${{ env.PROJECT_NAME }}-ecr:${{ steps.set-paths.outputs.IMAGE_NAME }}-${{ steps.set-tag.outputs.IMAGE_TAG }}"
+          echo "image=${{ steps.login-ecr.outputs.registry }}/${{ env.PROJECT_NAME }}-ecr:${{ steps.set-paths.outputs.IMAGE_NAME }}-${{ steps.set-tag.outputs.IMAGE_TAG }}" >> $GITHUB_OUTPUT
 
       - name: Output image details
         run: |
-          echo "### 🚀 Build Summary for ${{ matrix.service }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Service**: ${{ matrix.service }}" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Build Summary for ${{ steps.set-paths.outputs.SERVICE_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Service**: ${{ steps.set-paths.outputs.SERVICE_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Project**: ${{ env.PROJECT_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Repository**: ${{ env.PROJECT_NAME }}-ecr" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image**: ${{ steps.build-image.outputs.image }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image**: ${{ steps.login-ecr.outputs.registry }}/${{ env.PROJECT_NAME }}-ecr:${{ steps.set-paths.outputs.IMAGE_NAME }}-${{ steps.set-tag.outputs.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Region**: ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
 
   summary:
@@ -147,7 +175,7 @@ jobs:
     steps:
       - name: Generate summary
         run: |
-          echo "## 📋 Microservices Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 📋 Services Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Discovered Services**: ${{ needs.discover-services.outputs.services }}" >> $GITHUB_STEP_SUMMARY
           echo "**AWS Region**: ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
@@ -155,9 +183,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ "${{ needs.build-and-push.result }}" == "success" ]; then
-            echo "✅ All microservices built and pushed successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "✅ All services built and pushed successfully!" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ needs.build-and-push.result }}" == "failure" ]; then
-            echo "❌ Some microservices failed to build. Check the logs above." >> $GITHUB_STEP_SUMMARY
+            echo "❌ Some services failed to build. Check the logs above." >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ Build completed with warnings or was skipped." >> $GITHUB_STEP_SUMMARY
           fi 
