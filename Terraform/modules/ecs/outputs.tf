@@ -43,14 +43,12 @@ output "ecs_execution_role_arn" {
   value       = aws_iam_role.ecs_execution_role.arn
 }
 
-output "service_discovery_namespace_id" {
-  description = "ID of the Cloud Map private DNS namespace (if created)"
-  value       = var.enable_service_discovery && length(aws_service_discovery_private_dns_namespace.dns_ns) > 0 ? aws_service_discovery_private_dns_namespace.dns_ns[0].id : null
+output "service_connect_namespace_arn" {
+  description = "ARN of the Service Connect namespace (if created)"
+  value       = var.enable_service_discovery && length(aws_service_discovery_private_dns_namespace.service_connect_ns) > 0 ? aws_service_discovery_private_dns_namespace.service_connect_ns[0].arn : null
 }
 
-output "service_discovery_service_arns" {
-  description = "Map of container names to their Cloud Map service ARNs (if service discovery is enabled for them)"
-  value = {
-    for name, service in aws_service_discovery_service.discovery_services : name => service.arn
-  }
+output "service_connect_namespace_id" {
+  description = "ID of the Service Connect namespace (if created)"
+  value       = var.enable_service_discovery && length(aws_service_discovery_private_dns_namespace.service_connect_ns) > 0 ? aws_service_discovery_private_dns_namespace.service_connect_ns[0].id : null
 }

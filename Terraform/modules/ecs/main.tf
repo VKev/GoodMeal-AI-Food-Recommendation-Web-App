@@ -51,6 +51,33 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_managed" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# Additional IAM policy for Service Connect
+resource "aws_iam_role_policy" "ecs_service_connect_policy" {
+  name = "${var.project_name}-ecs-service-connect-policy"
+  role = aws_iam_role.ecs_task_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "servicediscovery:RegisterInstance",
+          "servicediscovery:DeregisterInstance",
+          "servicediscovery:DiscoverInstances",
+          "servicediscovery:Get*",
+          "servicediscovery:List*",
+          "route53:GetHealthCheck",
+          "route53:CreateHealthCheck",
+          "route53:UpdateHealthCheck",
+          "route53:DeleteHealthCheck"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "ecs_task_ecr_pull" {
   role       = aws_iam_role.ecs_task_role.name # Task role needs ECR pull if not using execution role for it (best practice is execution role)
   # For tasks to pull from ECR, AmazonECSTaskExecutionRolePolicy on ecs_execution_role is sufficient.
@@ -82,6 +109,7 @@ resource "aws_ecs_task_definition" "app_task" {
           containerPort = pm.container_port
           hostPort      = pm.host_port      # Typically 0 for dynamic port mapping in bridge mode
           protocol      = pm.protocol
+          name          = lookup(c, "enable_service_discovery", false) ? c.name : null # Service Connect port name
         }
       ]
 
@@ -126,17 +154,24 @@ resource "aws_ecs_service" "app_service" {
     field = "attribute:ecs.instance-id" # Spread tasks across instances
   }
 
-  dynamic "service_registries" {
-    for_each = var.enable_service_discovery && length([
-      for c in var.containers : c
-      if lookup(c, "enable_service_discovery", false) && lookup(c, "service_discovery_port", null) != null
-    ]) > 0 ? [1] : []
-    content {
-      registry_arn = aws_service_discovery_service.discovery_services[
-        [for c in var.containers : c.name if lookup(c, "enable_service_discovery", false)][0]
-      ].arn
-      container_name = [for c in var.containers : c.name if lookup(c, "enable_service_discovery", false)][0]
-      container_port = [for c in var.containers : c.service_discovery_port if lookup(c, "enable_service_discovery", false)][0]
+  # Service Connect Configuration - Better than Service Discovery
+  service_connect_configuration {
+    enabled   = var.enable_service_discovery # Reuse the same flag
+    namespace = aws_service_discovery_private_dns_namespace.service_connect_ns[0].arn
+
+    dynamic "service" {
+      for_each = {
+        for c in var.containers : c.name => c
+        if lookup(c, "enable_service_discovery", false) && lookup(c, "service_discovery_port", null) != null
+      }
+      content {
+        port_name      = service.value.name
+        discovery_name = service.value.name # This will be the DNS name matching container name
+        client_alias {
+          port     = service.value.service_discovery_port
+          dns_name = service.value.name # Use the full container name for DNS resolution
+        }
+      }
     }
   }
 
@@ -161,38 +196,17 @@ resource "aws_ecs_service" "app_service" {
   depends_on = [
     aws_iam_role_policy_attachment.ecs_task_ecr_pull,
     aws_iam_role_policy_attachment.ecs_execution_managed,
-    aws_service_discovery_service.discovery_services # Ensure discovery services are created first if used
+    aws_service_discovery_private_dns_namespace.service_connect_ns # Ensure namespace is created first
   ]
 }
 
-resource "aws_service_discovery_private_dns_namespace" "dns_ns" {
+# Service Connect Namespace - Replaces traditional Service Discovery
+resource "aws_service_discovery_private_dns_namespace" "service_connect_ns" {
   count       = var.enable_service_discovery ? 1 : 0
-  name        = "${var.project_name}.local" # Consider making this configurable
+  name        = "${var.project_name}.local"
   vpc         = var.vpc_id
-  description = "Service discovery namespace for ${var.project_name}"
-  tags        = { Name = "${var.project_name}-dns-namespace" }
-}
-
-resource "aws_service_discovery_service" "discovery_services" {
-  for_each = {
-    # Create a discovery service for each container that has it enabled
-    for c in var.containers : c.name => c
-    if var.enable_service_discovery && lookup(c, "enable_service_discovery", false) && lookup(c, "service_discovery_port", null) != null
-  }
-
-  name = each.value.name # Cloud Map service name will be the container name
-
-  dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.dns_ns[0].id
-    routing_policy = "MULTIVALUE" # Appropriate for SRV records, resolves to multiple task IPs/ports
-    dns_records {
-      ttl  = 10
-      type = "SRV" # SRV records for discovering specific host:port combinations
-    }
-  }
-
-  description = "Service Discovery for container ${each.value.name} in service ${var.project_name}"
-  tags        = { Name = "${var.project_name}-${each.value.name}-discovery" }
+  description = "Service Connect namespace for ${var.project_name}"
+  tags        = { Name = "${var.project_name}-service-connect-namespace" }
 }
 
 resource "aws_appautoscaling_target" "ecs_target" {
