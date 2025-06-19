@@ -5,8 +5,7 @@ COPY ApiGateway.sln ./
 
 COPY src/src.csproj ./src/
 
-
-RUN dotnet restore
+RUN dotnet restore ./src/src.csproj
 
 COPY src/ ./src/
 
