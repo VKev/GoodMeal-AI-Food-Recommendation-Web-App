@@ -1,13 +1,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /App
 
-COPY ApiGateway.sln ./
+COPY ApiGateway/ApiGateway.sln ./
 
-COPY src/src.csproj ./src/
+COPY ApiGateway/src/src.csproj ./src/
 
 RUN dotnet restore ./src/src.csproj
 
-COPY src/ ./src/
+COPY ApiGateway/src/ ./src/
 
 WORKDIR /App/src
 RUN dotnet publish -c Release -o /App/out
