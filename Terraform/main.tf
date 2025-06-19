@@ -1,11 +1,11 @@
-# module "vpc" {
-#   source                = "./modules/vpc"
-#   project_name          = var.project_name
-#   vpc_cidr              = var.vpc_cidr
-#   public_subnet_cidrs   = var.public_subnet_cidrs
-#   public_subnet_count   = 2
-#   private_subnet_cidr   = var.private_subnet_cidr
-# }
+module "vpc" {
+  source                = "./modules/vpc"
+  project_name          = var.project_name
+  vpc_cidr              = var.vpc_cidr
+  public_subnet_cidrs   = var.public_subnet_cidrs
+  public_subnet_count   = 2
+  private_subnet_cidr   = var.private_subnet_cidr
+}
 
 # Amplify Module for Next.js Frontend
 # module "amplify" {
@@ -129,8 +129,8 @@ module "ecs" {
   ecs_cluster_name = module.ec2.ecs_cluster_name
   desired_count    = 1
 
-  task_cpu    = 1081
-  task_memory = 1081
+  task_cpu    = 850
+  task_memory = 850
 
   containers = [
     { 
@@ -182,18 +182,18 @@ module "ecs" {
       environment_variables= concat(
         var.services["resource"].ecs_environment_variables,
         [
-          {
-            name  = "AWS_CLOUD_FRONT_KEY_ID"
-            value = module.cloudfront.public_key_encoded
-          },
-          {
-            name  = "AWS_CLOUD_FRONT_PRIVATE_KEY"
-            value = module.cloudfront.cloudfront_private_key_pem
-          },
-          {
-            name  = "AWS_CLOUD_FRONT_DISTRIBUTION_DOMAIN"
-            value = module.cloudfront.cloudfront_domain_name
-          }
+          # {
+          #   name  = "AWS_CLOUD_FRONT_KEY_ID"
+          #   value = module.cloudfront.public_key_encoded
+          # },
+          # {
+          #   name  = "AWS_CLOUD_FRONT_PRIVATE_KEY"
+          #   value = module.cloudfront.cloudfront_private_key_pem
+          # },
+          # {
+          #   name  = "AWS_CLOUD_FRONT_DISTRIBUTION_DOMAIN"
+          #   value = module.cloudfront.cloudfront_domain_name
+          # }
         ]
       )
       health_check = {
@@ -250,16 +250,41 @@ module "ecs" {
           },
           {
             name  = "OCELOT_ROUTES_0_DOWNSTREAM_PORT"
-            value = "5002"
+            value = "${var.services["user"].ecs_service_discovery_port}"
           },
           {
             name  = "OCELOT_ROUTES_0_DOWNSTREAM_PATH"
             value = "/api/User/{everything}"
           },
-          # Auth Service Routes
+          # Auth Service Routes (Authentication Microservice)
+          # {
+          #   name  = "OCELOT_ROUTES_1_UPSTREAM_PATH"
+          #   value = "/api/Auth/{everything}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_1_UPSTREAM_METHODS"
+          #   value = "Get,Post,Put,Delete"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_1_DOWNSTREAM_SCHEME"
+          #   value = "http"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_1_DOWNSTREAM_HOST"
+          #   value = "${var.project_name}-authentication-${var.services["authentication"].ecs_container_name_suffix}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_1_DOWNSTREAM_PORT"
+          #   value = "${var.services["authentication"].ecs_service_discovery_port}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_1_DOWNSTREAM_PATH"
+          #   value = "/api/Auth/{everything}"
+          # },
+          # Resource Service Routes
           {
             name  = "OCELOT_ROUTES_1_UPSTREAM_PATH"
-            value = "/api/Auth/{everything}"
+            value = "/api/Resource/{everything}"
           },
           {
             name  = "OCELOT_ROUTES_1_UPSTREAM_METHODS"
@@ -271,20 +296,20 @@ module "ecs" {
           },
           {
             name  = "OCELOT_ROUTES_1_DOWNSTREAM_HOST"
-            value = "${var.project_name}-authentication-${var.services["authentication"].ecs_container_name_suffix}"
+            value = "${var.project_name}-resource-${var.services["resource"].ecs_container_name_suffix}"
           },
           {
             name  = "OCELOT_ROUTES_1_DOWNSTREAM_PORT"
-            value = "5004"
+            value = "${var.services["resource"].ecs_service_discovery_port}"
           },
           {
             name  = "OCELOT_ROUTES_1_DOWNSTREAM_PATH"
-            value = "/api/Auth/{everything}"
+            value = "/api/Resource/{everything}"
           },
-          # Resource Service Routes
+          # Guest Service Routes
           {
             name  = "OCELOT_ROUTES_2_UPSTREAM_PATH"
-            value = "/api/Resource/{everything}"
+            value = "/api/Guest/{everything}"
           },
           {
             name  = "OCELOT_ROUTES_2_UPSTREAM_METHODS"
@@ -296,241 +321,216 @@ module "ecs" {
           },
           {
             name  = "OCELOT_ROUTES_2_DOWNSTREAM_HOST"
-            value = "${var.project_name}-resource-${var.services["resource"].ecs_container_name_suffix}"
-          },
-          {
-            name  = "OCELOT_ROUTES_2_DOWNSTREAM_PORT"
-            value = "5003"
-          },
-          {
-            name  = "OCELOT_ROUTES_2_DOWNSTREAM_PATH"
-            value = "/api/Resource/{everything}"
-          },
-          # Guest Service Routes
-          {
-            name  = "OCELOT_ROUTES_3_UPSTREAM_PATH"
-            value = "/api/Guest/{everything}"
-          },
-          {
-            name  = "OCELOT_ROUTES_3_UPSTREAM_METHODS"
-            value = "Get,Post,Put,Delete"
-          },
-          {
-            name  = "OCELOT_ROUTES_3_DOWNSTREAM_SCHEME"
-            value = "http"
-          },
-          {
-            name  = "OCELOT_ROUTES_3_DOWNSTREAM_HOST"
             value = "${var.project_name}-guest-${var.services["guest"].ecs_container_name_suffix}"
           },
           {
-            name  = "OCELOT_ROUTES_3_DOWNSTREAM_PORT"
-            value = "5001"
+            name  = "OCELOT_ROUTES_2_DOWNSTREAM_PORT"
+            value = "${var.services["guest"].ecs_service_discovery_port}"
           },
           {
-            name  = "OCELOT_ROUTES_3_DOWNSTREAM_PATH"
+            name  = "OCELOT_ROUTES_2_DOWNSTREAM_PATH"
             value = "/api/Guest/{everything}"
           },
-          # Prompt Session Routes
-          {
-            name  = "OCELOT_ROUTES_4_UPSTREAM_PATH"
-            value = "/api/PromptSession/{everything}"
-          },
-          {
-            name  = "OCELOT_ROUTES_4_UPSTREAM_METHODS"
-            value = "Get,Post,Put,Delete"
-          },
-          {
-            name  = "OCELOT_ROUTES_4_DOWNSTREAM_SCHEME"
-            value = "http"
-          },
-          {
-            name  = "OCELOT_ROUTES_4_DOWNSTREAM_HOST"
-            value = "${var.project_name}-prompt-${var.services["prompt"].ecs_container_name_suffix}"
-          },
-          {
-            name  = "OCELOT_ROUTES_4_DOWNSTREAM_PORT"
-            value = "5026"
-          },
-          {
-            name  = "OCELOT_ROUTES_4_DOWNSTREAM_PATH"
-            value = "/api/PromptSession/{everything}"
-          },
-          # Message Routes
-          {
-            name  = "OCELOT_ROUTES_5_UPSTREAM_PATH"
-            value = "/api/Message/{everything}"
-          },
-          {
-            name  = "OCELOT_ROUTES_5_UPSTREAM_METHODS"
-            value = "Get,Post,Put,Delete"
-          },
-          {
-            name  = "OCELOT_ROUTES_5_DOWNSTREAM_SCHEME"
-            value = "http"
-          },
-          {
-            name  = "OCELOT_ROUTES_5_DOWNSTREAM_HOST"
-            value = "${var.project_name}-prompt-${var.services["prompt"].ecs_container_name_suffix}"
-          },
-          {
-            name  = "OCELOT_ROUTES_5_DOWNSTREAM_PORT"
-            value = "5026"
-          },
-          {
-            name  = "OCELOT_ROUTES_5_DOWNSTREAM_PATH"
-            value = "/api/Message/{everything}"
-          },
-          # Gemini Routes
-          {
-            name  = "OCELOT_ROUTES_6_UPSTREAM_PATH"
-            value = "/api/Gemini/{everything}"
-          },
-          {
-            name  = "OCELOT_ROUTES_6_UPSTREAM_METHODS"
-            value = "Get,Post,Put,Delete"
-          },
-          {
-            name  = "OCELOT_ROUTES_6_DOWNSTREAM_SCHEME"
-            value = "http"
-          },
-          {
-            name  = "OCELOT_ROUTES_6_DOWNSTREAM_HOST"
-            value = "${var.project_name}-prompt-${var.services["prompt"].ecs_container_name_suffix}"
-          },
-          {
-            name  = "OCELOT_ROUTES_6_DOWNSTREAM_PORT"
-            value = "5026"
-          },
-          {
-            name  = "OCELOT_ROUTES_6_DOWNSTREAM_PATH"
-            value = "/api/Gemini/{everything}"
-          },
-          # Restaurant Routes
-          {
-            name  = "OCELOT_ROUTES_7_UPSTREAM_PATH"
-            value = "/api/Restaurant/{everything}"
-          },
-          {
-            name  = "OCELOT_ROUTES_7_UPSTREAM_METHODS"
-            value = "Get,Post,Put,Delete"
-          },
-          {
-            name  = "OCELOT_ROUTES_7_DOWNSTREAM_SCHEME"
-            value = "http"
-          },
-          {
-            name  = "OCELOT_ROUTES_7_DOWNSTREAM_HOST"
-            value = "${var.project_name}-restaurant-${var.services["restaurant"].ecs_container_name_suffix}"
-          },
-          {
-            name  = "OCELOT_ROUTES_7_DOWNSTREAM_PORT"
-            value = "5303"
-          },
-          {
-            name  = "OCELOT_ROUTES_7_DOWNSTREAM_PATH"
-            value = "/api/Restaurant/{everything}"
-          },
-          # Food Routes
-          {
-            name  = "OCELOT_ROUTES_8_UPSTREAM_PATH"
-            value = "/api/Food/{everything}"
-          },
-          {
-            name  = "OCELOT_ROUTES_8_UPSTREAM_METHODS"
-            value = "Get,Post,Put,Delete"
-          },
-          {
-            name  = "OCELOT_ROUTES_8_DOWNSTREAM_SCHEME"
-            value = "http"
-          },
-          {
-            name  = "OCELOT_ROUTES_8_DOWNSTREAM_HOST"
-            value = "${var.project_name}-restaurant-${var.services["restaurant"].ecs_container_name_suffix}"
-          },
-          {
-            name  = "OCELOT_ROUTES_8_DOWNSTREAM_PORT"
-            value = "5303"
-          },
-          {
-            name  = "OCELOT_ROUTES_8_DOWNSTREAM_PATH"
-            value = "/api/Food/{everything}"
-          },
-          # Rating Routes
-          {
-            name  = "OCELOT_ROUTES_9_UPSTREAM_PATH"
-            value = "/api/Rating/{everything}"
-          },
-          {
-            name  = "OCELOT_ROUTES_9_UPSTREAM_METHODS"
-            value = "Get,Post,Put,Delete"
-          },
-          {
-            name  = "OCELOT_ROUTES_9_DOWNSTREAM_SCHEME"
-            value = "http"
-          },
-          {
-            name  = "OCELOT_ROUTES_9_DOWNSTREAM_HOST"
-            value = "${var.project_name}-restaurant-${var.services["restaurant"].ecs_container_name_suffix}"
-          },
-          {
-            name  = "OCELOT_ROUTES_9_DOWNSTREAM_PORT"
-            value = "5303"
-          },
-          {
-            name  = "OCELOT_ROUTES_9_DOWNSTREAM_PATH"
-            value = "/api/Rating/{everything}"
-          },
-          # Business Routes
-          {
-            name  = "OCELOT_ROUTES_10_UPSTREAM_PATH"
-            value = "/api/Business/{everything}"
-          },
-          {
-            name  = "OCELOT_ROUTES_10_UPSTREAM_METHODS"
-            value = "Get,Post,Put,Delete"
-          },
-          {
-            name  = "OCELOT_ROUTES_10_DOWNSTREAM_SCHEME"
-            value = "http"
-          },
-          {
-            name  = "OCELOT_ROUTES_10_DOWNSTREAM_HOST"
-            value = "${var.project_name}-business-${var.services["business"].ecs_container_name_suffix}"
-          },
-          {
-            name  = "OCELOT_ROUTES_10_DOWNSTREAM_PORT"
-            value = "4161"
-          },
-          {
-            name  = "OCELOT_ROUTES_10_DOWNSTREAM_PATH"
-            value = "/api/Business/{everything}"
-          },
-          # Admin Routes
-          {
-            name  = "OCELOT_ROUTES_11_UPSTREAM_PATH"
-            value = "/api/Admin/{everything}"
-          },
-          {
-            name  = "OCELOT_ROUTES_11_UPSTREAM_METHODS"
-            value = "Get,Post,Put,Delete"
-          },
-          {
-            name  = "OCELOT_ROUTES_11_DOWNSTREAM_SCHEME"
-            value = "http"
-          },
-          {
-            name  = "OCELOT_ROUTES_11_DOWNSTREAM_HOST"
-            value = "${var.project_name}-admin-${var.services["admin"].ecs_container_name_suffix}"
-          },
-          {
-            name  = "OCELOT_ROUTES_11_DOWNSTREAM_PORT"
-            value = "1034"
-          },
-          {
-            name  = "OCELOT_ROUTES_11_DOWNSTREAM_PATH"
-            value = "/api/Admin/{everything}"
-          }
+          # Prompt Session Routes (Prompt Microservice)
+          # {
+          #   name  = "OCELOT_ROUTES_4_UPSTREAM_PATH"
+          #   value = "/api/PromptSession/{everything}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_4_UPSTREAM_METHODS"
+          #   value = "Get,Post,Put,Delete"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_4_DOWNSTREAM_SCHEME"
+          #   value = "http"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_4_DOWNSTREAM_HOST"
+          #   value = "${var.project_name}-prompt-${var.services["prompt"].ecs_container_name_suffix}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_4_DOWNSTREAM_PORT"
+          #   value = "${var.services["prompt"].ecs_service_discovery_port}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_4_DOWNSTREAM_PATH"
+          #   value = "/api/PromptSession/{everything}"
+          # },
+          # # Message Routes (Prompt Microservice)
+          # {
+          #   name  = "OCELOT_ROUTES_5_UPSTREAM_PATH"
+          #   value = "/api/Message/{everything}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_5_UPSTREAM_METHODS"
+          #   value = "Get,Post,Put,Delete"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_5_DOWNSTREAM_SCHEME"
+          #   value = "http"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_5_DOWNSTREAM_HOST"
+          #   value = "${var.project_name}-prompt-${var.services["prompt"].ecs_container_name_suffix}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_5_DOWNSTREAM_PORT"
+          #   value = "${var.services["prompt"].ecs_service_discovery_port}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_5_DOWNSTREAM_PATH"
+          #   value = "/api/Message/{everything}"
+          # },
+          # # Gemini Routes (Prompt Microservice)
+          # {
+          #   name  = "OCELOT_ROUTES_6_UPSTREAM_PATH"
+          #   value = "/api/Gemini/{everything}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_6_UPSTREAM_METHODS"
+          #   value = "Get,Post,Put,Delete"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_6_DOWNSTREAM_SCHEME"
+          #   value = "http"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_6_DOWNSTREAM_HOST"
+          #   value = "${var.project_name}-prompt-${var.services["prompt"].ecs_container_name_suffix}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_6_DOWNSTREAM_PORT"
+          #   value = "${var.services["prompt"].ecs_service_discovery_port}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_6_DOWNSTREAM_PATH"
+          #   value = "/api/Gemini/{everything}"
+          # },
+          # # Restaurant Routes (Restaurant Microservice)
+          # {
+          #   name  = "OCELOT_ROUTES_7_UPSTREAM_PATH"
+          #   value = "/api/Restaurant/{everything}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_7_UPSTREAM_METHODS"
+          #   value = "Get,Post,Put,Delete"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_7_DOWNSTREAM_SCHEME"
+          #   value = "http"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_7_DOWNSTREAM_HOST"
+          #   value = "${var.project_name}-restaurant-${var.services["restaurant"].ecs_container_name_suffix}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_7_DOWNSTREAM_PORT"
+          #   value = "${var.services["restaurant"].ecs_service_discovery_port}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_7_DOWNSTREAM_PATH"
+          #   value = "/api/Restaurant/{everything}"
+          # },
+          # # Food Routes (Restaurant Microservice)
+          # {
+          #   name  = "OCELOT_ROUTES_8_UPSTREAM_PATH"
+          #   value = "/api/Food/{everything}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_8_UPSTREAM_METHODS"
+          #   value = "Get,Post,Put,Delete"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_8_DOWNSTREAM_SCHEME"
+          #   value = "http"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_8_DOWNSTREAM_HOST"
+          #   value = "${var.project_name}-restaurant-${var.services["restaurant"].ecs_container_name_suffix}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_8_DOWNSTREAM_PORT"
+          #   value = "${var.services["restaurant"].ecs_service_discovery_port}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_8_DOWNSTREAM_PATH"
+          #   value = "/api/Food/{everything}"
+          # },
+          # # Rating Routes (Restaurant Microservice)
+          # {
+          #   name  = "OCELOT_ROUTES_9_UPSTREAM_PATH"
+          #   value = "/api/Rating/{everything}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_9_UPSTREAM_METHODS"
+          #   value = "Get,Post,Put,Delete"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_9_DOWNSTREAM_SCHEME"
+          #   value = "http"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_9_DOWNSTREAM_HOST"
+          #   value = "${var.project_name}-restaurant-${var.services["restaurant"].ecs_container_name_suffix}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_9_DOWNSTREAM_PORT"
+          #   value = "${var.services["restaurant"].ecs_service_discovery_port}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_9_DOWNSTREAM_PATH"
+          #   value = "/api/Rating/{everything}"
+          # },
+          # # Business Routes (Business Microservice)
+          # {
+          #   name  = "OCELOT_ROUTES_10_UPSTREAM_PATH"
+          #   value = "/api/Business/{everything}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_10_UPSTREAM_METHODS"
+          #   value = "Get,Post,Put,Delete"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_10_DOWNSTREAM_SCHEME"
+          #   value = "http"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_10_DOWNSTREAM_HOST"
+          #   value = "${var.project_name}-business-${var.services["business"].ecs_container_name_suffix}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_10_DOWNSTREAM_PORT"
+          #   value = "${var.services["business"].ecs_service_discovery_port}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_10_DOWNSTREAM_PATH"
+          #   value = "/api/Business/{everything}"
+          # },
+          # # Admin Routes (Admin Microservice)
+          # {
+          #   name  = "OCELOT_ROUTES_11_UPSTREAM_PATH"
+          #   value = "/api/Admin/{everything}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_11_UPSTREAM_METHODS"
+          #   value = "Get,Post,Put,Delete"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_11_DOWNSTREAM_SCHEME"
+          #   value = "http"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_11_DOWNSTREAM_HOST"
+          #   value = "${var.project_name}-admin-${var.services["admin"].ecs_container_name_suffix}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_11_DOWNSTREAM_PORT"
+          #   value = "${var.services["admin"].ecs_service_discovery_port}"
+          # },
+          # {
+          #   name  = "OCELOT_ROUTES_11_DOWNSTREAM_PATH"
+          #   value = "/api/Admin/{everything}"
+          # }
         ]
       )
       health_check = {

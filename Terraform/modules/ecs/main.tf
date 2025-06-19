@@ -127,16 +127,16 @@ resource "aws_ecs_service" "app_service" {
   }
 
   dynamic "service_registries" {
-    for_each = {
-      # Create a map of container objects that have service discovery enabled
-      for container_name, container_config in { for c_idx, c_val in var.containers : c_val.name => c_val } :
-      container_name => container_config
-      if var.enable_service_discovery && lookup(container_config, "enable_service_discovery", false) && lookup(container_config, "service_discovery_port", null) != null && contains(keys(aws_service_discovery_service.discovery_services), container_name)
-    }
+    for_each = var.enable_service_discovery && length([
+      for c in var.containers : c
+      if lookup(c, "enable_service_discovery", false) && lookup(c, "service_discovery_port", null) != null
+    ]) > 0 ? [1] : []
     content {
-      registry_arn   = aws_service_discovery_service.discovery_services[service_registries.key].arn
-      container_name = service_registries.key # Name of the container in the task definition
-      port           = service_registries.value.service_discovery_port # Container port to register
+      registry_arn = aws_service_discovery_service.discovery_services[
+        [for c in var.containers : c.name if lookup(c, "enable_service_discovery", false)][0]
+      ].arn
+      container_name = [for c in var.containers : c.name if lookup(c, "enable_service_discovery", false)][0]
+      container_port = [for c in var.containers : c.service_discovery_port if lookup(c, "enable_service_discovery", false)][0]
     }
   }
 

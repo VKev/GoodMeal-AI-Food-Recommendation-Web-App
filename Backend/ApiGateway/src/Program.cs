@@ -42,10 +42,10 @@ lifetime.ApplicationStopping.Register(() =>
 app.UseAuthentication();
 
 // Add health check endpoint before Ocelot middleware
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/api/health");
 
 // Use conditional middleware to bypass Ocelot for health checks
-app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health"), 
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api/health"), 
     appBuilder => appBuilder.UseOcelot().Wait());
 
 await app.RunAsync();
