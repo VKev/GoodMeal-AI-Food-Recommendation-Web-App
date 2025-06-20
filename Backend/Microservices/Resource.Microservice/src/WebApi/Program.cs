@@ -52,16 +52,20 @@ builder.Services
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "api/resource/swagger/{documentName}/swagger.json";
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/api/resource/swagger/v1/swagger.json", "Resource Microservice API V1");
+        c.RoutePrefix = "api/resource/swagger";
+    });
     app.MapGet("/", context =>
     {
-        context.Response.Redirect("/swagger");
+        context.Response.Redirect("/api/resource/swagger");
         return Task.CompletedTask;
     });
-}
 
 app.UseSerilogRequestLogging();
 

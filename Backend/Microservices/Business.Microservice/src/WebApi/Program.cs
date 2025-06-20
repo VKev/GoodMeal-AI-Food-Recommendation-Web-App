@@ -56,16 +56,20 @@ var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILogger<AutoScaffold>>();
 var config = app.Services.GetRequiredService<EnvironmentConfig>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "api/business/swagger/{documentName}/swagger.json";
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/api/business/swagger/v1/swagger.json", "Business Microservice API V1");
+        c.RoutePrefix = "api/business/swagger";
+    });
     app.MapGet("/", context =>
     {
-        context.Response.Redirect("/swagger");
+        context.Response.Redirect("/api/business/swagger");
         return Task.CompletedTask;
     });
-}
 
 app.UseSerilogRequestLogging();
 

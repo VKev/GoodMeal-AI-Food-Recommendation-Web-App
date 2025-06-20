@@ -68,16 +68,20 @@ var scaffold = new AutoScaffold(logger)
 
 scaffold.UpdateAppSettings();
 // scaffold.Run();
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "api/prompt/swagger/{documentName}/swagger.json";
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/api/prompt/swagger/v1/swagger.json", "Prompt Microservice API V1");
+        c.RoutePrefix = "api/prompt/swagger";
+    });
     app.MapGet("/", context =>
     {
-        context.Response.Redirect("/swagger");
+        context.Response.Redirect("/api/prompt/swagger");
         return Task.CompletedTask;
     });
-}
 
 app.UseSerilogRequestLogging();
 

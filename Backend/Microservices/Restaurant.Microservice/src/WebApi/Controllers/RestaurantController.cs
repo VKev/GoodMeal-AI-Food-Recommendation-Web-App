@@ -6,7 +6,7 @@ using WebApi.Common;
 
 namespace WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/restaurant/[controller]")]
 public class RestaurantController: ApiController
 {
     public RestaurantController(IMediator mediator) : base(mediator)

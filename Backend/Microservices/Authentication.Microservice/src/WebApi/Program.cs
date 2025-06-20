@@ -24,16 +24,20 @@ builder.Services
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "api/auth/swagger/{documentName}/swagger.json";
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/api/auth/swagger/v1/swagger.json", "Authentication Microservice API V1");
+        c.RoutePrefix = "api/auth/swagger";
+    });
     app.MapGet("/", context =>
     {
-        context.Response.Redirect("/swagger");
+        context.Response.Redirect("/api/auth/swagger");
         return Task.CompletedTask;
     });
-}
 
 app.UseSerilogRequestLogging();
 

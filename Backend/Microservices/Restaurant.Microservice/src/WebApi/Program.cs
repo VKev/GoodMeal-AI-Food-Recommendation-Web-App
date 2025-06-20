@@ -73,16 +73,20 @@ var config = app.Services.GetRequiredService<EnvironmentConfig>();
 //
 // scaffold.UpdateAppSettings();
 // scaffold.Run();
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "api/restaurant/swagger/{documentName}/swagger.json";
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/api/restaurant/swagger/v1/swagger.json", "Restaurant Microservice API V1");
+        c.RoutePrefix = "api/restaurant/swagger";
+    });
     app.MapGet("/", context =>
     {
-        context.Response.Redirect("/swagger");
+        context.Response.Redirect("/api/restaurant/swagger");
         return Task.CompletedTask;
     });
-}
 
 app.UseSerilogRequestLogging();
 

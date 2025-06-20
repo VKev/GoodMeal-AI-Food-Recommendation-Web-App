@@ -14,7 +14,7 @@ using SharedLibrary.Common.ResponseModel;
 namespace WebApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/prompt/[controller]")]
 public class GeminiController : ApiController
 {
     public GeminiController(IMediator mediator) : base(mediator)

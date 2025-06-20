@@ -24,11 +24,12 @@ builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<AuthenticationHandler>();
 builder.Services.AddHealthChecks();
+
 builder.Services.AddOcelot(builder.Configuration).AddDelegatingHandler<AuthenticationHandler>(true);
 
 var app = builder.Build();
 
-// Clean up temporary file on shutdown
+// Clean up temporary files on shutdown
 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 lifetime.ApplicationStopping.Register(() =>
 {
@@ -44,7 +45,7 @@ app.UseAuthentication();
 // Add health check endpoint before Ocelot middleware
 app.MapHealthChecks("/api/health");
 
-// Use conditional middleware to bypass Ocelot for health checks
+// Use conditional middleware to bypass Ocelot for health checks only
 app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api/health"), 
     appBuilder => appBuilder.UseOcelot().Wait());
 

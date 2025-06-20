@@ -10,7 +10,7 @@ using SharedLibrary.Common.Messaging.Commands;
 
 namespace WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/prompt/[controller]")]
 public class MessageController : ApiController
 {
     public MessageController(IMediator mediator) : base(mediator)
