@@ -3,6 +3,7 @@ using Ocelot.Middleware;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using src;
+using Microsoft.OpenApi.Models;
 
 DotNetEnv.Env.Load();
 
@@ -20,6 +21,18 @@ new Startup(builder.Configuration).ConfigureServices(builder.Services);
 builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
     .AddJsonFile("ocelot.generated.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
+
+// Add Swagger services
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "GoodMeal API Gateway", 
+        Version = "v1",
+        Description = "API Gateway for GoodMeal microservices architecture"
+    });
+});
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<AuthenticationHandler>();
@@ -39,14 +52,53 @@ lifetime.ApplicationStopping.Register(() =>
     }
 });
 
+// Configure Swagger
+app.UseSwagger(c =>
+{
+    c.RouteTemplate = "swagger/{documentName}/swagger.json";
+});
+
+app.UseSwaggerUI(c =>
+{
+    // API Gateway Swagger
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Gateway V1");
+    
+    // Add microservice Swagger endpoints based on docker-compose environment variables
+    c.SwaggerEndpoint("/api/user/swagger/v1/swagger.json", "User Microservice");
+    c.SwaggerEndpoint("/api/auth/swagger/v1/swagger.json", "Authentication Microservice");
+    c.SwaggerEndpoint("/api/resource/swagger/v1/swagger.json", "Resource Microservice");
+    c.SwaggerEndpoint("/api/guest/swagger/v1/swagger.json", "Guest Microservice");
+    c.SwaggerEndpoint("/api/prompt/swagger/v1/swagger.json", "Prompt Microservice");
+    c.SwaggerEndpoint("/api/restaurant/swagger/v1/swagger.json", "Restaurant Microservice");
+    c.SwaggerEndpoint("/api/business/swagger/v1/swagger.json", "Business Microservice");
+    c.SwaggerEndpoint("/api/admin/swagger/v1/swagger.json", "Admin Microservice");
+    
+    c.RoutePrefix = "swagger";
+    c.DocumentTitle = "GoodMeal API Documentation";
+    c.DefaultModelsExpandDepth(-1);
+    c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+    c.DisplayRequestDuration();
+    c.EnableTryItOutByDefault();
+    c.EnableDeepLinking();
+    c.ShowExtensions();
+});
+
+// Add root redirect to Swagger
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/swagger");
+    return Task.CompletedTask;
+});
+
 // Configure middleware pipeline
 app.UseAuthentication();
 
 // Add health check endpoint before Ocelot middleware
 app.MapHealthChecks("/api/health");
 
-// Use conditional middleware to bypass Ocelot for health checks only
-app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api/health"), 
+// Use conditional middleware to bypass Ocelot for health checks and swagger
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api/health") && 
+                      !context.Request.Path.StartsWithSegments("/swagger"), 
     appBuilder => appBuilder.UseOcelot().Wait());
 
 await app.RunAsync();
@@ -55,6 +107,7 @@ static object BuildOcelotConfigFromEnvironment()
 {
     var routes = new List<object>();
     var routeIndex = 0;
+    var swaggerRoutes = new List<object>();
 
     // Read routes from environment variables
     while (true)
@@ -86,8 +139,38 @@ static object BuildOcelotConfigFromEnvironment()
         };
 
         routes.Add(route);
+
+        // Extract service name from upstream path for Swagger routes
+        // Pattern: /api/Service/{everything} -> service name
+        if (upstreamPath.StartsWith("/api/") && upstreamPath.Contains("/{everything}"))
+        {
+            var serviceName = upstreamPath.Substring(5); // Remove "/api/"
+            serviceName = serviceName.Substring(0, serviceName.IndexOf("/")); // Get service name before "/{everything}"
+            var serviceNameLower = serviceName.ToLower();
+
+            // Create corresponding Swagger route
+            swaggerRoutes.Add(new
+            {
+                UpstreamPathTemplate = $"/api/{serviceNameLower}/swagger/{{everything}}",
+                UpstreamHttpMethod = new[] { "Get" },
+                DownstreamScheme = downstreamScheme,
+                DownstreamHostAndPorts = new[]
+                {
+                    new
+                    {
+                        Host = downstreamHost,
+                        Port = downstreamPort
+                    }
+                },
+                DownstreamPathTemplate = $"/api/{serviceNameLower}/swagger/{{everything}}"
+            });
+        }
+
         routeIndex++;
     }
+
+    // Add the generated Swagger routes to the main routes list
+    routes.AddRange(swaggerRoutes);
 
     // If no routes found in environment variables, provide a default configuration
     if (routes.Count == 0)
