@@ -10,7 +10,7 @@ import { registerUser } from "../../services/Create";
 
 const CreateAccount: React.FC = () => {
   const [formData, setFormData] = useState({
-    fullName: "",
+    name: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -41,7 +41,7 @@ const CreateAccount: React.FC = () => {
       [field]: value
     }));
   };  const validateForm = () => {
-    if (!formData.fullName.trim()) {
+    if (!formData.name.trim()) {
       setError("Vui lòng nhập họ tên đầy đủ");
       return false;
     }
@@ -66,38 +66,26 @@ const CreateAccount: React.FC = () => {
       return false;
     }
     return true;
-  };
-  const handleCreateAccount = async (e: React.FormEvent) => {
+  };  const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
 
     setLoading(true);
-    setError("");
-
-    try {
-      // Call API registration first
+    setError("");    try {
+      // Only call API registration
       const registrationData = {
         email: formData.email,
         password: formData.password,
-        name: formData.fullName
+        name: formData.name
       };
 
       console.log('Attempting to register with API:', registrationData);
       const apiResponse = await registerUser(registrationData);
       console.log('API registration successful:', apiResponse);
 
-      // If API registration is successful, also create Firebase account
-      const userCredential = await signUpWithEmail(formData.email, formData.password);
-      
-      // Update user profile with display name
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: formData.fullName
-        });
-      }
-      
-      router.push("/");
+      // Redirect to login page or home after successful registration
+      router.push("/sign-in"); // Or "/" if you want auto-login
     } catch (error: any) {
       console.error('Registration error:', error);
       setError(error.message || "Tạo tài khoản thất bại");
@@ -151,9 +139,8 @@ const CreateAccount: React.FC = () => {
               {/* Full Name */}
               <div className="relative">                <input
                   type="text"
-                  placeholder="Họ và tên"
-                  value={formData.fullName}
-                  onChange={(e) => handleInputChange("fullName", e.target.value)}
+                  placeholder="Họ và tên"                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
                   disabled={loading}
                   className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white/10 transition-all duration-300 disabled:opacity-50"
                 />

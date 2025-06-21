@@ -30,15 +30,26 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(userData),
-    });
-
-    console.log('Response status:', response.status);
+    });    console.log('Response status:', response.status);
     console.log('Response headers:', response.headers);
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Registration failed:', errorData);
-      throw new Error(`Registration failed: ${response.status} ${response.statusText}`);
+      console.error('Registration failed - Status:', response.status);
+      console.error('Registration failed - Error Data:', errorData);
+      console.error('Registration failed - Status Text:', response.statusText);
+      
+      // Try to parse error as JSON if possible
+      let errorMessage = `Registration failed: ${response.status} ${response.statusText}`;
+      try {
+        const errorJson = JSON.parse(errorData);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+        console.error('Parsed error JSON:', errorJson);
+      } catch (parseError) {
+        console.error('Could not parse error as JSON:', parseError);
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
