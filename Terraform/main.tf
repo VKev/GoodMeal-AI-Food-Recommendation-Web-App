@@ -35,6 +35,15 @@ module "lambda_edge" {
   lambda_edge_secret = var.lambda_edge_secret
 }
 
+# Data sources to get frontend information from Parameter Store
+data "aws_ssm_parameter" "frontend_url" {
+  name = "/${var.project_name}/frontend/app_url"
+}
+
+data "aws_ssm_parameter" "frontend_domain" {
+  name = "/${var.project_name}/frontend/domain"
+}
+
 module "cloudfront" {
   source                = "./modules/cloudfront"
   project_name          = var.project_name
@@ -46,8 +55,11 @@ module "cloudfront" {
     [
       "http://localhost:3000",
       "localhost:3000",
-      # module.amplify.app_url
     ],
+    [
+      data.aws_ssm_parameter.frontend_url.value,
+      "https://${data.aws_ssm_parameter.frontend_domain.value}",
+    ]
   )
 }
 

@@ -75,4 +75,47 @@ module "amplify" {
     Environment = "production"
     Service     = "frontend"
   }
+}
+
+# Store frontend DNS/URL in Parameter Store for other services to use
+resource "aws_ssm_parameter" "frontend_url" {
+  name        = "/${var.project_name}/frontend/app_url"
+  description = "Frontend application URL for other services to reference"
+  type        = "String"
+  value       = module.amplify.app_url
+  
+  tags = {
+    Project     = var.project_name
+    Environment = "production"
+    Service     = "frontend"
+    Type        = "url"
+  }
+}
+
+resource "aws_ssm_parameter" "frontend_domain" {
+  name        = "/${var.project_name}/frontend/domain"
+  description = "Frontend domain name for other services to reference"
+  type        = "String"
+  value       = module.amplify.default_domain
+  
+  tags = {
+    Project     = var.project_name
+    Environment = "production"
+    Service     = "frontend"
+    Type        = "domain"
+  }
+}
+
+resource "aws_ssm_parameter" "frontend_app_id" {
+  name        = "/${var.project_name}/frontend/app_id"
+  description = "Frontend Amplify app ID for other services to reference"
+  type        = "String"
+  value       = module.amplify.app_id
+  
+  tags = {
+    Project     = var.project_name
+    Environment = "production"
+    Service     = "frontend"
+    Type        = "id"
+  }
 } 
