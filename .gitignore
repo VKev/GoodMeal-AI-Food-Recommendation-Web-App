@@ -1,5 +1,6 @@
 .vscode
 Terraform/variables.tf
+Terraform/frontend/variables.tf
 .terraform
 .terraform.lock.hcl
 /Backend/Microservices/.idea

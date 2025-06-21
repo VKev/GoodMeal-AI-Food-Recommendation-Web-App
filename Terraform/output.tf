@@ -103,3 +103,25 @@
 #   description = "Name of the CloudWatch log group for ECS logs"
 #   value       = module.ecs.cloudwatch_log_group_name
 # }
+
+# Frontend Outputs (from remote state)
+# Uncomment these after deploying the frontend infrastructure
+# output "frontend_app_url" {
+#   description = "URL of the deployed frontend application"
+#   value       = data.terraform_remote_state.frontend.outputs.amplify_app_url
+# }
+
+# output "frontend_domain" {
+#   description = "Domain of the frontend application"
+#   value       = data.terraform_remote_state.frontend.outputs.frontend_domain
+# }
+
+# output "frontend_app_id" {
+#   description = "Amplify application ID"
+#   value       = data.terraform_remote_state.frontend.outputs.amplify_app_id
+# }
+
+output "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  value       = module.alb.alb_dns_name
+}

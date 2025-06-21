@@ -7,58 +7,49 @@ module "vpc" {
   private_subnet_cidr   = var.private_subnet_cidr
 }
 
-# Amplify Module for Next.js Frontend
-# module "amplify" {
-#   source = "./modules/amplify"
-  
-#   app_name                      = var.project_name
-#   github_repository_url         = var.amplify_github_repository_url
-#   github_access_token          = var.amplify_github_access_token
-#   branch_name                  = var.amplify_branch_name
-#   environment_variables        = merge(
-#     var.amplify_environment_variables,
-#     {
-#       TEST_VAR = "TEST_VAR"
-#       # BACKEND_BASE_URL = "https://${module.alb.alb_dns_name}"
-#       # NEXT_PUBLIC_CLOUDFRONT_BASE_URL = "https://${module.cloudfront.cloudfront_domain_name}"
+# Frontend Infrastructure (Amplify) is managed separately in ./frontend/ directory
+# Uncomment the data source below to consume frontend outputs in this configuration
+# data "terraform_remote_state" "frontend" {
+#   backend = "s3"
+#   config = {
+#     bucket = "khangstoragetest"
+#     key    = "terraform/frontend/state.tfstate"
+#     region = "ap-southeast-1"
+#     endpoints = {
+#       s3 = "https://s3.ap-southeast-1.wasabisys.com"
 #     }
-#   )
-#   build_spec                   = var.amplify_build_spec
-#   enable_auto_branch_creation  = var.amplify_enable_auto_branch_creation
-#   enable_branch_auto_build     = var.amplify_enable_branch_auto_build
-#   enable_branch_auto_deletion  = var.amplify_enable_branch_auto_deletion
-#   framework                    = var.amplify_framework
-#   rendering_mode               = var.amplify_rendering_mode
-  
-#   tags = {
-#     Project     = var.project_name
-#     Environment = "production"
-#     Service     = "frontend"
+#     profile                     = "wasabi-user"
+#     use_path_style              = true
+#     skip_credentials_validation = true
+#     skip_requesting_account_id  = true
 #   }
-#   # depends_on = [ module.cloudfront ]
 # }
 
+# Example of how to use frontend outputs:
+# frontend_app_url = data.terraform_remote_state.frontend.outputs.amplify_app_url
+# frontend_domain  = data.terraform_remote_state.frontend.outputs.frontend_domain
 
-# module "lambda_edge" {
-#   source = "./modules/lambda_edge"
-#   lambda_edge_secret = var.lambda_edge_secret
-# }
 
-# module "cloudfront" {
-#   source                = "./modules/cloudfront"
-#   project_name          = var.project_name
-#   origin_domain_name    = var.origin_domain_name
-#   origin_path           = var.origin_path
-#   set_cookie_lambda_arn = module.lambda_edge.lambda_function_qualified_arn
-#   bucket_secret_referer = var.bucket_secret_referer
-#   cloudfront_allow_origins = concat(
-#     [
-#       "http://localhost:3000",
-#       "localhost:3000",
-#       # module.amplify.app_url
-#     ],
-#   )
-# }
+module "lambda_edge" {
+  source = "./modules/lambda_edge"
+  lambda_edge_secret = var.lambda_edge_secret
+}
+
+module "cloudfront" {
+  source                = "./modules/cloudfront"
+  project_name          = var.project_name
+  origin_domain_name    = var.origin_domain_name
+  origin_path           = var.origin_path
+  set_cookie_lambda_arn = module.lambda_edge.lambda_function_qualified_arn
+  bucket_secret_referer = var.bucket_secret_referer
+  cloudfront_allow_origins = concat(
+    [
+      "http://localhost:3000",
+      "localhost:3000",
+      # module.amplify.app_url
+    ],
+  )
+}
 
 module "alb" {
   source              = "./modules/alb"
@@ -229,9 +220,7 @@ module "ecs" {
             value = "http://localhost:2406"
           }
         ],
-        # Ocelot route configurations - using service discovery names for internal communication
         [
-          # User Service Routes
           {
             name  = "OCELOT_ROUTES_0_UPSTREAM_PATH"
             value = "/api/User/{everything}"
@@ -256,32 +245,6 @@ module "ecs" {
             name  = "OCELOT_ROUTES_0_DOWNSTREAM_PATH"
             value = "/api/User/{everything}"
           },
-          # Auth Service Routes (Authentication Microservice)
-          # {
-          #   name  = "OCELOT_ROUTES_1_UPSTREAM_PATH"
-          #   value = "/api/Auth/{everything}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_1_UPSTREAM_METHODS"
-          #   value = "Get,Post,Put,Delete"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_1_DOWNSTREAM_SCHEME"
-          #   value = "http"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_1_DOWNSTREAM_HOST"
-          #   value = "${var.project_name}-authentication-${var.services["authentication"].ecs_container_name_suffix}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_1_DOWNSTREAM_PORT"
-          #   value = "${var.services["authentication"].ecs_service_discovery_port}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_1_DOWNSTREAM_PATH"
-          #   value = "/api/Auth/{everything}"
-          # },
-          # Resource Service Routes
           {
             name  = "OCELOT_ROUTES_1_UPSTREAM_PATH"
             value = "/api/Resource/{everything}"
@@ -306,7 +269,6 @@ module "ecs" {
             name  = "OCELOT_ROUTES_1_DOWNSTREAM_PATH"
             value = "/api/Resource/{everything}"
           },
-          # Guest Service Routes
           {
             name  = "OCELOT_ROUTES_2_UPSTREAM_PATH"
             value = "/api/Guest/{everything}"
@@ -331,206 +293,6 @@ module "ecs" {
             name  = "OCELOT_ROUTES_2_DOWNSTREAM_PATH"
             value = "/api/Guest/{everything}"
           },
-          # Prompt Session Routes (Prompt Microservice)
-          # {
-          #   name  = "OCELOT_ROUTES_4_UPSTREAM_PATH"
-          #   value = "/api/PromptSession/{everything}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_4_UPSTREAM_METHODS"
-          #   value = "Get,Post,Put,Delete"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_4_DOWNSTREAM_SCHEME"
-          #   value = "http"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_4_DOWNSTREAM_HOST"
-          #   value = "${var.project_name}-prompt-${var.services["prompt"].ecs_container_name_suffix}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_4_DOWNSTREAM_PORT"
-          #   value = "${var.services["prompt"].ecs_service_discovery_port}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_4_DOWNSTREAM_PATH"
-          #   value = "/api/PromptSession/{everything}"
-          # },
-          # # Message Routes (Prompt Microservice)
-          # {
-          #   name  = "OCELOT_ROUTES_5_UPSTREAM_PATH"
-          #   value = "/api/Message/{everything}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_5_UPSTREAM_METHODS"
-          #   value = "Get,Post,Put,Delete"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_5_DOWNSTREAM_SCHEME"
-          #   value = "http"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_5_DOWNSTREAM_HOST"
-          #   value = "${var.project_name}-prompt-${var.services["prompt"].ecs_container_name_suffix}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_5_DOWNSTREAM_PORT"
-          #   value = "${var.services["prompt"].ecs_service_discovery_port}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_5_DOWNSTREAM_PATH"
-          #   value = "/api/Message/{everything}"
-          # },
-          # # Gemini Routes (Prompt Microservice)
-          # {
-          #   name  = "OCELOT_ROUTES_6_UPSTREAM_PATH"
-          #   value = "/api/Gemini/{everything}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_6_UPSTREAM_METHODS"
-          #   value = "Get,Post,Put,Delete"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_6_DOWNSTREAM_SCHEME"
-          #   value = "http"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_6_DOWNSTREAM_HOST"
-          #   value = "${var.project_name}-prompt-${var.services["prompt"].ecs_container_name_suffix}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_6_DOWNSTREAM_PORT"
-          #   value = "${var.services["prompt"].ecs_service_discovery_port}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_6_DOWNSTREAM_PATH"
-          #   value = "/api/Gemini/{everything}"
-          # },
-          # # Restaurant Routes (Restaurant Microservice)
-          # {
-          #   name  = "OCELOT_ROUTES_7_UPSTREAM_PATH"
-          #   value = "/api/Restaurant/{everything}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_7_UPSTREAM_METHODS"
-          #   value = "Get,Post,Put,Delete"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_7_DOWNSTREAM_SCHEME"
-          #   value = "http"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_7_DOWNSTREAM_HOST"
-          #   value = "${var.project_name}-restaurant-${var.services["restaurant"].ecs_container_name_suffix}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_7_DOWNSTREAM_PORT"
-          #   value = "${var.services["restaurant"].ecs_service_discovery_port}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_7_DOWNSTREAM_PATH"
-          #   value = "/api/Restaurant/{everything}"
-          # },
-          # # Food Routes (Restaurant Microservice)
-          # {
-          #   name  = "OCELOT_ROUTES_8_UPSTREAM_PATH"
-          #   value = "/api/Food/{everything}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_8_UPSTREAM_METHODS"
-          #   value = "Get,Post,Put,Delete"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_8_DOWNSTREAM_SCHEME"
-          #   value = "http"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_8_DOWNSTREAM_HOST"
-          #   value = "${var.project_name}-restaurant-${var.services["restaurant"].ecs_container_name_suffix}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_8_DOWNSTREAM_PORT"
-          #   value = "${var.services["restaurant"].ecs_service_discovery_port}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_8_DOWNSTREAM_PATH"
-          #   value = "/api/Food/{everything}"
-          # },
-          # # Rating Routes (Restaurant Microservice)
-          # {
-          #   name  = "OCELOT_ROUTES_9_UPSTREAM_PATH"
-          #   value = "/api/Rating/{everything}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_9_UPSTREAM_METHODS"
-          #   value = "Get,Post,Put,Delete"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_9_DOWNSTREAM_SCHEME"
-          #   value = "http"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_9_DOWNSTREAM_HOST"
-          #   value = "${var.project_name}-restaurant-${var.services["restaurant"].ecs_container_name_suffix}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_9_DOWNSTREAM_PORT"
-          #   value = "${var.services["restaurant"].ecs_service_discovery_port}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_9_DOWNSTREAM_PATH"
-          #   value = "/api/Rating/{everything}"
-          # },
-          # # Business Routes (Business Microservice)
-          # {
-          #   name  = "OCELOT_ROUTES_10_UPSTREAM_PATH"
-          #   value = "/api/Business/{everything}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_10_UPSTREAM_METHODS"
-          #   value = "Get,Post,Put,Delete"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_10_DOWNSTREAM_SCHEME"
-          #   value = "http"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_10_DOWNSTREAM_HOST"
-          #   value = "${var.project_name}-business-${var.services["business"].ecs_container_name_suffix}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_10_DOWNSTREAM_PORT"
-          #   value = "${var.services["business"].ecs_service_discovery_port}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_10_DOWNSTREAM_PATH"
-          #   value = "/api/Business/{everything}"
-          # },
-          # # Admin Routes (Admin Microservice)
-          # {
-          #   name  = "OCELOT_ROUTES_11_UPSTREAM_PATH"
-          #   value = "/api/Admin/{everything}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_11_UPSTREAM_METHODS"
-          #   value = "Get,Post,Put,Delete"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_11_DOWNSTREAM_SCHEME"
-          #   value = "http"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_11_DOWNSTREAM_HOST"
-          #   value = "${var.project_name}-admin-${var.services["admin"].ecs_container_name_suffix}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_11_DOWNSTREAM_PORT"
-          #   value = "${var.services["admin"].ecs_service_discovery_port}"
-          # },
-          # {
-          #   name  = "OCELOT_ROUTES_11_DOWNSTREAM_PATH"
-          #   value = "/api/Admin/{everything}"
-          # }
         ]
       )
       health_check = {
@@ -557,4 +319,37 @@ module "ecs" {
   enable_service_discovery = var.enable_service_discovery
 
   depends_on = [module.ec2]
+}
+
+# Parameter Store - Store infrastructure outputs for frontend consumption
+# These parameters will be automatically picked up by the frontend module
+
+# Store ALB DNS name as backend base URL
+resource "aws_ssm_parameter" "backend_base_url" {
+  name        = "/${var.project_name}/backend/base_url"
+  description = "Backend base URL (ALB DNS name) for frontend consumption"
+  type        = "String"
+  value       = "https://${module.alb.alb_dns_name}"
+
+  tags = {
+    Project     = var.project_name
+    Environment = "production"
+    Service     = "infrastructure"
+    Purpose     = "frontend-integration"
+  }
+}
+
+# Store CloudFront domain as frontend CDN base URL
+resource "aws_ssm_parameter" "cloudfront_base_url" {
+  name        = "/${var.project_name}/cloudfront/base_url"
+  description = "CloudFront base URL for frontend static assets"
+  type        = "String"
+  value       = "https://${module.cloudfront.cloudfront_domain_name}"
+
+  tags = {
+    Project     = var.project_name
+    Environment = "production"
+    Service     = "infrastructure"
+    Purpose     = "frontend-integration"
+  }
 }
