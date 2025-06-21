@@ -124,4 +124,45 @@
 output "alb_dns_name" {
   description = "DNS name of the Application Load Balancer"
   value       = module.alb.alb_dns_name
+  sensitive = true
+}
+
+# Frontend Integration Outputs
+output "frontend_url_from_parameter_store" {
+  description = "Frontend URL retrieved from Parameter Store"
+  value       = data.aws_ssm_parameter.frontend_url.value
+  sensitive = true
+}
+
+output "frontend_domain_from_parameter_store" {
+  description = "Frontend domain retrieved from Parameter Store"
+  value       = data.aws_ssm_parameter.frontend_domain.value
+  sensitive = true
+}
+
+output "cloudfront_allowed_origins" {
+  description = "All allowed origins configured for CloudFront CORS, including frontend domains"
+  value = concat(
+    [
+      "http://localhost:3000",
+      "localhost:3000",
+    ],
+    [
+      data.aws_ssm_parameter.frontend_url.value,
+      "https://${data.aws_ssm_parameter.frontend_domain.value}",
+    ]
+  )
+  sensitive = true
+}
+
+output "parameter_store_integration_status" {
+  description = "Status of Parameter Store integration between infrastructure and frontend"
+  value = {
+    backend_base_url_stored    = aws_ssm_parameter.backend_base_url.name
+    cloudfront_base_url_stored = aws_ssm_parameter.cloudfront_base_url.name
+    frontend_url_retrieved     = data.aws_ssm_parameter.frontend_url.name
+    frontend_domain_retrieved  = data.aws_ssm_parameter.frontend_domain.name
+    integration_status        = "SUCCESS: CloudFront now includes frontend domains in allowed origins"
+  }
+  sensitive = true
 }

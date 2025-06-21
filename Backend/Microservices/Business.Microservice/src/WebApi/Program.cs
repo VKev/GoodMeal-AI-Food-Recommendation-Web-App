@@ -23,6 +23,23 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 
+// Add CORS services
+var corsOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(',') ?? new[] { "http://localhost:3000" };
+var allowCredentials = bool.Parse(Environment.GetEnvironmentVariable("CORS_ALLOW_CREDENTIALS") ?? "true");
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(corsOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+              
+        if (allowCredentials)
+            policy.AllowCredentials();
+    });
+});
+
 builder.Host.UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
     .ReadFrom.Configuration(hostingContext.Configuration));
 builder.Services.AddLogging(loggingBuilder =>
@@ -73,6 +90,7 @@ var config = app.Services.GetRequiredService<EnvironmentConfig>();
 
 app.UseSerilogRequestLogging();
 
+app.UseCors();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

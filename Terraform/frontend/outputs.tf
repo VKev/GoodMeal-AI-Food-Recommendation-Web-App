@@ -71,4 +71,34 @@ output "parameter_store_status" {
   description = "Status message about Parameter Store integration"
   value = local.should_fetch_parameters ? "Parameter Store fetching is ENABLED. Loaded ${length(local.parameter_env_vars)} parameters." : "Parameter Store fetching is DISABLED. Set 'fetch_parameters_from_store = true' to enable."
   sensitive = true
+}
+
+# Parameter Store Outputs for Frontend DNS/URL Storage
+output "frontend_parameter_store_url" {
+  description = "Parameter Store path for frontend URL"
+  value       = aws_ssm_parameter.frontend_url.name
+}
+
+output "frontend_parameter_store_domain" {
+  description = "Parameter Store path for frontend domain"
+  value       = aws_ssm_parameter.frontend_domain.name
+}
+
+output "frontend_parameter_store_app_id" {
+  description = "Parameter Store path for frontend app ID"
+  value       = aws_ssm_parameter.frontend_app_id.name
+}
+
+output "stored_frontend_values" {
+  description = "Summary of values stored in Parameter Store for other services"
+  value = {
+    frontend_url    = module.amplify.app_url
+    frontend_domain = module.amplify.default_domain
+    frontend_app_id = module.amplify.app_id
+    parameter_paths = {
+      url    = aws_ssm_parameter.frontend_url.name
+      domain = aws_ssm_parameter.frontend_domain.name
+      app_id = aws_ssm_parameter.frontend_app_id.name
+    }
+  }
 } 

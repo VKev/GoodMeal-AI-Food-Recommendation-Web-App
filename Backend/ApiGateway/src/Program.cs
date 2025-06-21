@@ -38,6 +38,23 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<AuthenticationHandler>();
 builder.Services.AddHealthChecks();
 
+// Add CORS services
+var corsOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(',') ?? new[] { "http://localhost:3000" };
+var allowCredentials = bool.Parse(Environment.GetEnvironmentVariable("CORS_ALLOW_CREDENTIALS") ?? "true");
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(corsOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+              
+        if (allowCredentials)
+            policy.AllowCredentials();
+    });
+});
+
 builder.Services.AddOcelot(builder.Configuration).AddDelegatingHandler<AuthenticationHandler>(true);
 
 var app = builder.Build();
@@ -106,6 +123,7 @@ app.MapGet("/", context =>
 });
 
 // Configure middleware pipeline
+app.UseCors();
 app.UseAuthentication();
 
 // Add health check endpoint before Ocelot middleware
