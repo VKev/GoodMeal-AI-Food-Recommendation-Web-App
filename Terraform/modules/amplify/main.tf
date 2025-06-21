@@ -58,16 +58,16 @@ resource "aws_amplify_webhook" "main" {
 # Get current AWS region
 data "aws_region" "current" {}
 
-# Auto-trigger initial deployment
-# resource "null_resource" "trigger_initial_deployment" {
-#   depends_on = [aws_amplify_branch.main]
+resource "null_resource" "trigger_initial_deployment" {
+  count      = var.trigger_initial_deployment ? 1 : 0
+  depends_on = [aws_amplify_branch.main]
 
-#   provisioner "local-exec" {
-#     command = "aws amplify start-job --app-id ${aws_amplify_app.main.id} --branch-name ${aws_amplify_branch.main.branch_name} --job-type RELEASE --region ${data.aws_region.current.name}"
-#   }
+  provisioner "local-exec" {
+    command = "aws amplify start-job --app-id ${aws_amplify_app.main.id} --branch-name ${aws_amplify_branch.main.branch_name} --job-type RELEASE --region ${data.aws_region.current.name}"
+  }
 
-#   triggers = {
-#     branch_name = aws_amplify_branch.main.branch_name
-#     app_id      = aws_amplify_app.main.id
-#   }
-# }
+  triggers = {
+    branch_name = aws_amplify_branch.main.branch_name
+    app_id      = aws_amplify_app.main.id
+  }
+}

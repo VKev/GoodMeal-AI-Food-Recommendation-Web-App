@@ -49,11 +49,13 @@ output "frontend_app_id" {
 output "parameter_fetching_enabled" {
   description = "Whether parameter fetching from Parameter Store is enabled"
   value       = local.should_fetch_parameters
+  sensitive = true
 }
 
 output "loaded_parameters" {
   description = "List of parameter names that were successfully loaded from Parameter Store"
   value       = keys(local.parameter_env_vars)
+  sensitive = true
 }
 
 output "parameter_env_vars" {
@@ -62,9 +64,11 @@ output "parameter_env_vars" {
     for k, v in local.parameter_env_vars :
     k => contains(["DATABASE_URL", "SECRET", "PASSWORD", "KEY"], upper(k)) ? "[REDACTED]" : v
   }
+  sensitive = true
 }
 
 output "parameter_store_status" {
   description = "Status message about Parameter Store integration"
   value = local.should_fetch_parameters ? "Parameter Store fetching is ENABLED. Loaded ${length(local.parameter_env_vars)} parameters." : "Parameter Store fetching is DISABLED. Set 'fetch_parameters_from_store = true' to enable."
+  sensitive = true
 } 

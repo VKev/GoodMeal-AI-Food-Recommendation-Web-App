@@ -80,3 +80,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "trigger_initial_deployment" {
+  description = "Whether to trigger an initial deployment of the Amplify app after creation"
+  type        = bool
+  default     = false
+}

@@ -63,15 +63,30 @@ app.UseSwaggerUI(c =>
     // API Gateway Swagger
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Gateway V1");
     
-    // Add microservice Swagger endpoints based on docker-compose environment variables
-    c.SwaggerEndpoint("/api/user/swagger/v1/swagger.json", "User Microservice");
-    c.SwaggerEndpoint("/api/auth/swagger/v1/swagger.json", "Authentication Microservice");
-    c.SwaggerEndpoint("/api/resource/swagger/v1/swagger.json", "Resource Microservice");
-    c.SwaggerEndpoint("/api/guest/swagger/v1/swagger.json", "Guest Microservice");
-    c.SwaggerEndpoint("/api/prompt/swagger/v1/swagger.json", "Prompt Microservice");
-    c.SwaggerEndpoint("/api/restaurant/swagger/v1/swagger.json", "Restaurant Microservice");
-    c.SwaggerEndpoint("/api/business/swagger/v1/swagger.json", "Business Microservice");
-    c.SwaggerEndpoint("/api/admin/swagger/v1/swagger.json", "Admin Microservice");
+    // Add microservice Swagger endpoints dynamically based on environment variables
+    var routeIndex = 0;
+    while (true)
+    {
+        var upstreamPath = Environment.GetEnvironmentVariable($"OCELOT_ROUTES_{routeIndex}_UPSTREAM_PATH");
+        if (string.IsNullOrEmpty(upstreamPath))
+            break;
+
+        // Extract service name from upstream path pattern: /api/ServiceName/{everything}
+        if (upstreamPath.StartsWith("/api/") && upstreamPath.Contains("/{everything}"))
+        {
+            var serviceName = upstreamPath.Substring(5); // Remove "/api/"
+            serviceName = serviceName.Substring(0, serviceName.IndexOf("/")); // Get service name before "/{everything}"
+            var serviceNameLower = serviceName.ToLower();
+            
+            // Create proper display name (capitalize first letter)
+            var displayName = char.ToUpper(serviceName[0]) + serviceName.Substring(1).ToLower() + " Microservice";
+            
+            // Add Swagger endpoint for this microservice
+            c.SwaggerEndpoint($"/api/{serviceNameLower}/swagger/v1/swagger.json", displayName);
+        }
+
+        routeIndex++;
+    }
     
     c.RoutePrefix = "swagger";
     c.DocumentTitle = "GoodMeal API Documentation";

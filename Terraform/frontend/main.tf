@@ -68,6 +68,7 @@ module "amplify" {
   enable_branch_auto_deletion  = var.amplify_enable_branch_auto_deletion
   framework                    = var.amplify_framework
   rendering_mode               = var.amplify_rendering_mode
+  trigger_initial_deployment   = var.trigger_initial_deployment
   
   tags = {
     Project     = var.project_name
