@@ -216,6 +216,18 @@ module "ecs" {
           {
             name  = "CORS_ALLOW_CREDENTIALS"
             value = "true"
+          },
+          {
+            name  = "AWS_CLOUD_FRONT_KEY_ID"
+            value = module.cloudfront.cloudfront_key_group_id
+          },
+          {
+            name  = "AWS_CLOUD_FRONT_PRIVATE_KEY"
+            value = module.cloudfront.cloudfront_private_key_pem
+          },
+          {
+            name  = "AWS_CLOUD_FRONT_DISTRIBUTION_DOMAIN"
+            value = module.cloudfront.cloudfront_domain_name
           }
         ]
       )
@@ -369,7 +381,7 @@ resource "aws_ssm_parameter" "backend_base_url" {
   name        = "/${var.project_name}/backend/base_url"
   description = "Backend base URL (ALB DNS name) for frontend consumption"
   type        = "String"
-  value       = "https://${module.alb.alb_dns_name}"
+  value       = "http://${module.alb.alb_dns_name}"
 
   tags = {
     Project     = var.project_name

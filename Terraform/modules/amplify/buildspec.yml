@@ -27,6 +27,12 @@ applications:
             - echo 'Final TypeScript check...'
             - npx tsc --version
             - echo 'Building Next.js application...'
+            - echo 'Writing environment variables for runtime access...'
+            - env | grep '^NEXT_PUBLIC_' >> .env.production
+            - env | grep '^BACKEND_' >> .env.production  
+            - env | grep '^NODE_ENV' >> .env.production
+            - echo 'Environment variables in .env.production:'
+            - cat .env.production || echo "No .env.production file created"
             - npx next build
             - echo 'Build phase completed'
       artifacts:
