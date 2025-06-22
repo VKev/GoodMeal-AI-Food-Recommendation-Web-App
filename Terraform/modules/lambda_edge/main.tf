@@ -20,6 +20,8 @@ resource "aws_ssm_parameter" "lambda_edge_secret" {
   overwrite   = true
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_policy" "lambda_ssm_policy" {
   name        = "LambdaSSMPolicy"
   description = "Policy for Lambda@Edge to access SSM parameter for secret retrieval"
@@ -29,9 +31,11 @@ resource "aws_iam_policy" "lambda_ssm_policy" {
       {
         Effect = "Allow",
         Action = [
-          "ssm:GetParameter"
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParameterHistory"
         ],
-        Resource = "arn:aws:ssm:us-east-1:242201290212:parameter/lambda/edge/secret"
+        Resource = "arn:aws:ssm:us-east-1:${data.aws_caller_identity.current.account_id}:parameter/lambda/edge/secret"
       }
     ]
   })
