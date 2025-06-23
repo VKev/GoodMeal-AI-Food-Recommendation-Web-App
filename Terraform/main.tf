@@ -144,7 +144,19 @@ module "ecs" {
       memory               = var.services["guest"].ecs_container_memory
       essential            = var.services["guest"].ecs_container_essential
       port_mappings        = var.services["guest"].ecs_container_port_mappings
-      environment_variables= var.services["guest"].ecs_environment_variables
+      environment_variables= concat(
+        var.services["guest"].ecs_environment_variables,
+        [
+          {
+            name  = "CORS_ALLOWED_ORIGINS"
+            value = "${data.aws_ssm_parameter.frontend_url.value},https://${data.aws_ssm_parameter.frontend_domain.value}"
+          },
+          {
+            name  = "CORS_ALLOW_CREDENTIALS"
+            value = "true"
+          }
+        ]
+      )
       health_check = {
         command     = var.services["guest"].ecs_container_health_check.command
         interval    = var.services["guest"].ecs_container_health_check.interval
@@ -163,7 +175,19 @@ module "ecs" {
       memory               = var.services["user"].ecs_container_memory
       essential            = var.services["user"].ecs_container_essential
       port_mappings        = var.services["user"].ecs_container_port_mappings
-      environment_variables= var.services["user"].ecs_environment_variables
+      environment_variables= concat(
+        var.services["user"].ecs_environment_variables,
+        [
+          {
+            name  = "CORS_ALLOWED_ORIGINS"
+            value = "${data.aws_ssm_parameter.frontend_url.value},https://${data.aws_ssm_parameter.frontend_domain.value}"
+          },
+          {
+            name  = "CORS_ALLOW_CREDENTIALS"
+            value = "true"
+          }
+        ]
+      )
       health_check = {
         command     = var.services["user"].ecs_container_health_check.command
         interval    = var.services["user"].ecs_container_health_check.interval
@@ -185,18 +209,26 @@ module "ecs" {
       environment_variables= concat(
         var.services["resource"].ecs_environment_variables,
         [
-          # {
-          #   name  = "AWS_CLOUD_FRONT_KEY_ID"
-          #   value = module.cloudfront.public_key_encoded
-          # },
-          # {
-          #   name  = "AWS_CLOUD_FRONT_PRIVATE_KEY"
-          #   value = module.cloudfront.cloudfront_private_key_pem
-          # },
-          # {
-          #   name  = "AWS_CLOUD_FRONT_DISTRIBUTION_DOMAIN"
-          #   value = module.cloudfront.cloudfront_domain_name
-          # }
+          {
+            name  = "CORS_ALLOWED_ORIGINS"
+            value = "${data.aws_ssm_parameter.frontend_url.value},https://${data.aws_ssm_parameter.frontend_domain.value}"
+          },
+          {
+            name  = "CORS_ALLOW_CREDENTIALS"
+            value = "true"
+          },
+          {
+            name  = "AWS_CLOUD_FRONT_KEY_ID"
+            value = module.cloudfront.cloudfront_key_group_id
+          },
+          {
+            name  = "AWS_CLOUD_FRONT_PRIVATE_KEY"
+            value = module.cloudfront.cloudfront_private_key_pem
+          },
+          {
+            name  = "AWS_CLOUD_FRONT_DISTRIBUTION_DOMAIN"
+            value = module.cloudfront.cloudfront_domain_name
+          }
         ]
       )
       health_check = {
@@ -230,6 +262,14 @@ module "ecs" {
           {
             name  = "OCELOT_GLOBAL_BASE_URL"
             value = "http://localhost:2406"
+          },
+          {
+            name  = "CORS_ALLOWED_ORIGINS"
+            value = "${data.aws_ssm_parameter.frontend_url.value},https://${data.aws_ssm_parameter.frontend_domain.value}"
+          },
+          {
+            name  = "CORS_ALLOW_CREDENTIALS"
+            value = "true"
           }
         ],
         [
@@ -341,7 +381,7 @@ resource "aws_ssm_parameter" "backend_base_url" {
   name        = "/${var.project_name}/backend/base_url"
   description = "Backend base URL (ALB DNS name) for frontend consumption"
   type        = "String"
-  value       = "https://${module.alb.alb_dns_name}"
+  value       = "http://${module.alb.alb_dns_name}"
 
   tags = {
     Project     = var.project_name
