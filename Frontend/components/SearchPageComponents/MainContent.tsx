@@ -30,7 +30,7 @@ interface FoodImage {
 }
 
 interface MainContentProps {
-    selectedChat: number | null;
+    selectedChat: string | null;
 }
 
 const MainContent: React.FC<MainContentProps> = ({ selectedChat }) => {

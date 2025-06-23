@@ -8,21 +8,18 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     chatHistory,
     selectedChat,
     setSelectedChat
-}) => {
-    return (
+}) => {    return (
         <div style={{
             flex: 1,
             overflow: 'hidden',
             padding: '16px 16px 0 16px',
             display: 'flex',
             flexDirection: 'column',
-            minHeight: 0,
-            maxHeight: 'calc(100vh - 220px)'
-        }}>
-            <Text
+            minHeight: 0
+        }}>            <Text
                 type="secondary"
                 style={{
-                    fontSize: '12px',
+                    fontSize: '16px',
                     fontWeight: 'medium',
                     padding: '0 8px',
                     display: 'block',
@@ -31,7 +28,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                     flexShrink: 0
                 }}
             >
-                HISTORY
+                Lịch sử trò chuyện
             </Text>
             <div style={{
                 flex: 1,
@@ -39,11 +36,23 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                 overflowX: 'hidden',
                 paddingRight: '8px',
                 minHeight: 0,
-                maxHeight: '100%',
                 scrollbarWidth: 'thin',
                 scrollbarColor: 'rgba(255, 122, 0, 0.3) transparent'
-            }}>
-                {chatHistory.map((chat) => (
+            }}>                {chatHistory.length === 0 ? (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '100%',
+                        textAlign: 'center',
+                        padding: '40px 20px',
+                        color: '#666',
+                        fontSize: '14px'
+                    }}>
+                        Chưa có lịch sử trò chuyện
+                    </div>
+                ) : (
+                    chatHistory.map((chat) => (
                     <div key={chat.id} style={{ marginBottom: '8px' }}>
                         <Card
                             hoverable
@@ -89,11 +98,11 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                                 </div>
                                 <Text type="secondary" style={{ fontSize: '12px', marginLeft: '8px', flexShrink: 0 }}>
                                     {chat.time}
-                                </Text>
-                            </Flex>
+                                </Text>                            </Flex>
                         </Card>
                     </div>
-                ))}
+                    ))
+                )}
             </div>
         </div>
     );
