@@ -7,18 +7,16 @@ import {
   Spin,
   message,
   Typography,
-  Modal,
 } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
 import { onAuthStateChanged } from "firebase/auth";
 import { FirebaseAuth } from "../../firebase/firebase";
-import { useRouter } from "next/navigation";
 
 // Import components
 import Sidebar from "./Sidebar";
 import SearchHeader from "./SearchHeader";
 import ChatArea from "./ChatArea";
-import LocationPermission from "./LocationPermission";
+import LocationPrompt from "./LocationPrompt";
 
 // Import hooks
 import { useGeolocation, LocationData } from "../../hooks/useGeolocation";
@@ -32,20 +30,23 @@ import {
 } from "../../services/PromptService";
 import { checkAuthorization } from "../../services/Auth";
 import { ChatItem } from "./types";
+import locationPromptUtils from "../../utils/locationPromptUtils";
 
 interface SearchPageProps {
   initialSessionId?: string;
 }
 
 const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
-  const router = useRouter();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [, setNewlyCreatedSessionId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [showLocationPermission, setShowLocationPermission] = useState(false);
+  const [locationPromptKey, setLocationPromptKey] = useState(0); // Force re-render
   const [userLocation, setUserLocation] = useState<LocationData | null>(null);
 
   // Use geolocation hook
@@ -53,7 +54,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
     location,
     permission,
     hasLocation,
-    requestLocation
+    
   } = useGeolocation();
 
   // Listen to auth state changes
@@ -73,14 +74,6 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
               setUserId(authResponse.user.userId);
               // Load prompt sessions after getting userId
               await loadPromptSessions(idToken, authResponse.user.userId);
-              
-              // Show location permission modal only if:
-              // 1. Permission is 'prompt' (first time)
-              // 2. Permission is not 'denied' or 'unavailable'
-              // 3. User doesn't have location yet
-              if (permission === 'prompt' && !hasLocation) {
-                setShowLocationPermission(true);
-              }
             }
           } catch (error) {
             console.error("Error getting user info:", error);
@@ -94,13 +87,17 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
           setChatHistory([]);
           setUserLocation(null);
           setShowLocationPermission(false);
+          
+          // Handle logout - reset "once" choices but keep "always" choices
+          locationPromptUtils.handleLogout();
+          
           setLoading(false);
         }
       }
     );
 
     return () => unsubscribe();
-  }, [permission, hasLocation]);
+  }, []); // Remove permission and hasLocation dependencies to prevent unnecessary re-runs
 
   // Update user location when geolocation changes
   useEffect(() => {
@@ -108,6 +105,25 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
       setUserLocation(location);
     }
   }, [location]);
+
+  // Handle location permission modal display
+  useEffect(() => {
+    if (user && userId && permission !== 'unavailable') {
+      console.log('=== LOCATION PROMPT CHECK ===');
+      console.log('Has location:', hasLocation);
+      console.log('Permission:', permission);
+      console.log('Should show prompt:', locationPromptUtils.shouldShowPrompt(hasLocation, permission));
+      console.log('=============================');
+      
+      if (locationPromptUtils.shouldShowPrompt(hasLocation, permission)) {
+        const timer = setTimeout(() => {
+          setShowLocationPermission(true);
+        }, 2000); // Delay to let user see the interface first
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user, userId, permission, hasLocation]);
 
   // Set initial session from URL parameter
   useEffect(() => {
@@ -117,7 +133,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
   }, [initialSessionId]);
 
   // Load prompt sessions from API
-  const loadPromptSessions = async (idToken: string, currentUserId: string) => {
+  const loadPromptSessions = async (idToken: string, currentUserId: string, selectNewest: boolean = false) => {
     try {
       setLoading(true);
       const sessions = await getPromptSessions(idToken, currentUserId);
@@ -140,6 +156,19 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
       });
 
       setChatHistory(transformedHistory);
+      
+      // If requested, select the newest session
+      if (selectNewest && transformedHistory.length > 0) {
+        const newestSession = transformedHistory[0];
+        setSelectedChat(newestSession.id);
+        setNewlyCreatedSessionId(newestSession.id);
+        window.history.pushState({}, '', `/c/${newestSession.id}`);
+        
+        setTimeout(() => {
+          setNewlyCreatedSessionId(null);
+        }, 2000);
+      }
+      
     } catch (error) {
       console.error("Error loading prompt sessions:", error);
       message.error("Failed to load chat history");
@@ -148,18 +177,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
     }
   };
 
-  // Refresh function to reload data
-  const refreshChatHistory = async () => {
-    if (user && userId) {
-      try {
-        const idToken = await user.getIdToken();
-        await loadPromptSessions(idToken, userId);
-      } catch (error) {
-        console.error("Error refreshing chat history:", error);
-        message.error("Failed to refresh chat history");
-      }
-    }
-  }; // Create new session function
+ // Create new session function
   const handleCreateSession = async () => {
     console.log("handleCreateSession called");
     console.log("Current user:", user);
@@ -176,26 +194,60 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
     }
 
     try {
+      setIsCreatingSession(true);
       const idToken = await user.getIdToken();
       console.log("About to create session with userId:", userId);
       const newSession = await createPromptSession(idToken, userId);
+      
+      console.log("New session response:", newSession);
+      console.log("New session ID:", newSession?.id);
+      console.log("All properties of newSession:", Object.keys(newSession || {}));
+      
+      // Try different possible ID field names
+      const sessionData = newSession as any;
+      const sessionId = sessionData?.id || sessionData?.Id || sessionData?.sessionId || sessionData?.promptSessionId;
+      console.log("Extracted session ID:", sessionId);
 
-      if (newSession) {
+      if (newSession && sessionId) {
         message.success("New session created successfully");
-        // Navigate to the new session URL
-        router.push(`/c/${newSession.id}`);
-        // Set the new session as selected
-        setSelectedChat(newSession.id);
+        
+        // Set the new session as selected immediately (smooth transition)
+        setSelectedChat(sessionId);
+        setNewlyCreatedSessionId(sessionId);
+        
+        // Update URL without navigation (no page reload)
+        window.history.pushState({}, '', `/c/${sessionId}`);
+        
         // Refresh chat history to include the new session
         await loadPromptSessions(idToken, userId);
+        
+        // Clear the newly created indicator after animation
+        setTimeout(() => {
+          setNewlyCreatedSessionId(null);
+        }, 2000);
+      } else if (newSession && (newSession as any).isSuccess === true) {
+        // API returned success but no session data - refresh list and select newest
+        console.log("Session created but no ID returned, refreshing list...");
+        message.success("New session created successfully");
+        
+        // Create a temporary session ID to avoid /c/undefined
+        const tempSessionId = 'temp-' + Date.now();
+        setSelectedChat(tempSessionId);
+        window.history.pushState({}, '', `/c/${tempSessionId}`);
+        
+        // Refresh chat history and auto-select newest session
+        await loadPromptSessions(idToken, userId, true);
       } else {
-        message.error("Failed to create new session");
+        console.error("Failed to create session - no ID returned:", newSession);
+        message.error("Failed to create new session - no session ID returned");
       }
     } catch (error) {
       console.error("Error creating session:", error);
       message.error("Failed to create new session");
+    } finally {
+      setIsCreatingSession(false);
     }
-  }; // Delete session function
+  };  // Delete session function
   const handleDeleteSession = async (sessionId: string) => {
     if (!user) {
       message.error("Please log in to delete a session");
@@ -212,7 +264,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
         // If the deleted session was selected, clear selection
         if (selectedChat === sessionId) {
           setSelectedChat(null);
-          router.push('/c');
+          window.history.pushState({}, '', '/c');
         }
 
         // Refresh chat history to remove the deleted session
@@ -226,22 +278,42 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
       console.error("Error deleting session:", error);
       message.error("Failed to delete session");
     }
-  }; 
+  };
   
   // Location permission handlers
-  const handleLocationGranted = (location: LocationData) => {
+  const handleLocationGranted = (location: LocationData, rememberChoice: boolean) => {
     setUserLocation(location);
     setShowLocationPermission(false);
+    
+    if (rememberChoice) {
+      locationPromptUtils.setStatus('always_granted');
+    } else {
+      locationPromptUtils.clearStatus(); // Will ask again after logout
+    }
+    
+    // Always save the actual location permission
+    localStorage.setItem('goodmeal_location_permission', 'granted');
     message.success("Đã cập nhật vị trí của bạn để có gợi ý chính xác hơn!");
   };
 
-  const handleLocationDenied = () => {
+  const handleLocationDenied = (rememberChoice: boolean) => {
     setShowLocationPermission(false);
-    message.info("Bạn có thể bật quyền truy cập vị trí bất cứ lúc nào trong cài đặt trình duyệt.");
+    
+    if (rememberChoice) {
+      locationPromptUtils.setStatus('always_denied');
+      localStorage.setItem('goodmeal_location_permission', 'denied');
+      message.info("Đã lưu lựa chọn. Bạn có thể thay đổi trong cài đặt trình duyệt.");
+    } else {
+      locationPromptUtils.setStatus('once_denied');
+      message.info("Sẽ hỏi lại sau 24 giờ. Bạn có thể bật quyền truy cập vị trí bất cứ lúc nào.");
+    }
   };
 
   const handleShowLocationPermission = () => {
+    // Reset prompt and show again
+    locationPromptUtils.clearStatus();
     setShowLocationPermission(true);
+    setLocationPromptKey(prev => prev + 1); // Force re-render
   };
 
   // Show loading spinner while fetching data
@@ -305,6 +377,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
                     setSelectedChat={setSelectedChat}
                     chatHistory={chatHistory}
                     onCreateSession={handleCreateSession}
+                    isCreatingSession={isCreatingSession}
                     onDeleteSession={handleDeleteSession}
                 />
         {/* Main Content */}
@@ -358,27 +431,15 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
           </div>
         </Layout>
 
-        {/* Location Permission Modal */}
-        <Modal
-          open={showLocationPermission}
-          footer={null}
-          closable={false}
-          centered
-          styles={{
-            content: {
-              backgroundColor: 'transparent',
-              boxShadow: 'none',
-              padding: 0,
-            }
-          }}
-          width={440}
-        >
-          <LocationPermission
+        {/* Location Prompt */}
+        {showLocationPermission && (
+          <LocationPrompt
+            key={locationPromptKey}
             onLocationGranted={handleLocationGranted}
             onLocationDenied={handleLocationDenied}
             onClose={() => setShowLocationPermission(false)}
           />
-        </Modal>
+        )}
       </Layout>
     </ConfigProvider>
   );

@@ -104,10 +104,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (userRoles.includes(UserRole.BUSINESS)) {
             router.push('/bussiness');
         } else if (userRoles.includes(UserRole.USER)) {
-            router.push('/');
+            router.push('/c');
         } else {
-
-            router.push('/');
+            router.push('/c');
         }
     };
 

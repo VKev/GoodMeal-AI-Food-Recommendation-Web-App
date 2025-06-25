@@ -19,6 +19,7 @@ export interface SidebarProps {
     setSelectedChat: (chatId: string | null) => void;
     chatHistory: ChatItem[];
     onCreateSession: () => void;
+    isCreatingSession?: boolean;
     onDeleteSession?: (sessionId: string) => void;
 }
 
@@ -36,6 +37,7 @@ export interface SidebarHeaderProps {
     setSearchMode: (mode: boolean) => void;
     setSelectedChat: (chatId: string | null) => void;
     onCreateSession: () => void;
+    isCreatingSession?: boolean;
     currentSessionId?: string;
     onSendMessage?: (message: string, sessionId: string) => void;
 }

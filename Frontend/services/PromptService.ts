@@ -143,13 +143,34 @@ export const createPromptSession = async (idToken: string, userId: string): Prom
             throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
         }
 
-        const data: CreateSessionResponse = await response.json();
+        // Get raw response text first for debugging
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        
+        // Parse JSON
+        const data: CreateSessionResponse = JSON.parse(responseText);
         console.log('Create session response:', data);
+        console.log('Response structure:', JSON.stringify(data, null, 2));
 
         if (data.isSuccess && data.value.results.length > 0) {
-            return data.value.results[0].data;
+            const sessionResult = data.value.results[0];
+            console.log('Session result:', sessionResult);
+            console.log('Session result data:', sessionResult.data);
+            console.log('Session result data keys:', Object.keys(sessionResult.data || {}));
+            
+            if (sessionResult.isSuccess && sessionResult.data) {
+                console.log('Session created successfully:', sessionResult.data);
+                
+                // Log all properties of the session data
+                for (const [key, value] of Object.entries(sessionResult.data)) {
+                    console.log(`${key}:`, value);
+                }
+                
+                return sessionResult.data;
+            }
         }
 
+        console.log('Session creation failed or no data returned');
         return null;
     } catch (error) {
         console.error('Error creating prompt session:', error);
