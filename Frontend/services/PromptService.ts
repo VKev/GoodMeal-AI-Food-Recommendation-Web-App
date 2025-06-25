@@ -156,3 +156,236 @@ export const createPromptSession = async (idToken: string, userId: string): Prom
         return null;
     }
 };
+
+export interface ProcessFoodRequestPayload {
+    promptSessionId: string;
+    sender: string;
+    promptMessage: string;
+    responseMessage: string;
+}
+
+export interface ProcessFoodResponse {
+    responseMessage?: string;
+    imageUrl?: string;
+    [key: string]: any; // Allow any additional fields
+}
+
+export const processFoodRequest = async (
+    idToken: string, 
+    payload: ProcessFoodRequestPayload
+): Promise<ProcessFoodResponse | null> => {
+    try {
+        if (!idToken) {
+            console.warn('No ID token provided');
+            return null;
+        }
+
+        console.log('Sending request with payload:', payload); // Debug log
+
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:2406/';
+        const response = await fetch(`${baseUrl}api/prompt/Gemini/process-food-request`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        console.log('Process food request response status:', response.status);
+
+        if (!response.ok) {
+            let errorText = '';
+            try {
+                errorText = await response.text();
+                console.log('Error response body:', errorText);
+            } catch (e) {
+                console.log('Could not read error response body');
+            }
+            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Raw API response data:', data);
+        
+        // Handle the specific response format from your API
+        if (data && data.value && data.value.results && data.value.results.length > 0) {
+            const result = data.value.results[0];
+            if (result.isSuccess && result.data && result.data.length > 0) {
+                // Get the latest message (last item in array)
+                const latestMessage = result.data[result.data.length - 1];
+                
+                let responseMessage = latestMessage.responseMessage;
+                let imageUrl = null;
+                
+                // Parse the escaped JSON string
+                try {
+                    if (responseMessage && responseMessage.startsWith('"') && responseMessage.endsWith('"')) {
+                        // Remove outer quotes and unescape
+                        responseMessage = JSON.parse(responseMessage);
+                    }
+                    
+                    // If it's still a JSON string, parse again
+                    if (typeof responseMessage === 'string') {
+                        const parsedResponse = JSON.parse(responseMessage);
+                        
+                        // Extract meaningful information
+                        if (parsedResponse.Foods && parsedResponse.Foods.length > 0) {
+                            const food = parsedResponse.Foods[0];
+                            responseMessage = `**${food.FoodName}** (${food.National})\n\n${food.Description}`;
+                            imageUrl = food.ImageUrl;
+                        } else if (parsedResponse.Title) {
+                            responseMessage = parsedResponse.Title;
+                        } else {
+                            responseMessage = 'I received your message but couldn\'t find specific food information.';
+                        }
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing responseMessage:', parseError);
+                    responseMessage = latestMessage.responseMessage; // Use original if parsing fails
+                }
+                
+                return {
+                    responseMessage,
+                    imageUrl
+                };
+            }
+        }
+        
+        // Fallback for direct response
+        return data;
+    } catch (error) {
+        console.error('Error processing food request:', error);
+        return null;
+    }
+};
+
+export interface MessageResponse {
+    id: string;
+    promptSessionId: string;
+    sender: string;
+    createdAt: string;
+    responseMessage: string;
+    promptMessage: string;
+    isDeleted: boolean;
+}
+
+export interface MessagesApiResponse {
+    value: {
+        results: Array<{
+            name: string;
+            isSuccess: boolean;
+            data: MessageResponse[];
+        }>;
+    };
+    isSuccess: boolean;
+    isFailure: boolean;
+    error: {
+        code: string;
+        description: string;
+    };
+}
+
+export const getSessionMessages = async (
+    idToken: string,
+    promptSessionId: string
+): Promise<MessageResponse[]> => {
+    try {
+        if (!idToken) {
+            console.warn('No ID token provided');
+            return [];
+        }
+
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:2406/';
+        const response = await fetch(`${baseUrl}api/prompt/Message/read-active/${promptSessionId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        console.log('Get session messages response status:', response.status);
+
+        if (!response.ok) {
+            let errorText = '';
+            try {
+                errorText = await response.text();
+                console.log('Error response body:', errorText);
+            } catch (e) {
+                console.log('Could not read error response body');
+            }
+            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+        }
+
+        const data: MessagesApiResponse = await response.json();
+        console.log('Session messages response:', data);
+
+        if (data.isSuccess && data.value.results.length > 0) {
+            const result = data.value.results[0];
+            if (result.isSuccess && result.data) {
+                return result.data.filter(msg => !msg.isDeleted);
+            }
+        }
+
+        return [];
+    } catch (error) {
+        console.error('Error fetching session messages:', error);
+        return [];
+    }
+};
+
+export const deletePromptSession = async (
+    idToken: string,
+    sessionId: string
+): Promise<boolean> => {
+    try {
+        if (!idToken) {
+            console.warn('No ID token provided');
+            return false;
+        }
+
+        if (!sessionId) {
+            console.warn('No session ID provided');
+            return false;
+        }
+
+        console.log('Deleting session with ID:', sessionId);
+
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:2406/';
+        const response = await fetch(`${baseUrl}api/prompt/PromptSession/soft-delete`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: sessionId })
+        });
+
+        console.log('Delete session response status:', response.status);
+
+        if (!response.ok) {
+            let errorText = '';
+            try {
+                errorText = await response.text();
+                console.log('Error response body:', errorText);
+            } catch (e) {
+                console.log('Could not read error response body');
+            }
+            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Delete session response:', data);
+
+        // Check if deletion was successful
+        if (data.isSuccess) {
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error('Error deleting prompt session:', error);
+        return false;
+    }
+};

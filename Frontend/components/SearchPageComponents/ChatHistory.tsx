@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card, Typography, Flex } from 'antd';
+import { Card, Typography, Flex, Button, Popconfirm } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import { ChatHistoryProps } from './types';
 
 const { Text } = Typography;
@@ -7,7 +8,8 @@ const { Text } = Typography;
 const ChatHistory: React.FC<ChatHistoryProps> = ({
     chatHistory,
     selectedChat,
-    setSelectedChat
+    setSelectedChat,
+    onDeleteSession
 }) => {    return (
         <div style={{
             flex: 1,
@@ -75,7 +77,10 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                             bodyStyle={{ padding: '12px' }}
                         >
                             <Flex justify="space-between" align="flex-start">
-                                <div style={{ flex: 1, minWidth: 0 }}>
+                                <div 
+                                    style={{ flex: 1, minWidth: 0 }}
+                                    onClick={() => setSelectedChat(chat.id)}
+                                >
                                     <Text
                                         strong
                                         style={{
@@ -88,17 +93,44 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                                     >
                                         {chat.title}
                                     </Text>
-                                    <Text
-                                        type="secondary"
-                                        style={{ fontSize: '12px' }}
-                                        ellipsis
-                                    >
-                                        {chat.preview}
-                                    </Text>
                                 </div>
-                                <Text type="secondary" style={{ fontSize: '12px', marginLeft: '8px', flexShrink: 0 }}>
-                                    {chat.time}
-                                </Text>                            </Flex>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                                        {chat.time}
+                                    </Text>
+                                    {onDeleteSession && (
+                                        <Popconfirm
+                                            title="Xóa cuộc trò chuyện"
+                                            description="Bạn có chắc chắn muốn xóa cuộc trò chuyện này?"
+                                            onConfirm={(e) => {
+                                                e?.stopPropagation();
+                                                onDeleteSession(chat.id);
+                                            }}
+                                            okText="Xóa"
+                                            cancelText="Hủy"
+                                            placement="left"
+                                        >
+                                            <Button
+                                                type="text"
+                                                size="small"
+                                                icon={<DeleteOutlined />}
+                                                onClick={(e) => e.stopPropagation()}
+                                                style={{
+                                                    color: '#ff4d4f',
+                                                    opacity: 0.7,
+                                                    transition: 'opacity 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.opacity = '1';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.opacity = '0.7';
+                                                }}
+                                            />
+                                        </Popconfirm>
+                                    )}
+                                </div>
+                            </Flex>
                         </Card>
                     </div>
                     ))

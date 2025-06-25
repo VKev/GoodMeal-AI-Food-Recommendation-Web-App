@@ -13,7 +13,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     selectedChat,
     setSelectedChat,
     chatHistory,
-    onCreateSession
+    onCreateSession,
+    onDeleteSession
 }) => {
     const [searchMode, setSearchMode] = useState(false);
 
@@ -58,6 +59,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         chatHistory={chatHistory}
                         selectedChat={selectedChat}
                         setSelectedChat={setSelectedChat}
+                        onDeleteSession={onDeleteSession}
                     />
                 </div>
 

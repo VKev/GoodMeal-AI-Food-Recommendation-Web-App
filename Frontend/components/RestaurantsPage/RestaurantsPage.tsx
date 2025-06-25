@@ -59,10 +59,10 @@ const RestaurantsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>("rating");
 
   useEffect(() => {
-    const dishParam = searchParams.get("dish");
+    const searchParam = searchParams.get("search");
     const locationParam = searchParams.get("location");
 
-    if (dishParam) setDish(decodeURIComponent(dishParam));
+    if (searchParam) setDish(decodeURIComponent(searchParam));
     if (locationParam) setLocation(decodeURIComponent(locationParam));
 
     // Mock data cho các cửa hàng
@@ -264,7 +264,14 @@ const RestaurantsPage: React.FC = () => {
               flex: 1,
             }}
           >
-            Quán ăn có {dish} tại {location}
+            {dish && location 
+              ? `Quán ăn ${dish} tại ${location}`
+              : dish 
+                ? `Quán ăn ${dish}`
+                : location
+                  ? `Quán ăn tại ${location}`
+                  : "Danh sách quán ăn"
+            }
           </Title>
         </div>
       </Header>
