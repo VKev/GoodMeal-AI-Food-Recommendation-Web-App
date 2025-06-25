@@ -60,14 +60,13 @@ namespace Infrastructure.Common
         public void UpdateFields(T entity, params Expression<Func<T, object>>[] updatedProperties)
         {
             var entry = _context.Entry(entity);
-            entry.State = EntityState.Unchanged;
 
             foreach (var property in updatedProperties)
             {
                 entry.Property(property).IsModified = true;
             }
         }
-
+        
         public async Task DeleteByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var entity = await _dbSet.FindAsync([id], cancellationToken);

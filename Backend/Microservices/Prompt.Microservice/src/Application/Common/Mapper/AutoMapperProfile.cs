@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Application.Prompt.Commands;
 using Application.Prompt.Queries;
 using AutoMapper;
+using Domain.Entities;
 using Infrastructure;
 
 namespace Application.Common.Mapper
