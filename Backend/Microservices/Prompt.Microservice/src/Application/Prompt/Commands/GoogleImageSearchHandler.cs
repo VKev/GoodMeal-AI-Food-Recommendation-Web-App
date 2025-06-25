@@ -21,19 +21,19 @@ internal sealed class GoogleImageSearchHandler : ICommandHandler<GoogleImageSear
     public async Task<Result<Dictionary<string, string?>>> Handle(GoogleImageSearchCommand request,
         CancellationToken cancellationToken)
     {
-        var results = new Dictionary<string, string?>();
-
-        try
+        var semaphore = new SemaphoreSlim(10); 
+        var tasks = request.FoodNames.Select(async foodName =>
         {
-            foreach (var foodName in request.FoodNames)
+            await semaphore.WaitAsync(cancellationToken);
+            try
             {
                 var url = _searchService.BuildSearchUrl(foodName);
                 var response = await _httpClient.GetAsync(url, cancellationToken);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    results[foodName] = null;
-                    continue;
+                    Console.WriteLine($"[Handle] Failed request for {foodName}, Status: {response.StatusCode}");
+                    return new KeyValuePair<string, string?>(foodName, null);
                 }
 
                 var content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -51,9 +51,23 @@ internal sealed class GoogleImageSearchHandler : ICommandHandler<GoogleImageSear
                     }
                 }
 
-                results[foodName] = imageUrl;
+                return new KeyValuePair<string, string?>(foodName, imageUrl);
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Handle] Error processing {foodName}: {ex.Message}");
+                return new KeyValuePair<string, string?>(foodName, null);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        });
 
+        try
+        {
+            var resultsArray = await Task.WhenAll(tasks);
+            var results = resultsArray.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             return Result.Success(results);
         }
         catch (Exception ex)

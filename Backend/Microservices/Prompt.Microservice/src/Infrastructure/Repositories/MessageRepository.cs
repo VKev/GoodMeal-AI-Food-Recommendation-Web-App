@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Domain.Entities;
 using Domain.Repositories;
 using Infrastructure.Common;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ public class MessageRepository : Repository<Message>, IMessageRepository
     {
     }
 
-    public async Task SoftDeleteByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task SoftDeleteByIdAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
         var entity = await _context.Messages.FindAsync(new object[] { id }, cancellationToken);
         if (entity == null)
@@ -26,6 +27,7 @@ public class MessageRepository : Repository<Message>, IMessageRepository
 
         entity.IsDeleted = true;
         entity.DeletedAt = DateTime.UtcNow;
+        entity.DeletedBy = userId;
     }
 
     public async Task<IEnumerable<Message>> GetAllActiveAsync(CancellationToken cancellationToken = default)

@@ -15,7 +15,7 @@ namespace Application
         {
             var assembly = typeof(DependencyInjection).Assembly;
             var sharedLibraryAssembly = typeof(SaveChangesCommandHandler).Assembly;
-            services.AddMediatR(configuration => 
+            services.AddMediatR(configuration =>
             {
                 configuration.RegisterServicesFromAssembly(assembly);
                 configuration.RegisterServicesFromAssembly(sharedLibraryAssembly);
@@ -23,8 +23,8 @@ namespace Application
             services.AddHttpClient("GeminiClient",
                 client => { client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/"); });
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddSingleton<GoogleSearchBuilder>();
-            services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
+            services.AddScoped<GoogleSearchBuilder>();
+            services.AddHttpContextAccessor();
             services.AddValidatorsFromAssembly(assembly);
             services.AddAutoMapper(assembly);
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
 using SharedLibrary.Common.Messaging.Commands;
 using SharedLibrary.Common.ResponseModel;
+using SharedLibrary.Utils.AuthenticationExtention;
 
 namespace WebApi.Controllers;
 
@@ -22,6 +23,7 @@ public class GeminiController : ApiController
     }
 
     [HttpPost("send-message")]
+    [ApiGatewayUser]
     public async Task<IActionResult> SendMessage([FromBody] CreateMessageCommand request,
         CancellationToken cancellationToken)
     {
@@ -39,6 +41,7 @@ public class GeminiController : ApiController
     }
 
     [HttpPost("search-images")]
+    [ApiGatewayUser]
     public async Task<IActionResult> SearchImagesAsync(
         [FromBody] GoogleImageSearchCommand request,
         CancellationToken cancellationToken)
@@ -71,6 +74,7 @@ public class GeminiController : ApiController
     }
 
     [HttpPost("rate-comment")]
+    [ApiGatewayUser]
     public async Task<IActionResult> RateCommentAsync([FromBody] RateByGeminiCommand request,
         CancellationToken cancellationToken)
     {
@@ -88,6 +92,7 @@ public class GeminiController : ApiController
 
 
     [HttpPost("process-food-request")]
+    [ApiGatewayUser]
     public async Task<IActionResult> ProcessFoodRequestAsync(
         [FromBody] CreateMessageCommand request,
         CancellationToken cancellationToken)
