@@ -8,6 +8,12 @@ public class GoogleSearchBuilder
 
     private readonly string _apiKey;
     private readonly string _cx;
+    private readonly List<string> _blacklistedDomains = new()
+    {
+        "tiktok.com",
+        "instagram.com",
+        "pinterest.com"
+    };
 
     public GoogleSearchBuilder()
     {
@@ -17,41 +23,53 @@ public class GoogleSearchBuilder
               ?? throw new InvalidOperationException("GOOGLE_SEARCH_CX is not configured");
     }
 
-    /// <summary>
-    /// Build search URL for Google Custom Search Image API
-    /// </summary>
-    /// <param name="query">Tên món ăn</param>
-    /// <returns>URL query chuẩn hóa</returns>
-    public string BuildSearchUrl(string query)
+    public string BuildSearchUrl(string query, int num = 5)
     {
-        // Thêm keyword để tăng độ chính xác ảnh món ăn
         var enhancedQuery = $"{query} món ăn Việt Nam dish Vietnamese food";
 
         return $"{BaseUrl}?" +
                $"q={Uri.EscapeDataString(enhancedQuery)}" +
                $"&searchType=image" +
                $"&imgType=photo" +
+               $"&imgSize=medium" +
+               $"&fileType=jpg,png,webp" +
                $"&safe=active" +
-               $"&num=1" +
+               $"&num={num}" +
+               $"&fields=items(link)" +
                $"&key={_apiKey}" +
                $"&cx={_cx}";
     }
 
-    /// <summary>
-    /// Extract ảnh đầu tiên từ JSON response của Google Image Search
-    /// </summary>
-    /// <param name="jsonContent">Content trả về</param>
-    /// <returns>Link ảnh hoặc null</returns>
     public string? ExtractImageUrl(string jsonContent)
     {
-        using var json = JsonDocument.Parse(jsonContent);
-        var root = json.RootElement;
-
-        if (root.TryGetProperty("items", out var items) && items.GetArrayLength() > 0)
+        try
         {
-            return items[0].GetProperty("link").GetString();
+            using var json = JsonDocument.Parse(jsonContent);
+            var root = json.RootElement;
+
+            if (root.TryGetProperty("items", out var items) && items.GetArrayLength() > 0)
+            {
+                foreach (var item in items.EnumerateArray())
+                {
+                    var link = item.GetProperty("link").GetString();
+                    if (link is null) continue;
+                    
+                    if (IsBlacklisted(link)) continue;
+
+                    return link;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ExtractImageUrl] Error parsing JSON: {ex.Message}");
         }
 
         return null;
+    }
+
+    private bool IsBlacklisted(string url)
+    {
+        return _blacklistedDomains.Any(domain => url.Contains(domain, StringComparison.OrdinalIgnoreCase));
     }
 }

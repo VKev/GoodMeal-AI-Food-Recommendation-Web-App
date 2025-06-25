@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using Application.Common.GeminiApi;
 using SharedLibrary.Common.Messaging;
@@ -5,6 +6,7 @@ using SharedLibrary.Common.ResponseModel;
 using AutoMapper;
 using Domain.Repositories;
 using Infrastructure;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SharedLibrary.Common;
@@ -23,17 +25,20 @@ internal sealed class UpdateMessageHandler : ICommandHandler<UpdateMessageComman
     private readonly HttpClient _httpClient;
     private readonly string? _apiKey;
     private readonly string _model;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public UpdateMessageHandler(
         IMessageRepository messageRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        HttpClient httpClient)
+        HttpClient httpClient,
+        IHttpContextAccessor httpContextAccessor)
     {
         _messageRepository = messageRepository;
         _httpClient = httpClient;
         _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
         _model = "gemini-2.5-flash-preview-05-20";
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Result> Handle(UpdateMessageCommand request, CancellationToken cancellationToken)
@@ -71,13 +76,20 @@ internal sealed class UpdateMessageHandler : ICommandHandler<UpdateMessageComman
         if (string.IsNullOrWhiteSpace(responseText))
             throw new Exception("Gemini response is empty or invalid.");
 
+        var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim is null)
+        {
+            return Result.Failure(new Error("Auth.Unauthoried", "User is not authenticated"));
+        }
 
+        var userId = userIdClaim.Value;
         var updatedMessage = new Message
         {
             Id = request.Id,
             PromptMessage = request.PromptMessage,
             ResponseMessage = JsonConvert.SerializeObject(responseText),
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            UpdatedBy = userId
         };
 
         _messageRepository.UpdateFields(updatedMessage,
