@@ -2,12 +2,10 @@ using Application;
 using Infrastructure;
 using Infrastructure.Context;
 using SharedLibrary.Utils;
+using SharedLibrary.Configs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
-using SharedLibrary.Configs;
-using DatabaseConfigSetup = WebApi.Configs.DatabaseConfigSetup;
-using EnvironmentConfig = Infrastructure.Configs.EnvironmentConfig;
 
 string solutionDirectory = Directory.GetParent(Directory.GetCurrentDirectory())?.FullName ?? "";
 if (solutionDirectory != null)
@@ -22,7 +20,24 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAuthorization();
-builder.Services.AddHttpContextAccessor();
+
+// Add CORS services
+var corsOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(',') ??
+                  new[] { "http://localhost:3000" };
+var allowCredentials = bool.Parse(Environment.GetEnvironmentVariable("CORS_ALLOW_CREDENTIALS") ?? "true");
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(corsOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+
+        if (allowCredentials)
+            policy.AllowCredentials();
+    });
+});
 
 builder.Host.UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
     .ReadFrom.Configuration(hostingContext.Configuration));
@@ -54,22 +69,22 @@ builder.Services
 
 
 var app = builder.Build();
-var logger = app.Services.GetRequiredService<ILogger<AutoScaffold>>();
-var config = app.Services.GetRequiredService<EnvironmentConfig>();
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger(c => { c.RouteTemplate = "api/subscription/swagger/{documentName}/swagger.json"; });
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    app.MapGet("/", context =>
-    {
-        context.Response.Redirect("/swagger");
-        return Task.CompletedTask;
-    });
-}
+    c.SwaggerEndpoint("/api/subscription/swagger/v1/swagger.json", "Subscription Microservice API V1");
+    c.RoutePrefix = "api/subscription/swagger";
+});
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/api/subscription/swagger");
+    return Task.CompletedTask;
+});
 
 app.UseSerilogRequestLogging();
 
+app.UseCors();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
