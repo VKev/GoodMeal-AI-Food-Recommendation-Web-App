@@ -34,7 +34,7 @@ const Prices: React.FC = () => {
     };
 
     const handleClose = () => {
-        router.push('/id');
+        router.push('/c');
     };    // FAQ data
     const faqs = [
         {

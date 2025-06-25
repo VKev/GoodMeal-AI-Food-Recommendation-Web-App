@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Typography, Flex, Button, Popconfirm } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/navigation';
 import { ChatHistoryProps } from './types';
 
 const { Text } = Typography;
@@ -10,7 +11,13 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     selectedChat,
     setSelectedChat,
     onDeleteSession
-}) => {    return (
+}) => {
+    const router = useRouter();
+
+    const handleChatSelect = (chatId: string) => {
+        setSelectedChat(chatId);
+        router.push(`/c/${chatId}`);
+    };    return (
         <div style={{
             flex: 1,
             overflow: 'hidden',
@@ -59,7 +66,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                         <Card
                             hoverable
                             size="small"
-                            onClick={() => setSelectedChat(chat.id)}
+                            onClick={() => handleChatSelect(chat.id)}
                             style={{
                                 width: '100%',
                                 background: selectedChat === chat.id
@@ -79,7 +86,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                             <Flex justify="space-between" align="flex-start">
                                 <div 
                                     style={{ flex: 1, minWidth: 0 }}
-                                    onClick={() => setSelectedChat(chat.id)}
+                                    onClick={() => handleChatSelect(chat.id)}
                                 >
                                     <Text
                                         strong

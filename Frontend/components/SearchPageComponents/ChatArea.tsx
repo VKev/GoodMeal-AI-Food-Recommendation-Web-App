@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Input, Button, message, Spin, Avatar } from 'antd';
-import { SendOutlined, UserOutlined, RobotOutlined } from '@ant-design/icons';
+import { Input, Button, message, Spin, Avatar, Tooltip } from 'antd';
+import { SendOutlined, UserOutlined, RobotOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import { processFoodRequest, ProcessFoodRequestPayload, getSessionMessages } from '../../services/PromptService';
 import { useAuth } from '../../hooks/auths/authContext';
 import { useRouter } from 'next/navigation';
+import { LocationData } from '../../hooks/useGeolocation';
 
 const { TextArea } = Input;
 
@@ -19,9 +20,15 @@ interface Message {
 
 interface ChatAreaProps {
     sessionId?: string;
+    userLocation?: LocationData | null;
+    onRequestLocation?: () => void;
 }
 
-export const ChatArea: React.FC<ChatAreaProps> = ({ sessionId }) => {
+export const ChatArea: React.FC<ChatAreaProps> = ({ 
+    sessionId, 
+    userLocation, 
+    onRequestLocation 
+}) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [loading, setLoading] = useState(false);
@@ -30,11 +37,26 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ sessionId }) => {
     const router = useRouter();
 
     const handleFoodClick = (foodName: string, location?: string) => {
+        console.log('=== FOOD CLICK DEBUG ===');
+        console.log('foodName:', foodName);
+        console.log('food location from API:', location);
+        console.log('userLocation from props:', userLocation);
+        console.log('========================');
+        
         // Navigate to restaurants page with food name and location as search query
         let url = `/restaurants?search=${encodeURIComponent(foodName)}`;
+        
+        // Use API location first, then fallback to user location
         if (location && location !== 'null' && location.trim()) {
             url += `&location=${encodeURIComponent(location)}`;
+            console.log('Using API location:', location);
+        } else if (userLocation) {
+            // If no API location, use user's coordinates
+            url += `&lat=${userLocation.latitude}&lng=${userLocation.longitude}`;
+            console.log('Using user coordinates:', userLocation.latitude, userLocation.longitude);
         }
+        
+        console.log('Final URL:', url);
         router.push(url);
     };
 
@@ -165,8 +187,21 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ sessionId }) => {
                 promptSessionId: sessionId,
                 sender: authUser.userId || 'anonymous',
                 promptMessage: currentInput,
-                responseMessage: '' // This will be filled by the API
+                responseMessage: '', // This will be filled by the API
+                // Include location data if available
+                ...(userLocation && {
+                    lat: userLocation.latitude,
+                    lng: userLocation.longitude
+                })
             };
+
+            // Debug logs
+            console.log('=== DEBUG LOCATION DATA ===');
+            console.log('userLocation:', userLocation);
+            console.log('payload with location:', payload);
+            console.log('payload.lat:', payload.lat);
+            console.log('payload.lng:', payload.lng);
+            console.log('===========================');
 
             const response = await processFoodRequest(idToken, payload);
             
@@ -468,12 +503,70 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ sessionId }) => {
                 borderTop: '1px solid rgba(255, 122, 0, 0.2)',
                 backgroundColor: '#1f1f23'
             }}>
+                {/* Location Status */}
+                <div style={{ 
+                    marginBottom: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                }}>
+                    <Tooltip title={userLocation ? 
+                        `Vị trí hiện tại: ${userLocation.latitude.toFixed(4)}, ${userLocation.longitude.toFixed(4)}` : 
+                        'Chưa có quyền truy cập vị trí - Click để cấp quyền'
+                    }>
+                        <Button
+                            size="small"
+                            type={userLocation ? 'primary' : 'default'}
+                            icon={<EnvironmentOutlined />}
+                            onClick={userLocation ? undefined : onRequestLocation}
+                            style={{
+                                backgroundColor: userLocation ? '#52c41a' : 'transparent',
+                                borderColor: userLocation ? '#52c41a' : 'rgba(255, 122, 0, 0.3)',
+                                color: userLocation ? '#ffffff' : '#b3b3b3',
+                                fontSize: '12px',
+                                height: '24px',
+                                cursor: userLocation ? 'default' : 'pointer'
+                            }}
+                        >
+                            {userLocation ? 'Vị trí đã bật' : 'Bật vị trí'}
+                        </Button>
+                    </Tooltip>
+                    {userLocation && (
+                        <Button
+                            size="small"
+                            type="text"
+                            onClick={() => {
+                                // Clear location and ask again
+                                localStorage.removeItem('goodmeal_location_permission');
+                                localStorage.removeItem('goodmeal_location_data');
+                                window.location.reload();
+                            }}
+                            style={{
+                                fontSize: '12px',
+                                height: '24px',
+                                color: '#b3b3b3',
+                                padding: '0 8px'
+                            }}
+                        >
+                            Đặt lại
+                        </Button>
+                    )}
+                    {userLocation && (
+                        <span style={{ 
+                            fontSize: '12px', 
+                            color: '#b3b3b3' 
+                        }}>
+                            Kết quả sẽ tập trung vào khu vực gần bạn
+                        </span>
+                    )}
+                </div>
+
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
                     <TextArea
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        placeholder="Type your food request here..."
+                        placeholder="Nhập yêu cầu món ăn của bạn ở dây"
                         autoSize={{ minRows: 1, maxRows: 4 }}
                         style={{ 
                             flex: 1,
@@ -495,7 +588,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ sessionId }) => {
                             borderColor: '#ff7a00'
                         }}
                     >
-                        Send
+                        Gửi
                     </Button>
                 </div>
             </div>
