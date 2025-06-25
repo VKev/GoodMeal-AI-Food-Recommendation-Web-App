@@ -1,9 +1,8 @@
 // Shared types for SearchPage components
 
 export interface ChatItem {
-    id: number;
+    id: string;
     title: string;
-    preview: string;
     time: string;
 }
 
@@ -16,15 +15,18 @@ export interface UploadedImage {
 export interface SidebarProps {
     collapsed: boolean;
     setCollapsed: (collapsed: boolean) => void;
-    selectedChat: number | null;
-    setSelectedChat: (chatId: number | null) => void;
+    selectedChat: string | null;
+    setSelectedChat: (chatId: string | null) => void;
     chatHistory: ChatItem[];
+    onCreateSession: () => void;
+    onDeleteSession?: (sessionId: string) => void;
 }
 
 export interface ChatHistoryProps {
     chatHistory: ChatItem[];
-    selectedChat: number | null;
-    setSelectedChat: (chatId: number | null) => void;
+    selectedChat: string | null;
+    setSelectedChat: (chatId: string | null) => void;
+    onDeleteSession?: (sessionId: string) => void;
 }
 
 export interface SidebarHeaderProps {
@@ -32,7 +34,10 @@ export interface SidebarHeaderProps {
     setCollapsed: (collapsed: boolean) => void;
     searchMode: boolean;
     setSearchMode: (mode: boolean) => void;
-    setSelectedChat: (chatId: number | null) => void;
+    setSelectedChat: (chatId: string | null) => void;
+    onCreateSession: () => void;
+    currentSessionId?: string;
+    onSendMessage?: (message: string, sessionId: string) => void;
 }
 
 export interface InputAreaProps {

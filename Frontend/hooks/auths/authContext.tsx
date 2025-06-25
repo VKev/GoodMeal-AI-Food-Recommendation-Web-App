@@ -4,6 +4,19 @@ import { FirebaseAuth } from "@/firebase/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, useContext, ReactNode, createContext } from "react";
+import { checkAuthorization } from "@/services/Auth";
+
+interface AuthUser {
+    name: string | null;
+    authenticationType: string;
+    userId: string;
+    email: string;
+    roles: string[];
+    allClaims: Array<{
+        type: string;
+        value: string;
+    }>;
+}
 
 interface TokenData {
     email: string;
@@ -28,6 +41,7 @@ export enum UserRole {
 interface AuthContextType {
     currentUser: User | null;
     tokenData: TokenData | null;
+    authUser: AuthUser | null;
     authenticated: boolean;
     loading: boolean;
     userRoles: string[];
@@ -43,15 +57,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [tokenData, setTokenData] = useState<TokenData | null>(null);
+    const [authUser, setAuthUser] = useState<AuthUser | null>(null);
     const [authenticated, setAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
     const [userRoles, setUserRoles] = useState<string[]>([]);
-    const router = useRouter();
-
-    const extractTokenData = async (user: User): Promise<TokenData | null> => {
+    const router = useRouter();    const extractTokenData = async (user: User): Promise<TokenData | null> => {
         try {
             const idToken = await user.getIdToken();
             console.log('id token:', idToken);
+
+            // Call the check-authorization API
+            const authResponse = await checkAuthorization(idToken);
+            if (authResponse) {
+                setAuthUser(authResponse.user);
+            }
 
             const idTokenResult = await user.getIdTokenResult();
 
@@ -130,9 +149,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 if (extractedData?.roles) {
                     setUserRoles(extractedData.roles);
-                }
-            } else {
+                }            } else {
                 setTokenData(null);
+                setAuthUser(null);
                 setUserRoles([]);
             }
 
@@ -147,10 +166,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [userRoles, authenticated, loading]);
 
-    return (
-        <AuthContext.Provider value={{
+    return (        <AuthContext.Provider value={{
             currentUser,
             tokenData,
+            authUser,
             authenticated,
             loading,
             userRoles,

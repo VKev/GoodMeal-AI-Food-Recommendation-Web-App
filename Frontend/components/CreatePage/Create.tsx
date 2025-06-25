@@ -1,16 +1,16 @@
 "use client"
 import React, { useState } from "react";
-import { EyeInvisibleOutlined, EyeOutlined, UserOutlined, ShopOutlined } from '@ant-design/icons';
+import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signUpWithEmail, signInWithGoogle } from "../../firebase/firebase";
 import { useAuth } from "@/hooks/auths/authContext";
 import { updateProfile } from "firebase/auth";
+import { registerUser } from "../../services/Create";
 
 const CreateAccount: React.FC = () => {
-  const [selectedRole, setSelectedRole] = useState<"US" | "BU" | null>(null);
   const [formData, setFormData] = useState({
-    fullName: "",
+    name: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -23,7 +23,6 @@ const CreateAccount: React.FC = () => {
 
   const { authenticated } = useAuth();
   const router = useRouter();
-
   // Redirect if already authenticated
   React.useEffect(() => {
     if (authenticated) {
@@ -31,18 +30,18 @@ const CreateAccount: React.FC = () => {
     }
   }, [authenticated, router]);
 
+  // Log environment variable on component mount
+  React.useEffect(() => {
+    console.log('Environment check - NEXT_PUBLIC_BACKEND_BASE_URL:', process.env.NEXT_PUBLIC_BACKEND_BASE_URL);
+  }, []);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
-  const validateForm = () => {
-    if (!selectedRole) {
-      setError("Vui lòng chọn vai trò");
-      return false;
-    }
-    if (!formData.fullName.trim()) {
+  };  const validateForm = () => {
+    if (!formData.name.trim()) {
       setError("Vui lòng nhập họ tên đầy đủ");
       return false;
     }
@@ -67,26 +66,28 @@ const CreateAccount: React.FC = () => {
       return false;
     }
     return true;
-  };
-
-  const handleCreateAccount = async (e: React.FormEvent) => {
+  };  const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
 
     setLoading(true);
-    setError("");
+    setError("");    try {
+      // Only call API registration
+      const registrationData = {
+        email: formData.email,
+        password: formData.password,
+        name: formData.name
+      };
 
-    try {
-      const userCredential = await signUpWithEmail(formData.email, formData.password);
-      
-      // Update user profile with display name
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: formData.fullName
-        });
-      }      router.push("/");
+      console.log('Attempting to register with API:', registrationData);
+      const apiResponse = await registerUser(registrationData);
+      console.log('API registration successful:', apiResponse);
+
+      // Redirect to login page or home after successful registration
+      router.push("/sign-in"); // Or "/" if you want auto-login
     } catch (error: any) {
+      console.error('Registration error:', error);
       setError(error.message || "Tạo tài khoản thất bại");
     } finally {
       setLoading(false);
@@ -131,48 +132,15 @@ const CreateAccount: React.FC = () => {
           )}
 
           <form onSubmit={handleCreateAccount}>
-            {/* Role Selection */}            <div className="mb-6">
-              <label className="text-white text-sm font-medium mb-3 block">Chọn vai trò</label>
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole("US")}
-                  disabled={loading}
-                  className={`flex-1 p-4 rounded-2xl border transition-all duration-300 disabled:opacity-50 ${
-                    selectedRole === "US"
-                      ? "bg-orange-500/20 border-orange-500 text-orange-400"
-                      : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
-                  }`}
-                >                  <div className="flex flex-col items-center space-y-2">
-                    <UserOutlined className="text-xl" />
-                    <span className="text-sm font-medium">Người dùng</span>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole("BU")}
-                  disabled={loading}
-                  className={`flex-1 p-4 rounded-2xl border transition-all duration-300 disabled:opacity-50 ${
-                    selectedRole === "BU"
-                      ? "bg-orange-500/20 border-orange-500 text-orange-400"
-                      : "bg-white/5 border-white/10 text-gray-400 hover:border-orange-500/50"
-                  }`}
-                >                  <div className="flex flex-col items-center space-y-2">
-                    <ShopOutlined className="text-xl" />
-                    <span className="text-sm font-medium">Doanh nghiệp</span>
-                  </div>
-                </button>
-              </div>
-            </div>
+      
 
             {/* Form Inputs */}
             <div className="space-y-4 mb-6">
               {/* Full Name */}
               <div className="relative">                <input
                   type="text"
-                  placeholder="Họ và tên"
-                  value={formData.fullName}
-                  onChange={(e) => handleInputChange("fullName", e.target.value)}
+                  placeholder="Họ và tên"                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
                   disabled={loading}
                   className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white/10 transition-all duration-300 disabled:opacity-50"
                 />
