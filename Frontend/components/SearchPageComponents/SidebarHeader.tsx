@@ -8,7 +8,6 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
     setCollapsed,
     searchMode,
     setSearchMode,
-    setSelectedChat,
     onCreateSession,
     isCreatingSession
 }) => {

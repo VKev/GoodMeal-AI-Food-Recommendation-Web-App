@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Input, Button, message, Spin, Avatar, Tooltip } from 'antd';
 import { SendOutlined, UserOutlined, RobotOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import Image from 'next/image';
 import { processFoodRequest, ProcessFoodRequestPayload, getSessionMessages } from '../../services/PromptService';
 import { useAuth } from '../../hooks/auths/authContext';
 import { useRouter } from 'next/navigation';
@@ -270,7 +271,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             if (response) {
                 // Extract response message with better fallback
                 let responseText = '';
-                let imageUrls: string[] = [];
+                const imageUrls: string[] = [];
                 let foods: any[] = [];
                 
                 if (response.responseMessage) {
@@ -450,12 +451,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                                         }}
                                                         title={`Click to find restaurants serving ${food.foodName}${food.location && food.location !== 'null' ? ` in ${food.location}` : ''}`}
                                                     >
-                                                        <img 
+                                                        <Image 
                                                             src={food.imageUrl}
                                                             alt={food.foodName}
+                                                            width={80}
+                                                            height={80}
                                                             style={{
-                                                                width: '80px',
-                                                                height: '80px',
                                                                 objectFit: 'cover',
                                                                 borderRadius: '6px',
                                                                 border: '2px solid transparent'
@@ -520,11 +521,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     }}
                                     title="Click to find restaurants"
                                 >
-                                    <img 
+                                    <Image 
                                         src={msg.imageUrl} 
-                                        alt="Generated food" 
+                                        alt="Generated food"
+                                        width={400}
+                                        height={300}
                                         style={{ 
-                                            maxWidth: '100%', 
+                                            maxWidth: '100%',
+                                            height: 'auto',
                                             borderRadius: '8px',
                                             display: 'block'
                                         }}

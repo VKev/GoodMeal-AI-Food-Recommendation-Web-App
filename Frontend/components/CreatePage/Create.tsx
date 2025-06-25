@@ -3,9 +3,8 @@ import React, { useState } from "react";
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signUpWithEmail, signInWithGoogle } from "../../firebase/firebase";
+import { signInWithGoogle } from "../../firebase/firebase";
 import { useAuth } from "@/hooks/auths/authContext";
-import { updateProfile } from "firebase/auth";
 import { registerUser } from "../../services/Create";
 
 const CreateAccount: React.FC = () => {

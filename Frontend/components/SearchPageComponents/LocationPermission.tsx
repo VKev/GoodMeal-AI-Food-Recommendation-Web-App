@@ -179,7 +179,7 @@ export const LocationPermission: React.FC<LocationPermissionProps> = ({
                 <p>Vui lòng:</p>
                 <ol style={{ paddingLeft: '16px', margin: '8px 0' }}>
                   <li>Nhấn vào biểu tượng khóa 🔒 bên cạnh URL</li>
-                  <li>Chọn "Cho phép" cho vị trí</li>
+                  <li>Chọn &quot;Cho phép&quot; cho vị trí</li>
                   <li>Tải lại trang và thử lại</li>
                 </ol>
                 <p>Hoặc kiểm tra cài đặt trình duyệt → Quyền riêng tư → Vị trí</p>

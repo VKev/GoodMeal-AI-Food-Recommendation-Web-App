@@ -51,12 +51,6 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed }) => {
     };
 
     // Get user name for avatar display
-    const getUserName = () => {
-        if (authUser?.name) {
-            return authUser.name;
-        }
-        return 'N';
-    };
 
     // Get avatar text (first letter of name or 'N' if no name)
     const getAvatarText = () => {

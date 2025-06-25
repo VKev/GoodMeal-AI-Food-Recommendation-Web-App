@@ -11,7 +11,6 @@ import {
 import { MenuOutlined } from "@ant-design/icons";
 import { onAuthStateChanged } from "firebase/auth";
 import { FirebaseAuth } from "../../firebase/firebase";
-import { useRouter } from "next/navigation";
 
 // Import components
 import Sidebar from "./Sidebar";
@@ -38,13 +37,12 @@ interface SearchPageProps {
 }
 
 const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
-  const router = useRouter();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
-  const [newlyCreatedSessionId, setNewlyCreatedSessionId] = useState<string | null>(null);
+  const [, setNewlyCreatedSessionId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [showLocationPermission, setShowLocationPermission] = useState(false);
@@ -56,7 +54,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
     location,
     permission,
     hasLocation,
-    requestLocation
+    
   } = useGeolocation();
 
   // Listen to auth state changes
@@ -179,18 +177,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
     }
   };
 
-  // Refresh function to reload data
-  const refreshChatHistory = async () => {
-    if (user && userId) {
-      try {
-        const idToken = await user.getIdToken();
-        await loadPromptSessions(idToken, userId);
-      } catch (error) {
-        console.error("Error refreshing chat history:", error);
-        message.error("Failed to refresh chat history");
-      }
-    }
-  };  // Create new session function
+ // Create new session function
   const handleCreateSession = async () => {
     console.log("handleCreateSession called");
     console.log("Current user:", user);

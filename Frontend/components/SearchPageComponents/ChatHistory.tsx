@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, Typography, Flex, Button, Popconfirm } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
 import { ChatHistoryProps } from './types';
 
 const { Text } = Typography;
@@ -12,13 +11,14 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     setSelectedChat,
     onDeleteSession
 }) => {
-    const router = useRouter();
 
     const handleChatSelect = (chatId: string) => {
         setSelectedChat(chatId);
         // Update URL without page reload for smooth transition
         window.history.pushState({}, '', `/c/${chatId}`);
-    };    return (
+    };
+
+    return (
         <div style={{
             flex: 1,
             overflow: 'hidden',
