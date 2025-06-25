@@ -93,7 +93,7 @@ const PaymentPageContent: React.FC = () => {
             
             // Redirect to success page or back to app
             setTimeout(() => {
-                router.push(`/id?payment=success&plan=${planId}`);
+                router.push(`/c?payment=success&plan=${planId}`);
             }, 2000);        } catch (error) {
             console.error('Payment failed:', error);
             message.destroy();

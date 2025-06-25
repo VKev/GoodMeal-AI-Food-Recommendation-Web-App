@@ -7,15 +7,21 @@ import {
   Spin,
   message,
   Typography,
+  Modal,
 } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
 import { onAuthStateChanged } from "firebase/auth";
 import { FirebaseAuth } from "../../firebase/firebase";
+import { useRouter } from "next/navigation";
 
 // Import components
 import Sidebar from "./Sidebar";
 import SearchHeader from "./SearchHeader";
 import ChatArea from "./ChatArea";
+import LocationPermission from "./LocationPermission";
+
+// Import hooks
+import { useGeolocation, LocationData } from "../../hooks/useGeolocation";
 
 // Import services
 import {
@@ -27,13 +33,28 @@ import {
 import { checkAuthorization } from "../../services/Auth";
 import { ChatItem } from "./types";
 
-const SearchPage = () => {
+interface SearchPageProps {
+  initialSessionId?: string;
+}
+
+const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
+  const router = useRouter();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showLocationPermission, setShowLocationPermission] = useState(false);
+  const [userLocation, setUserLocation] = useState<LocationData | null>(null);
+
+  // Use geolocation hook
+  const {
+    location,
+    permission,
+    hasLocation,
+    requestLocation
+  } = useGeolocation();
 
   // Listen to auth state changes
   useEffect(() => {
@@ -52,6 +73,14 @@ const SearchPage = () => {
               setUserId(authResponse.user.userId);
               // Load prompt sessions after getting userId
               await loadPromptSessions(idToken, authResponse.user.userId);
+              
+              // Show location permission modal only if:
+              // 1. Permission is 'prompt' (first time)
+              // 2. Permission is not 'denied' or 'unavailable'
+              // 3. User doesn't have location yet
+              if (permission === 'prompt' && !hasLocation) {
+                setShowLocationPermission(true);
+              }
             }
           } catch (error) {
             console.error("Error getting user info:", error);
@@ -63,13 +92,29 @@ const SearchPage = () => {
           setUser(null);
           setUserId(null);
           setChatHistory([]);
+          setUserLocation(null);
+          setShowLocationPermission(false);
           setLoading(false);
         }
       }
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [permission, hasLocation]);
+
+  // Update user location when geolocation changes
+  useEffect(() => {
+    if (location) {
+      setUserLocation(location);
+    }
+  }, [location]);
+
+  // Set initial session from URL parameter
+  useEffect(() => {
+    if (initialSessionId) {
+      setSelectedChat(initialSessionId);
+    }
+  }, [initialSessionId]);
 
   // Load prompt sessions from API
   const loadPromptSessions = async (idToken: string, currentUserId: string) => {
@@ -137,6 +182,8 @@ const SearchPage = () => {
 
       if (newSession) {
         message.success("New session created successfully");
+        // Navigate to the new session URL
+        router.push(`/c/${newSession.id}`);
         // Set the new session as selected
         setSelectedChat(newSession.id);
         // Refresh chat history to include the new session
@@ -165,6 +212,7 @@ const SearchPage = () => {
         // If the deleted session was selected, clear selection
         if (selectedChat === sessionId) {
           setSelectedChat(null);
+          router.push('/c');
         }
 
         // Refresh chat history to remove the deleted session
@@ -178,7 +226,25 @@ const SearchPage = () => {
       console.error("Error deleting session:", error);
       message.error("Failed to delete session");
     }
-  }; // Show loading spinner while fetching data
+  }; 
+  
+  // Location permission handlers
+  const handleLocationGranted = (location: LocationData) => {
+    setUserLocation(location);
+    setShowLocationPermission(false);
+    message.success("Đã cập nhật vị trí của bạn để có gợi ý chính xác hơn!");
+  };
+
+  const handleLocationDenied = () => {
+    setShowLocationPermission(false);
+    message.info("Bạn có thể bật quyền truy cập vị trí bất cứ lúc nào trong cài đặt trình duyệt.");
+  };
+
+  const handleShowLocationPermission = () => {
+    setShowLocationPermission(true);
+  };
+
+  // Show loading spinner while fetching data
   if (loading) {
     return (
       <ConfigProvider
@@ -203,7 +269,7 @@ const SearchPage = () => {
         >
           <Spin size="large" style={{ marginBottom: "16px" }} />
           <Typography.Text style={{ color: "#ffffff", fontSize: "16px" }}>
-            Loading your chat history...
+            Đang tải lịch sử trò chuyện...
           </Typography.Text>
         </div>
       </ConfigProvider>
@@ -283,9 +349,36 @@ const SearchPage = () => {
 
           {/* Content Area with Chat */}
           <div style={{ flex: 1, overflow: "hidden" }}>
-            <ChatArea sessionId={selectedChat || undefined} />
+            <ChatArea 
+              sessionId={selectedChat || undefined} 
+              userLocation={userLocation}
+              onRequestLocation={handleShowLocationPermission}
+            />
+        
           </div>
         </Layout>
+
+        {/* Location Permission Modal */}
+        <Modal
+          open={showLocationPermission}
+          footer={null}
+          closable={false}
+          centered
+          styles={{
+            content: {
+              backgroundColor: 'transparent',
+              boxShadow: 'none',
+              padding: 0,
+            }
+          }}
+          width={440}
+        >
+          <LocationPermission
+            onLocationGranted={handleLocationGranted}
+            onLocationDenied={handleLocationDenied}
+            onClose={() => setShowLocationPermission(false)}
+          />
+        </Modal>
       </Layout>
     </ConfigProvider>
   );

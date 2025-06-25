@@ -69,15 +69,15 @@ export const formatTime = (dateString: string): string => {
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
     if (diffInDays === 0) {
-        return 'Today';
+        return 'Hôm nay';
     } else if (diffInDays === 1) {
-        return 'Yesterday';
+        return 'Hôm qua';
     } else if (diffInDays < 7) {
-        return `${diffInDays} days ago`;
+        return `${diffInDays} ngày trước`;
     } else if (diffInDays < 14) {
-        return '1 week ago';
+        return '1 tuần trước';
     } else if (diffInDays < 21) {
-        return '2 weeks ago';
+        return '2 tuần trước';
     } else {
         return date.toLocaleDateString();
     }
@@ -162,6 +162,9 @@ export interface ProcessFoodRequestPayload {
     sender: string;
     promptMessage: string;
     responseMessage: string;
+    // Optional location parameters
+    lat?: number;
+    lng?: number;
 }
 
 export interface ProcessFoodResponse {
@@ -181,6 +184,11 @@ export const processFoodRequest = async (
         }
 
         console.log('Sending request with payload:', payload); // Debug log
+        console.log('=== PROMPT SERVICE DEBUG ===');
+        console.log('payload.lat:', payload.lat);
+        console.log('payload.lng:', payload.lng);
+        console.log('Full payload:', JSON.stringify(payload, null, 2));
+        console.log('=============================');
 
         const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:2406/';
         const response = await fetch(`${baseUrl}api/prompt/Gemini/process-food-request`, {

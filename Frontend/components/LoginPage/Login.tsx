@@ -16,7 +16,7 @@ const Login: React.FC = () => {
 
   React.useEffect(() => {
     if (authenticated) {
-      router.push("/id");
+      router.push("/c");
     }
   }, [authenticated, router]);
   const handleEmailLogin = async (e: React.FormEvent) => {
