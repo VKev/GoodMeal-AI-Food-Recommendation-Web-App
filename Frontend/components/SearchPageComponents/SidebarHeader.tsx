@@ -9,7 +9,8 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
     searchMode,
     setSearchMode,
     setSelectedChat,
-    onCreateSession
+    onCreateSession,
+    isCreatingSession
 }) => {
     return (
         <div style={{ 
@@ -60,7 +61,12 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
                             type="text"
                             icon={<PlusOutlined />}
                             onClick={onCreateSession}
-                            style={{ color: '#b3b3b3' }}
+                            loading={isCreatingSession}
+                            disabled={isCreatingSession}
+                            className={`action-button ${isCreatingSession ? 'creating-session' : ''}`}
+                            style={{ 
+                                color: isCreatingSession ? '#ff7a00' : '#b3b3b3'
+                            }}
                         />
                     </div>
                 </div>

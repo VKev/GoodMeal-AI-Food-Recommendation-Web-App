@@ -31,7 +31,7 @@ const Login: React.FC = () => {
 
     try {
       await signInWithEmail(email, password);
-      router.push("/");
+      router.push("/c");
     } catch (error: any) {
       setError(error.message || "Đăng nhập thất bại");
     } finally {
@@ -43,7 +43,7 @@ const Login: React.FC = () => {
     setLoading(true);
     setError("");    try {
       await signInWithGoogle();
-      router.push("/");
+      router.push("/c");
     } catch (error: any) {
       setError(error.message || "Đăng nhập bằng Google thất bại");
     } finally {

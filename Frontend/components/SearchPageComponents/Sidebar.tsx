@@ -14,6 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     setSelectedChat,
     chatHistory,
     onCreateSession,
+    isCreatingSession,
     onDeleteSession
 }) => {
     const [searchMode, setSearchMode] = useState(false);
@@ -46,6 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     setSearchMode={setSearchMode}
                     setSelectedChat={setSelectedChat}
                     onCreateSession={onCreateSession}
+                    isCreatingSession={isCreatingSession}
                 />
 
                 <div style={{ 

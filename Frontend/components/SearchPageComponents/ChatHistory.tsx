@@ -16,7 +16,8 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
 
     const handleChatSelect = (chatId: string) => {
         setSelectedChat(chatId);
-        router.push(`/c/${chatId}`);
+        // Update URL without page reload for smooth transition
+        window.history.pushState({}, '', `/c/${chatId}`);
     };    return (
         <div style={{
             flex: 1,
@@ -66,6 +67,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                         <Card
                             hoverable
                             size="small"
+                            className={`chat-item ${selectedChat === chat.id ? 'selected' : ''} session-entering`}
                             onClick={() => handleChatSelect(chat.id)}
                             style={{
                                 width: '100%',

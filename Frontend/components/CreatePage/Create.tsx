@@ -26,7 +26,7 @@ const CreateAccount: React.FC = () => {
   // Redirect if already authenticated
   React.useEffect(() => {
     if (authenticated) {
-      router.push("/");
+      router.push("/c");
     }
   }, [authenticated, router]);
 
@@ -99,7 +99,7 @@ const CreateAccount: React.FC = () => {
     setError("");
 
     try {
-      await signInWithGoogle();      router.push("/");
+      await signInWithGoogle();      router.push("/c");
     } catch (error: any) {
       setError(error.message || "Đăng ký bằng Google thất bại");
     } finally {

@@ -8,6 +8,50 @@ import { LocationData } from '../../hooks/useGeolocation';
 
 const { TextArea } = Input;
 
+// Add CSS animation styles
+const animationStyles = `
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined' && !document.getElementById('chat-animations')) {
+    const styleSheet = document.createElement('style');
+    styleSheet.id = 'chat-animations';
+    styleSheet.textContent = animationStyles;
+    document.head.appendChild(styleSheet);
+}
+
 interface Message {
     id: string;
     type: 'user' | 'bot';
@@ -32,9 +76,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { currentUser, authUser } = useAuth();
     const router = useRouter();
+    const [prevSessionId, setPrevSessionId] = useState<string | undefined>(sessionId);
 
     const handleFoodClick = (foodName: string, location?: string) => {
         console.log('=== FOOD CLICK DEBUG ===');
@@ -71,6 +117,20 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     // Load messages when sessionId changes
     useEffect(() => {
         const loadMessages = async () => {
+            // Handle session transition with smooth effect
+            if (prevSessionId !== sessionId) {
+                setIsTransitioning(true);
+                
+                // Clear messages immediately for new session or when switching
+                setMessages([]);
+                
+                // Small delay for smooth transition
+                await new Promise(resolve => setTimeout(resolve, 150));
+                
+                setPrevSessionId(sessionId);
+                setIsTransitioning(false);
+            }
+            
             if (!sessionId || !currentUser) return;
 
             try {
@@ -158,7 +218,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         // Clear messages when sessionId changes
         setMessages([]);
         loadMessages();
-    }, [sessionId, currentUser]);
+    }, [sessionId, currentUser, prevSessionId]);
 
     const handleSendMessage = async () => {
         if (!inputValue.trim() || !sessionId || !currentUser || !authUser) {
@@ -293,12 +353,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     }
 
     return (
-        <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            height: '100%',
-            backgroundColor: 'transparent'
-        }}>
+        <div 
+            className={`chat-area ${isTransitioning ? 'transitioning' : ''}`}
+            style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: '100%',
+                backgroundColor: 'transparent'
+            }}>
             {/* Messages Area */}
             <div style={{ 
                 flex: 1, 
@@ -306,15 +368,22 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 padding: '20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '16px'
+                gap: '16px',
+                opacity: isTransitioning ? 0 : 1,
+                transform: isTransitioning ? 'translateY(10px)' : 'translateY(0)',
+                transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out'
             }}>
-                {messages.map((msg) => (
-                    <div key={msg.id} style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '12px',
-                        flexDirection: msg.type === 'user' ? 'row-reverse' : 'row'
-                    }}>
+                {messages.map((msg, index) => (
+                    <div 
+                        key={msg.id} 
+                        className={`message-${msg.type}`}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '12px',
+                            flexDirection: msg.type === 'user' ? 'row-reverse' : 'row',
+                            animationDelay: `${index * 0.1}s`
+                        }}>
                         <Avatar 
                             icon={msg.type === 'user' ? <UserOutlined /> : <RobotOutlined />}
                             style={{ 
@@ -531,26 +600,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                             {userLocation ? 'Vị trí đã bật' : 'Bật vị trí'}
                         </Button>
                     </Tooltip>
-                    {userLocation && (
-                        <Button
-                            size="small"
-                            type="text"
-                            onClick={() => {
-                                // Clear location and ask again
-                                localStorage.removeItem('goodmeal_location_permission');
-                                localStorage.removeItem('goodmeal_location_data');
-                                window.location.reload();
-                            }}
-                            style={{
-                                fontSize: '12px',
-                                height: '24px',
-                                color: '#b3b3b3',
-                                padding: '0 8px'
-                            }}
-                        >
-                            Đặt lại
-                        </Button>
-                    )}
                     {userLocation && (
                         <span style={{ 
                             fontSize: '12px', 

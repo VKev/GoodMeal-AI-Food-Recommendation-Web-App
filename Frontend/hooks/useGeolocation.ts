@@ -77,6 +77,7 @@ export const useGeolocation = () => {
 
   const getCurrentPosition = useCallback(() => {
     if (!navigator.geolocation) {
+      console.log('=== GEOLOCATION NOT SUPPORTED ===');
       setState(prev => ({
         ...prev,
         error: 'Geolocation is not supported by this browser.',
@@ -86,6 +87,9 @@ export const useGeolocation = () => {
       return;
     }
 
+    console.log('=== REQUESTING GEOLOCATION ===');
+    console.log('Current state:', state);
+    
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     const options: PositionOptions = {
@@ -93,6 +97,8 @@ export const useGeolocation = () => {
       timeout: 10000,
       maximumAge: 300000 // Cache for 5 minutes
     };
+
+    console.log('Calling navigator.geolocation.getCurrentPosition with options:', options);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -120,6 +126,12 @@ export const useGeolocation = () => {
         }));
       },
       (error) => {
+        console.log('=== GEOLOCATION ERROR ===');
+        console.log('Error code:', error.code);
+        console.log('Error message:', error.message);
+        console.log('Error details:', error);
+        console.log('=========================');
+
         let errorMessage = 'Unable to retrieve your location.';
         let permission: GeolocationState['permission'] = 'denied';
 
