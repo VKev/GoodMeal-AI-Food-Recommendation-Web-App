@@ -21,5 +21,9 @@ namespace Infrastructure.Configs
         public string RedisHost => Environment.GetEnvironmentVariable("REDIS_HOST") ?? "redis";
         public string RedisPassword => Environment.GetEnvironmentVariable("REDIS_PASSWORD") ?? "default";
         public int RedisPort => int.TryParse(Environment.GetEnvironmentVariable("REDIS_PORT"), out var port) ? port : 6379;
+        
+        public string GoogleApiKey => Environment.GetEnvironmentVariable("GOOGLE_API_KEY") ?? "your-google-api-key";
+        public string FoursquareApiKey => Environment.GetEnvironmentVariable("FOURSQUARE_API_KEY") ?? "your-foursquare-api-key";
+        
     }
 }

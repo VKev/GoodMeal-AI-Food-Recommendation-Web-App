@@ -16,6 +16,7 @@
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
         <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.4" />
         <PackageReference Include="MediatR" Version="12.4.1" />
+        <PackageReference Include="RestSharp" Version="112.1.1-alpha.0.4" />
     </ItemGroup>
 
     <ItemGroup>

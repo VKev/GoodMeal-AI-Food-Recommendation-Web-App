@@ -12,6 +12,7 @@ namespace Application
             var assembly = typeof(DependencyInjection).Assembly;
 
             services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(assembly));
+            services.AddHttpClient();
             services.AddValidatorsFromAssembly(assembly);
             services.AddAutoMapper(assembly);
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
