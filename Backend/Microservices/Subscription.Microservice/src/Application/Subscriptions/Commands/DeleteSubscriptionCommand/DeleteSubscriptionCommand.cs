@@ -70,7 +70,7 @@ internal sealed class DeleteSubscriptionCommandHandler : ICommandHandler<DeleteS
             }
 
             subscription.IsDisable = true;
-            subscription.DisableAt = DateTime.Now;
+            subscription.DisableAt = DateTime.UtcNow;
             subscription.DisableBy = userId;
 
             _subscriptionRepository.Update(subscription);

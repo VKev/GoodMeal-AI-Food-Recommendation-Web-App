@@ -39,7 +39,7 @@ namespace Infrastructure.Repositories
                 throw new NullReferenceException("User not found");
 
             user.Name = name;
-            user.UpdateAt = DateTime.Now;
+            user.UpdateAt = DateTime.UtcNow;
         }
 
         public async Task AddRole(Guid userId, Guid roleId, CancellationToken cancellationToken)
@@ -56,7 +56,7 @@ namespace Infrastructure.Repositories
             {
                 UserId = user.UserId,
                 RoleId = role.RoleId,
-                AssignedAt = DateTime.Now,
+                AssignedAt = DateTime.UtcNow,
             }, cancellationToken);
         }
 

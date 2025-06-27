@@ -1,22 +1,23 @@
 using MassTransit;
 using SharedLibrary.Contracts.Business;
-using Application.Business.Commands.EnableBusinessCommand;
+using Application.Business.Commands.ActiveBusinessCommand;
 using Application.Business.Queries.GetBusinessByIdQuery;
 using MediatR;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using SharedLibrary.Common.Messaging.Commands;
 using SharedLibrary.Common;
+using ActiveBusinessResponse = SharedLibrary.Contracts.Business.ActiveBusinessResponse;
 
 namespace Application.Consumers;
 
-public class EnableBusinessConsumer : IConsumer<ActiveBusinessRequest>
+public class ActiveBusinessConsumer : IConsumer<ActiveBusinessRequest>
 {
     private readonly IMediator _mediator;
     private readonly IMapper _mapper;
-    private readonly ILogger<EnableBusinessConsumer> _logger;
+    private readonly ILogger<ActiveBusinessConsumer> _logger;
 
-    public EnableBusinessConsumer(IMediator mediator, IMapper mapper, ILogger<EnableBusinessConsumer> logger)
+    public ActiveBusinessConsumer(IMediator mediator, IMapper mapper, ILogger<ActiveBusinessConsumer> logger)
     {
         _mediator = mediator;
         _mapper = mapper;
@@ -28,21 +29,21 @@ public class EnableBusinessConsumer : IConsumer<ActiveBusinessRequest>
         try
         {
             _logger.LogInformation(
-                "Received EnableBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
+                "Received ActiveBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
                 context.Message.RequestId, context.Message.BusinessId);
 
-            var adminUserId = !string.IsNullOrEmpty(context.Message.UserId) 
-                ? context.Message.UserId 
+            var adminUserId = !string.IsNullOrEmpty(context.Message.UserId)
+                ? context.Message.UserId
                 : "SYSTEM";
 
-            var enableResult = await _mediator.Send(new EnableBusinessByAdminCommand(
-                context.Message.BusinessId, 
+            var activeResult = await _mediator.Send(new ActiveBusinessByAdminCommand(
+                context.Message.BusinessId,
                 adminUserId));
             var saveResult = await _mediator.Send(new SaveChangesCommand());
             var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(context.Message.BusinessId));
 
             var aggregatedResult = ResultAggregator.AggregateWithNumbers(
-                (enableResult, true),
+                (activeResult, true),
                 (saveResult, false),
                 (getBusinessResult, true)
             );
@@ -59,7 +60,7 @@ public class EnableBusinessConsumer : IConsumer<ActiveBusinessRequest>
                 return;
             }
 
-            var businessDto = _mapper.Map<BusinessDto>(aggregatedResult.Value);
+            var businessDto = _mapper.Map<BusinessDto>(getBusinessResult.Value);
 
             await context.RespondAsync(new ActiveBusinessResponse
             {
@@ -70,13 +71,13 @@ public class EnableBusinessConsumer : IConsumer<ActiveBusinessRequest>
             });
 
             _logger.LogInformation(
-                "Successfully processed EnableBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
+                "Successfully processed ActiveBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
                 context.Message.RequestId, context.Message.BusinessId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Error processing EnableBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
+                "Error processing ActiveBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
                 context.Message.RequestId, context.Message.BusinessId);
 
             await context.RespondAsync(new ActiveBusinessResponse

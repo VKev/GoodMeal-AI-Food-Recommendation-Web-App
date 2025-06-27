@@ -14,16 +14,38 @@ namespace Application.Business.Commands.EnableBusinessCommand;
 
 public sealed record EnableBusinessCommand(Guid BusinessId) : ICommand<EnableBusinessResponse>;
 
-public sealed record EnableBusinessByAdminCommand(Guid BusinessId, string AdminUserId) : ICommand<EnableBusinessResponse>;
+public sealed record EnableBusinessByAdminCommand(Guid BusinessId, string AdminUserId)
+    : ICommand<EnableBusinessResponse>;
 
-public sealed record EnableBusinessResponse(
-    Guid Id,
-    string? OwnerId,
-    string Name,
-    bool IsDisable,
-    DateTime? DisableAt,
-    string? DisableBy
-);
+public sealed class EnableBusinessResponse
+{
+    public Guid Id { get; set; }
+    public string? OwnerId { get; set; }
+    public string Name { get; set; }
+    public bool IsDisable { get; set; }
+    public DateTime? DisableAt { get; set; }
+    public string? DisableBy { get; set; }
+
+    public EnableBusinessResponse()
+    {
+    }
+
+    public EnableBusinessResponse(
+        Guid id,
+        string? ownerId,
+        string name,
+        bool isDisable,
+        DateTime? disableAt,
+        string? disableBy)
+    {
+        Id = id;
+        OwnerId = ownerId;
+        Name = name;
+        IsDisable = isDisable;
+        DisableAt = disableAt;
+        DisableBy = disableBy;
+    }
+}
 
 internal sealed class EnableBusinessCommandHandler : ICommandHandler<EnableBusinessCommand, EnableBusinessResponse>
 {
@@ -36,7 +58,7 @@ internal sealed class EnableBusinessCommandHandler : ICommandHandler<EnableBusin
     public EnableBusinessCommandHandler(
         ILogger<EnableBusinessCommandHandler> logger,
         IBusinessRepository businessRepository,
-        IMapper mapper, 
+        IMapper mapper,
         IHttpContextAccessor httpContextAccessor,
         IPublishEndpoint publishEndpoint)
     {
@@ -90,30 +112,27 @@ internal sealed class EnableBusinessCommandHandler : ICommandHandler<EnableBusin
                     "Business is already enabled"));
             }
 
-            var activatedAt = DateTime.Now;
+            var enabledAt = DateTime.UtcNow;
             business.IsDisable = false;
-            business.IsActive = true;
-            business.ActivatedAt = activatedAt;
             business.DisableAt = null;
             business.DisableBy = null;
-            business.UpdatedAt = activatedAt;
+            business.UpdatedAt = enabledAt;
 
             _businessRepository.Update(business);
 
-            // Publish event để thêm role "Business" cho owner
             if (!string.IsNullOrEmpty(business.OwnerId))
             {
-                var businessActivatedEvent = new BusinessActivatedEvent
+                var businessEnabledEvent = new BusinessEnabledEvent
                 {
                     BusinessId = business.Id,
                     OwnerId = business.OwnerId,
                     BusinessName = business.Name,
-                    ActivatedAt = activatedAt,
-                    ActivatedBy = userId
+                    EnabledAt = enabledAt,
+                    EnabledBy = userId
                 };
 
-                await _publishEndpoint.Publish(businessActivatedEvent, cancellationToken);
-                _logger.LogInformation("Published BusinessActivatedEvent for business {BusinessId} and owner {OwnerId}", 
+                await _publishEndpoint.Publish(businessEnabledEvent, cancellationToken);
+                _logger.LogInformation("Published BusinessEnabledEvent for business {BusinessId} and owner {OwnerId}",
                     business.Id, business.OwnerId);
             }
 
@@ -131,7 +150,8 @@ internal sealed class EnableBusinessCommandHandler : ICommandHandler<EnableBusin
     }
 }
 
-internal sealed class EnableBusinessByAdminCommandHandler : ICommandHandler<EnableBusinessByAdminCommand, EnableBusinessResponse>
+internal sealed class
+    EnableBusinessByAdminCommandHandler : ICommandHandler<EnableBusinessByAdminCommand, EnableBusinessResponse>
 {
     private readonly ILogger<EnableBusinessByAdminCommandHandler> _logger;
     private readonly IBusinessRepository _businessRepository;
@@ -169,35 +189,33 @@ internal sealed class EnableBusinessByAdminCommandHandler : ICommandHandler<Enab
                     "Business is already enabled"));
             }
 
-            var activatedAt = DateTime.Now;
+            var enabledAt = DateTime.UtcNow;
             business.IsDisable = false;
-            business.IsActive = true;
-            business.ActivatedAt = activatedAt;
             business.DisableAt = null;
             business.DisableBy = null;
-            business.UpdatedAt = activatedAt;
+            business.UpdatedAt = enabledAt;
 
             _businessRepository.Update(business);
 
             if (!string.IsNullOrEmpty(business.OwnerId))
             {
-                var businessActivatedEvent = new BusinessActivatedEvent
+                var businessEnabledEvent = new BusinessEnabledEvent
                 {
                     BusinessId = business.Id,
                     OwnerId = business.OwnerId,
                     BusinessName = business.Name,
-                    ActivatedAt = activatedAt,
-                    ActivatedBy = request.AdminUserId
+                    EnabledAt = enabledAt,
+                    EnabledBy = request.AdminUserId
                 };
 
-                await _publishEndpoint.Publish(businessActivatedEvent, cancellationToken);
-                _logger.LogInformation("Published BusinessActivatedEvent for business {BusinessId} and owner {OwnerId}", 
+                await _publishEndpoint.Publish(businessEnabledEvent, cancellationToken);
+                _logger.LogInformation("Published BusinessEnabledEvent for business {BusinessId} and owner {OwnerId}",
                     business.Id, business.OwnerId);
             }
 
             var response = _mapper.Map<EnableBusinessResponse>(business);
 
-            _logger.LogInformation("Successfully enabled business {BusinessId} by admin {AdminUserId}", 
+            _logger.LogInformation("Successfully enabled business {BusinessId} by admin {AdminUserId}",
                 request.BusinessId, request.AdminUserId);
             return Result.Success(response);
         }
@@ -217,4 +235,4 @@ public class EnableBusinessCommandValidator : AbstractValidator<EnableBusinessCo
             .NotEmpty()
             .WithMessage("Business ID is required");
     }
-} 
+}

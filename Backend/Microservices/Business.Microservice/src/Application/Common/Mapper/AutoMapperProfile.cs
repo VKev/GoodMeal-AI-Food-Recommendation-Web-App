@@ -9,6 +9,8 @@ using Application.Business.Commands.UpdateBusinessCommand;
 using SharedLibrary.Contracts.Business;
 using DisableBusinessResponse = Application.Business.Commands.DisableBusinessCommand.DisableBusinessResponse;
 using EnableBusinessResponse = Application.Business.Commands.EnableBusinessCommand.EnableBusinessResponse;
+using ActiveBusinessResponse = Application.Business.Commands.ActiveBusinessCommand.ActiveBusinessResponse;
+using InactiveBusinessResponse = Application.Business.Commands.InactiveBusinessCommand.InactiveBusinessResponse;
 
 namespace Application.Common.Mapper
 {
@@ -42,9 +44,17 @@ namespace Application.Common.Mapper
 
             CreateMap<Domain.Entities.Business, EnableBusinessResponse>()
                 .ForMember(dest => dest.IsDisable, opt => opt.MapFrom(src => src.IsDisable ?? false));
+
+            CreateMap<Domain.Entities.Business, ActiveBusinessResponse>()
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ?? false));
+
+            CreateMap<Domain.Entities.Business, InactiveBusinessResponse>()
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ?? false))
+                .ForMember(dest => dest.DeactivatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
             
-            CreateMap<Domain.Entities.Business, BusinessDto>().ReverseMap();
-            CreateMap<BusinessInfo, BusinessDto>().ReverseMap();
+            CreateMap<BusinessDto, Domain.Entities.Business>().ReverseMap();
+            CreateMap<BusinessDto, BusinessInfo>().ReverseMap();
+            CreateMap<BusinessDto, GetBusinessByIdResponse>().ReverseMap();
         }
 
         private void CreateBusinessRestaurantMappings()

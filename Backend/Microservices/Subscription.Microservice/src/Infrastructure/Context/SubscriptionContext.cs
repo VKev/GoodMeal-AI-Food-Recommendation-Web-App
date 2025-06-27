@@ -58,11 +58,11 @@ public partial class SubscriptionContext : DbContext
                 .HasColumnName("is_active");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("updated_at");
             entity.Property(e => e.CreatedBy)
                 .UseCollation("C.utf8")
@@ -74,7 +74,7 @@ public partial class SubscriptionContext : DbContext
                 .HasDefaultValue(false)
                 .HasColumnName("is_disable");
             entity.Property(e => e.DisableAt)
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("disable_at");
             entity.Property(e => e.DisableBy)
                 .UseCollation("C.utf8")
@@ -99,21 +99,21 @@ public partial class SubscriptionContext : DbContext
             entity.Property(e => e.SubscriptionId)
                 .HasColumnName("subscription_id");
             entity.Property(e => e.StartDate)
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("start_date");
             entity.Property(e => e.EndDate)
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("end_date");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("updated_at");
             entity.Property(e => e.CreatedBy)
                 .UseCollation("C.utf8")
@@ -125,7 +125,7 @@ public partial class SubscriptionContext : DbContext
                 .HasDefaultValue(false)
                 .HasColumnName("is_disable");
             entity.Property(e => e.DisableAt)
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("disable_at");
             entity.Property(e => e.DisableBy)
                 .UseCollation("C.utf8")

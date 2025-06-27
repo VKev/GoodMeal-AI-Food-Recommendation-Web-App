@@ -24,7 +24,7 @@ public class AuthRepository : IAuthRepository
         var customClaims = new Dictionary<string, object>
         {
             ["roles"] = new[] { "User" },
-            ["created_at"] = DateTime.Now
+            ["created_at"] = DateTime.UtcNow
         };
 
         await FirebaseAuth.DefaultInstance.SetCustomUserClaimsAsync(userRecord.Uid, customClaims, cancellationToken);

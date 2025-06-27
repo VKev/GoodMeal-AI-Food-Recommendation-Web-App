@@ -20,19 +20,50 @@ public sealed record CreateBusinessCommand(
     string CreateReason
 ) : ICommand<CreateBusinessResponse>;
 
-public sealed record CreateBusinessResponse(
-    Guid Id,
-    string? OwnerId,
-    string Name,
-    string? Description,
-    string? Address,
-    string? Phone,
-    string? Email,
-    string? Website,
-    bool IsActive,
-    DateTime? CreatedAt,
-    string CreateReason
-);
+public sealed class CreateBusinessResponse
+{
+    public Guid Id { get; set; }
+    public string? OwnerId { get; set; }
+    public string Name { get; set; }
+    public string? Description { get; set; }
+    public string? Address { get; set; }
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? Website { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public string CreateReason { get; set; }
+
+    public CreateBusinessResponse()
+    {
+    }
+
+    public CreateBusinessResponse(
+        Guid id,
+        string? ownerId,
+        string name,
+        string? description,
+        string? address,
+        string? phone,
+        string? email,
+        string? website,
+        bool isActive,
+        DateTime? createdAt,
+        string createReason)
+    {
+        Id = id;
+        OwnerId = ownerId;
+        Name = name;
+        Description = description;
+        Address = address;
+        Phone = phone;
+        Email = email;
+        Website = website;
+        IsActive = isActive;
+        CreatedAt = createdAt;
+        CreateReason = createReason;
+    }
+}
 
 internal sealed class CreateBusinessCommandHandler : ICommandHandler<CreateBusinessCommand, CreateBusinessResponse>
 {
@@ -94,8 +125,8 @@ internal sealed class CreateBusinessCommandHandler : ICommandHandler<CreateBusin
                 IsActive = false,
                 IsDisable = false,
                 CreatedBy = userId,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
                 ActivatedAt = null
             };
 
@@ -103,7 +134,8 @@ internal sealed class CreateBusinessCommandHandler : ICommandHandler<CreateBusin
 
             var response = _mapper.Map<CreateBusinessResponse>(business);
 
-            _logger.LogInformation("Successfully created business {BusinessId} for user {UserId} - pending approval", business.Id, userId);
+            _logger.LogInformation("Successfully created business {BusinessId} for user {UserId} - pending approval",
+                business.Id, userId);
             return Result.Success(response);
         }
         catch (Exception ex)

@@ -87,7 +87,7 @@ internal sealed class SubscribeUserCommandHandler : ICommandHandler<SubscribeUse
                     "User already has an active subscription"));
             }
 
-            var startDate = DateTime.Now;
+            var startDate = DateTime.UtcNow;
             var endDate = startDate.AddMonths(subscription.DurationInMonths);
 
             var userSubscription = new Domain.Entities.UserSubscription

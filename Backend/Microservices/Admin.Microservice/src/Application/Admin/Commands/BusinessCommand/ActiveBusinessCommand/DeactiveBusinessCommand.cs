@@ -4,7 +4,7 @@ using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 using SharedLibrary.Contracts.Business;
 
-namespace Application.Admin.Commands.BusinessCommand;
+namespace Application.Admin.Commands.BusinessCommand.ActiveBusinessCommand;
 
 public sealed record DeactiveBusinessCommand(Guid BusinessId) : ICommand<DeactiveBusinessResponse>;
 

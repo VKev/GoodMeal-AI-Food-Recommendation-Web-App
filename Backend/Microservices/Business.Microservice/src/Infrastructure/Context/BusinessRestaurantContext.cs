@@ -42,7 +42,7 @@ public partial class BusinessRestaurantContext : DbContext
                 .HasColumnName("address");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.CreatedBy)
                 .UseCollation("C.utf8")
@@ -51,7 +51,7 @@ public partial class BusinessRestaurantContext : DbContext
                 .UseCollation("C.utf8")
                 .HasColumnName("description");
             entity.Property(e => e.DisableAt)
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("disable_at");
             entity.Property(e => e.DisableBy)
                 .UseCollation("C.utf8")
@@ -74,7 +74,7 @@ public partial class BusinessRestaurantContext : DbContext
                 .HasColumnName("phone");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("updated_at");
             entity.Property(e => e.Website)
                 .UseCollation("C.utf8")
@@ -95,13 +95,13 @@ public partial class BusinessRestaurantContext : DbContext
             entity.Property(e => e.BusinessId).HasColumnName("business_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.CreatedBy)
                 .UseCollation("C.utf8")
                 .HasColumnName("created_by");
             entity.Property(e => e.DisableAt)
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("disable_at");
             entity.Property(e => e.DisableBy)
                 .UseCollation("C.utf8")
@@ -110,14 +110,14 @@ public partial class BusinessRestaurantContext : DbContext
             entity.Property(e => e.RestaurantId).HasColumnName("restaurant_id");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("updated_at");
 
             entity.HasOne(d => d.Business).WithMany(p => p.BusinessRestaurants)
                 .HasForeignKey(d => d.BusinessId)
                 .HasConstraintName("fk_business_restaurants_business_id");
         });
-        
+
         OnModelCreatingPartial(modelBuilder);
     }
 

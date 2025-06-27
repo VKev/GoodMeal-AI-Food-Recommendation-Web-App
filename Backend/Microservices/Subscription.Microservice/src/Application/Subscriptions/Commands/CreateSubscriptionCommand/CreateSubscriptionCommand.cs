@@ -87,8 +87,8 @@ internal sealed class CreateSubscriptionCommandHandler : ICommandHandler<CreateS
                 IsActive = true,
                 IsDisable = false,
                 CreatedBy = userId,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             await _subscriptionRepository.AddAsync(subscription, cancellationToken);

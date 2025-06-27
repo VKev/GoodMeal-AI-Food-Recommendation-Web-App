@@ -1,6 +1,6 @@
 using MassTransit;
 using SharedLibrary.Contracts.Business;
-using Application.Business.Commands.DisableBusinessCommand;
+using Application.Business.Commands.InactiveBusinessCommand;
 using Application.Business.Queries.GetBusinessByIdQuery;
 using MediatR;
 using AutoMapper;
@@ -10,13 +10,13 @@ using SharedLibrary.Common;
 
 namespace Application.Consumers;
 
-public class DeactiveBusinessConsumer : IConsumer<DeactiveBusinessRequest>
+public class InactiveBusinessConsumer : IConsumer<DeactiveBusinessRequest>
 {
     private readonly IMediator _mediator;
     private readonly IMapper _mapper;
-    private readonly ILogger<DeactiveBusinessConsumer> _logger;
+    private readonly ILogger<InactiveBusinessConsumer> _logger;
 
-    public DeactiveBusinessConsumer(IMediator mediator, IMapper mapper, ILogger<DeactiveBusinessConsumer> logger)
+    public InactiveBusinessConsumer(IMediator mediator, IMapper mapper, ILogger<InactiveBusinessConsumer> logger)
     {
         _mediator = mediator;
         _mapper = mapper;
@@ -28,21 +28,21 @@ public class DeactiveBusinessConsumer : IConsumer<DeactiveBusinessRequest>
         try
         {
             _logger.LogInformation(
-                "Received DisableBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
+                "Received DeactiveBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
                 context.Message.RequestId, context.Message.BusinessId);
 
             var adminUserId = !string.IsNullOrEmpty(context.Message.UserId)
                 ? context.Message.UserId
                 : "SYSTEM";
 
-            var disableResult = await _mediator.Send(new DisableBusinessByAdminCommand(
+            var inactiveResult = await _mediator.Send(new InactiveBusinessByAdminCommand(
                 context.Message.BusinessId,
                 adminUserId));
             var saveResult = await _mediator.Send(new SaveChangesCommand());
             var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(context.Message.BusinessId));
 
             var aggregatedResult = ResultAggregator.AggregateWithNumbers(
-                (disableResult, true),
+                (inactiveResult, true),
                 (saveResult, false),
                 (getBusinessResult, true)
             );
@@ -59,7 +59,7 @@ public class DeactiveBusinessConsumer : IConsumer<DeactiveBusinessRequest>
                 return;
             }
 
-            var businessDto = _mapper.Map<BusinessDto>(aggregatedResult.Value);
+            var businessDto = _mapper.Map<BusinessDto>(getBusinessResult.Value);
 
             await context.RespondAsync(new DeactiveBusinessResponse
             {
@@ -70,13 +70,13 @@ public class DeactiveBusinessConsumer : IConsumer<DeactiveBusinessRequest>
             });
 
             _logger.LogInformation(
-                "Successfully processed DisableBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
+                "Successfully processed DeactiveBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
                 context.Message.RequestId, context.Message.BusinessId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Error processing DisableBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
+                "Error processing DeactiveBusinessRequest with RequestId: {RequestId} for BusinessId: {BusinessId}",
                 context.Message.RequestId, context.Message.BusinessId);
 
             await context.RespondAsync(new DeactiveBusinessResponse
