@@ -28,6 +28,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-fullpage": "^0.1.19",
+    "react-hot-toast": "^2.5.2",
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
     "tailwindcss": "^4.1.7",

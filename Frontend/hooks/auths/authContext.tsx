@@ -1,7 +1,7 @@
 "use client"
 
 import { FirebaseAuth } from "@/firebase/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, useContext, ReactNode, createContext } from "react";
 import { checkAuthorization } from "@/services/Auth";
@@ -50,6 +50,7 @@ interface AuthContextType {
     isAdmin: () => boolean;
     isBusiness: () => boolean;
     refreshToken: () => Promise<void>;
+    logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -165,6 +166,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [userRoles, authenticated, loading]);
 
+    const logout = async () => {
+        try {
+            await signOut(FirebaseAuth);
+            // Clear all state
+            setCurrentUser(null);
+            setTokenData(null);
+            setAuthUser(null);
+            setAuthenticated(false);
+            setUserRoles([]);
+            // Navigate to login page
+            router.push('/sign-in');
+        } catch (error) {
+            console.error('Error during logout:', error);
+        }
+    };
+
     return (        <AuthContext.Provider value={{
             currentUser,
             tokenData,
@@ -176,7 +193,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             hasRole,
             isAdmin,
             isBusiness,
-            refreshToken
+            refreshToken,
+            logout
         }}>
             {children}
         </AuthContext.Provider>

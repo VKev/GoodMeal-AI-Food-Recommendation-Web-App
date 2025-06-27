@@ -1,7 +1,6 @@
 "use client"
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { signInWithGoogle, signInWithEmail } from "../../firebase/firebase";
 import { useAuth } from "@/hooks/auths/authContext";
 
@@ -11,14 +10,13 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { authenticated } = useAuth();
-  const router = useRouter();
+  const { authenticated, navigateByRole } = useAuth();
 
   React.useEffect(() => {
     if (authenticated) {
-      router.push("/c");
+      navigateByRole();
     }
-  }, [authenticated, router]);
+  }, [authenticated, navigateByRole]);
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -31,7 +29,7 @@ const Login: React.FC = () => {
 
     try {
       await signInWithEmail(email, password);
-      router.push("/c");
+      // navigateByRole() will be called by the useEffect when authenticated changes
     } catch (error: any) {
       setError(error.message || "Đăng nhập thất bại");
     } finally {
@@ -43,7 +41,7 @@ const Login: React.FC = () => {
     setLoading(true);
     setError("");    try {
       await signInWithGoogle();
-      router.push("/c");
+      // navigateByRole() will be called by the useEffect when authenticated changes
     } catch (error: any) {
       setError(error.message || "Đăng nhập bằng Google thất bại");
     } finally {
