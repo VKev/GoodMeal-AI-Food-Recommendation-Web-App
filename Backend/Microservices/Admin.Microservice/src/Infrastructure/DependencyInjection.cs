@@ -1,4 +1,3 @@
-using Application.Services;
 using SharedLibrary.Utils;
 using SharedLibrary.Configs;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Domain.Repositories;
 using Infrastructure.Repositories;
 using MassTransit;
+using SharedLibrary.Contracts.Business;
 
 namespace Infrastructure
 {
@@ -39,6 +39,10 @@ namespace Infrastructure
 
             services.AddMassTransit(busConfigurator =>
             {
+                busConfigurator.AddRequestClient<GetAllBusinessesRequest>();
+                busConfigurator.AddRequestClient<ActiveBusinessRequest>();
+                busConfigurator.AddRequestClient<DeactiveBusinessRequest>();
+
                 busConfigurator.SetKebabCaseEndpointNameFormatter();
                 busConfigurator.UsingRabbitMq((context, configurator) =>
                 {

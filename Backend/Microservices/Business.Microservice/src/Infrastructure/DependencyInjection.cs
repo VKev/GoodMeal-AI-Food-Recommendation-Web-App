@@ -59,6 +59,9 @@ namespace Infrastructure
                     });
                 
                 busConfigurator.AddConsumer<CreateBusinessRestaurantConsumer>();
+                busConfigurator.AddConsumer<GetAllBusinessesConsumer>();
+                busConfigurator.AddConsumer<EnableBusinessConsumer>();
+                busConfigurator.AddConsumer<DeactiveBusinessConsumer>();
                 
                 busConfigurator.SetKebabCaseEndpointNameFormatter();
                 busConfigurator.UsingRabbitMq((context, configurator) =>{

@@ -16,7 +16,8 @@ public sealed record CreateBusinessCommand(
     string? Address,
     string? Phone,
     string? Email,
-    string? Website
+    string? Website,
+    string CreateReason
 ) : ICommand<CreateBusinessResponse>;
 
 public sealed record CreateBusinessResponse(
@@ -29,7 +30,8 @@ public sealed record CreateBusinessResponse(
     string? Email,
     string? Website,
     bool IsActive,
-    DateTime? CreatedAt
+    DateTime? CreatedAt,
+    string CreateReason
 );
 
 internal sealed class CreateBusinessCommandHandler : ICommandHandler<CreateBusinessCommand, CreateBusinessResponse>
@@ -88,18 +90,20 @@ internal sealed class CreateBusinessCommandHandler : ICommandHandler<CreateBusin
                 Phone = request.Phone,
                 Email = request.Email,
                 Website = request.Website,
-                IsActive = true,
+                CreateReason = request.CreateReason,
+                IsActive = false,
                 IsDisable = false,
                 CreatedBy = userId,
                 CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                UpdatedAt = DateTime.Now,
+                ActivatedAt = null
             };
 
             await _businessRepository.AddAsync(business, cancellationToken);
 
             var response = _mapper.Map<CreateBusinessResponse>(business);
 
-            _logger.LogInformation("Successfully created business {BusinessId} for user {UserId}", business.Id, userId);
+            _logger.LogInformation("Successfully created business {BusinessId} for user {UserId} - pending approval", business.Id, userId);
             return Result.Success(response);
         }
         catch (Exception ex)
@@ -119,6 +123,12 @@ public class CreateBusinessCommandValidator : AbstractValidator<CreateBusinessCo
             .WithMessage("Business name is required")
             .MaximumLength(200)
             .WithMessage("Business name cannot exceed 200 characters");
+
+        RuleFor(x => x.CreateReason)
+            .NotEmpty()
+            .WithMessage("Create reason is required")
+            .MaximumLength(1000)
+            .WithMessage("Create reason cannot exceed 1000 characters");
 
         RuleFor(x => x.Description)
             .MaximumLength(1000)

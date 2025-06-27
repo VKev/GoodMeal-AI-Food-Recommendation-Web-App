@@ -9,16 +9,25 @@ public class AuthRepository : IAuthRepository
     {
     }
 
-    public async Task<string> RegisterAsync(string email, string password,
+    public async Task<string> RegisterAsync(string email, string password, string name,
         CancellationToken cancellationToken = default)
     {
         var userRecordArgs = new UserRecordArgs()
         {
             Email = email,
-            Password = password
+            Password = password,
+            DisplayName = name
         };
 
         var userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(userRecordArgs, cancellationToken);
+
+        var customClaims = new Dictionary<string, object>
+        {
+            ["roles"] = new[] { "User" },
+            ["created_at"] = DateTime.Now
+        };
+
+        await FirebaseAuth.DefaultInstance.SetCustomUserClaimsAsync(userRecord.Uid, customClaims, cancellationToken);
 
         return userRecord.Uid;
     }

@@ -25,8 +25,8 @@ public class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand>
 
     public async Task<Result> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        await _authRepository.RegisterAsync(request.Email, request.Password, cancellationToken);
-        
+        await _authRepository.RegisterAsync(request.Email, request.Password, request.Name, cancellationToken);
+
         return Result.Success();
     }
 }
@@ -39,4 +39,4 @@ public class RegisterUserCommandValidator : AbstractValidator<RegisterUserComman
         RuleFor(x => x.Password).NotEmpty().MinimumLength(6).MaximumLength(70);
         RuleFor(x => x.Name).NotEmpty().MinimumLength(3).MaximumLength(70);
     }
-} 
+}

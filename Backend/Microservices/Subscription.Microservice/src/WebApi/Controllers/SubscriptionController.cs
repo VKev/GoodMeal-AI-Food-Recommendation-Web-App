@@ -127,31 +127,7 @@ namespace WebApi.Controllers
 
             return Ok(aggregatedResult.Value);
         }
-
-        //Cái này chỉ nên để cho hệ thống xử lý hoặc sửa logic nếu subscribe nó sẽ tìm kiếm xem coi user đã thanh toán gói nào đó trong tháng hay chưa để kích hoạt lên
-        // [HttpPost("subscribe")]
-        // [ApiGatewayUser]
-        // public async Task<IActionResult> SubscribeUser([FromBody] SubscribeUserCommand command,
-        //     CancellationToken cancellationToken)
-        // {
-        //     var subscribeResult = await _mediator.Send(command, cancellationToken);
-        //     var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
-        //     var getMySubscriptionResult = await _mediator.Send(new GetMySubscriptionQuery(), cancellationToken);
-        //
-        //     var aggregatedResult = ResultAggregator.AggregateWithNumbers(
-        //         (subscribeResult, true),
-        //         (saveResult, false),
-        //         (getMySubscriptionResult, true)
-        //     );
-        //
-        //     if (aggregatedResult.IsFailure)
-        //     {
-        //         return HandleFailure(aggregatedResult);
-        //     }
-        //
-        //     return Ok(aggregatedResult.Value);
-        // }
-
+        
         [HttpGet("my-subscription")]
         [ApiGatewayUser]
         public async Task<IActionResult> GetMySubscription(CancellationToken cancellationToken)

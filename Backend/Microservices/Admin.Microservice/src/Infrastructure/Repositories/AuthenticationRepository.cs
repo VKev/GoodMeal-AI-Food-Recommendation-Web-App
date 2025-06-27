@@ -1,4 +1,4 @@
-using Application.Services;
+using Domain.Repositories;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using SharedLibrary.Common.ResponseModel;

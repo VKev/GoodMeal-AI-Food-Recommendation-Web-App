@@ -1,8 +1,8 @@
+using Domain.Repositories;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
-using Application.Services;
 
 namespace Application.Admin.Commands.DeleteUserCommand;
 

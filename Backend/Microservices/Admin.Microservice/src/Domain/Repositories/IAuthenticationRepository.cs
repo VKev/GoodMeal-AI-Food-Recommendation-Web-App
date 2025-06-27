@@ -1,7 +1,7 @@
 using SharedLibrary.Common.ResponseModel;
 using SharedLibrary.Contracts.Authentication;
 
-namespace Application.Services;
+namespace Domain.Repositories;
 
 public interface IAuthenticationRepository
 {
