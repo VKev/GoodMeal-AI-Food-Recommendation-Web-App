@@ -21,6 +21,7 @@ public partial class PromptDbContext : DbContext
     public virtual DbSet<MessageRestaurant> MessageRestaurants { get; set; }
 
     public virtual DbSet<PromptSession> PromptSessions { get; set; }
+    public virtual DbSet<FoodImage> FoodImages { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -123,7 +124,11 @@ public partial class PromptDbContext : DbContext
                 .HasColumnName("updated_by");
             entity.Property(e => e.UserId).HasColumnName("user_id");
         });
-
+        modelBuilder.Entity<FoodImage>(entity =>
+        {
+            entity.ToTable("food_image", "public");
+            entity.HasKey(e => e.Id);
+        });
         OnModelCreatingPartial(modelBuilder);
     }
 

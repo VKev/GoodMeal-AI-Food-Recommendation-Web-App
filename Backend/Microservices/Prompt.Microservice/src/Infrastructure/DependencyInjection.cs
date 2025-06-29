@@ -18,6 +18,7 @@ namespace Infrastructure
             services.AddScoped<IPromptSessionRepository, PromptSessionRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IMessageRestaurantRepository, MessageRestaurantRepository>();
+            services.AddScoped<IFoodImageRepository, FoodImageRepository>();
             services.AddSingleton<EnvironmentConfig>();
             services.AddScoped<EventBuffer>();
             services.AddScoped<IEventBuffer>(sp => sp.GetRequiredService<EventBuffer>());

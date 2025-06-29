@@ -21,7 +21,29 @@ namespace Application
                 configuration.RegisterServicesFromAssembly(sharedLibraryAssembly);
             });
             services.AddHttpClient("GeminiClient",
-                client => { client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/"); });
+                    client => { client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/"); })
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                {
+                    var handler = new SocketsHttpHandler
+                    {
+                        EnableMultipleHttp2Connections = true
+                    };
+                    return handler;
+                });
+            services.AddStackExchangeRedisCache(options =>
+            {
+                var redisHost = Environment.GetEnvironmentVariable("REDIS_HOST") ?? "localhost";
+                var redisPassword = Environment.GetEnvironmentVariable("REDIS_PASSWORD");
+
+                var config = string.IsNullOrEmpty(redisPassword)
+                    ? $"{redisHost}:6379"
+                    : $"{redisHost}:6379,password={redisPassword}";
+
+                options.Configuration = config;
+                options.InstanceName = "FoodApp:";
+            });
+
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<GoogleSearchBuilder>();
             services.AddHttpContextAccessor();

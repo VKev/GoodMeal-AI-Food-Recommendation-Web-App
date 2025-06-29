@@ -1,41 +1,42 @@
-using System.Diagnostics;
 using Application.Common.GeminiApi;
 using Domain.Entities;
 using Domain.Repositories;
+using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 
 namespace Application.Prompt.Commands;
 
-public sealed record GoogleImageSearchCommand(List<string> FoodNames) : ICommand<Dictionary<string, string?>>;
+public sealed record GoogleImageSearchWithVisionApiCommand(List<string> FoodNames)
+    : ICommand<Dictionary<string, string?>>;
 
-internal sealed class GoogleImageSearchHandler : ICommandHandler<GoogleImageSearchCommand, Dictionary<string, string>>
+internal sealed class
+    GoogleImageSearchWithVisionApiHandler : ICommandHandler<GoogleImageSearchWithVisionApiCommand,
+    Dictionary<string, string>>
 {
     private readonly IDistributedCache _cache;
     private readonly IFoodImageRepository _foodImageRepository;
     private readonly HttpClient _httpClient;
     private readonly GoogleSearchBuilder _searchService;
+    private readonly IMediator _mediator;
 
-    private readonly ILogger<GoogleImageSearchHandler> _logger;
-
-    public GoogleImageSearchHandler(
+    public GoogleImageSearchWithVisionApiHandler(
         IDistributedCache cache,
         IFoodImageRepository foodImageRepository,
         HttpClient httpClient,
         GoogleSearchBuilder searchService,
-        ILogger<GoogleImageSearchHandler> logger)
+        IMediator mediator
+    )
     {
         _cache = cache;
         _foodImageRepository = foodImageRepository;
         _httpClient = httpClient;
         _searchService = searchService;
-        _logger = logger;
+        _mediator = mediator;
     }
 
-
-    public async Task<Result<Dictionary<string, string>>> Handle(GoogleImageSearchCommand request,
+    public async Task<Result<Dictionary<string, string>>> Handle(GoogleImageSearchWithVisionApiCommand request,
         CancellationToken cancellationToken)
     {
         var result = new Dictionary<string, string>();
@@ -58,10 +59,8 @@ internal sealed class GoogleImageSearchHandler : ICommandHandler<GoogleImageSear
 
         foreach (var food in dbResults)
         {
-            if (!string.IsNullOrWhiteSpace(food.ImageUrl))
-            {
-                result[food.FoodName] = food.ImageUrl;
-            }
+            result[food.FoodName] = food.ImageUrl;
+
             // await _cache.SetStringAsync(food.FoodName, food.ImageUrl, new DistributedCacheEntryOptions
             // {
             //     AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
@@ -69,8 +68,7 @@ internal sealed class GoogleImageSearchHandler : ICommandHandler<GoogleImageSear
         }
 
         var stillMissingNames = missingNames.Except(dbResults.Select(x => x.FoodName)).ToList();
-        var stopwatch = Stopwatch.StartNew();
-        var newFoodImages = new List<FoodImage>();
+
         await Parallel.ForEachAsync(stillMissingNames, new ParallelOptions { MaxDegreeOfParallelism = 10 },
             async (foodName, ct) =>
             {
@@ -79,30 +77,35 @@ internal sealed class GoogleImageSearchHandler : ICommandHandler<GoogleImageSear
                 if (!response.IsSuccessStatusCode) return;
 
                 var content = await response.Content.ReadAsStringAsync(ct);
-                var imageUrl = _searchService.ExtractMostRelevantImageUrl(content, foodName);
-                if (string.IsNullOrWhiteSpace(imageUrl)) return;
-
-                var foodImage = new FoodImage
+                var imageUrls = _searchService.ExtractMostRelevantImageUrl(content,foodName);
+                if (!imageUrls.Any()) return;
+                foreach (var imageUrl in imageUrls)
                 {
-                    Id = Guid.NewGuid(),
-                    FoodName = foodName,
-                    ImageUrl = imageUrl,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                newFoodImages.Add(foodImage);
-                result[foodName] = imageUrl;
+                    // var labelsResult = await _mediator.Send(new DetectImageLabelsCommand(imageUrl), ct);
+                    // if (!labelsResult.IsSuccess) continue;
+                    //
+                    // var labels = labelsResult.Value;
+                    // var foodNameNoDiacritics = StringExtensions.RemoveDiacritics(foodName).ToLower();
+                    //
+                    //
+                    // if (labels.Any(l => l.RemoveDiacritics().ToLower().Contains(foodNameNoDiacritics)))
+                    // {
+                    //     var foodImage = new FoodImage
+                    //     {
+                    //         Id = Guid.NewGuid(),
+                    //         FoodName = foodName,
+                    //         ImageUrl = imageUrl,
+                    //         CreatedAt = DateTime.UtcNow
+                    //     };
+                    //
+                    //     await _foodImageRepository.AddAsync(foodImage, ct);
+                    //     result[foodName] = imageUrl;
+                    //     break;
+                    // }
+                }
             });
 
-        if (newFoodImages.Any())
-        {
-            await _foodImageRepository.AddRangeAsync(newFoodImages, cancellationToken);
-        }
 
-        stopwatch.Stop();
-        _logger.LogInformation("Search & Save images for {Count} foods done in: {ElapsedMilliseconds} ms",
-            stillMissingNames.Count, stopwatch.ElapsedMilliseconds);
         return Result.Success(result);
     }
-
 }

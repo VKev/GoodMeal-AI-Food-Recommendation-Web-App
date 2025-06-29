@@ -13,8 +13,11 @@
         <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1"/>
         <PackageReference Include="FluentValidation" Version="11.11.0"/>
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0"/>
+        <PackageReference Include="Google.Cloud.Vision.V1" Version="3.7.0" />
         <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.4"/>
         <PackageReference Include="MediatR" Version="12.4.1"/>
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.6" />
+        <PackageReference Include="Mscc.GenerativeAI" Version="2.6.4" />
     </ItemGroup>
 
     <ItemGroup>

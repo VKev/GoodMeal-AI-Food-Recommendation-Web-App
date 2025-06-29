@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Domain.Entities;
+﻿using Infrastructure;
 
-namespace Infrastructure;
+namespace Domain.Entities;
 
 public partial class Message
 {
