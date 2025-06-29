@@ -90,8 +90,12 @@ internal sealed class GoogleImageSearchHandler : ICommandHandler<GoogleImageSear
                     CreatedAt = DateTime.UtcNow
                 };
 
-                newFoodImages.Add(foodImage);
-                result[foodName] = imageUrl;
+                // newFoodImages.Add(foodImage);
+                // result[foodName] = imageUrl;
+                // await _cache.SetStringAsync(foodImage.FoodName, foodImage.ImageUrl, new DistributedCacheEntryOptions
+                // {
+                //     AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
+                // }, cancellationToken);
             });
 
         if (newFoodImages.Any())

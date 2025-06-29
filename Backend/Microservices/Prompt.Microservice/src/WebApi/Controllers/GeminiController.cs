@@ -260,7 +260,7 @@ public class GeminiController : ApiController
         if (geminiResult.IsFailure)
         {
             await writer.WriteAsync($"event: error\ndata: {geminiResult.Error}\n\n");
-            await writer.FlushAsync();
+            await writer.FlushAsync(cancellationToken);
             return;
         }
 
@@ -290,7 +290,7 @@ public class GeminiController : ApiController
                 _logger.LogInformation("📤 Streaming response to client: {StreamMessage}", message);
 
                 await writer.WriteAsync($"data: {message}\n\n");
-                await writer.FlushAsync();
+                await writer.FlushAsync(cancellationToken);
             }
             else
             {
@@ -301,7 +301,7 @@ public class GeminiController : ApiController
         var locationMessage = JsonSerializer.Serialize(new { geminiResponse.Value.Location });
         _logger.LogInformation("📤 Streaming location to client: {LocationMessage}", locationMessage);
         await writer.WriteAsync($"event: done\ndata: {locationMessage}\n\n");
-        await writer.FlushAsync();
+        await writer.FlushAsync(cancellationToken);
         await _mediator.Send(new SaveChangesCommand(), cancellationToken);
         _logger.LogInformation("🏁 Đã hoàn tất stream cho request prompt: {Prompt}", request.PromptMessage);
     }
