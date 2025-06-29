@@ -16,7 +16,7 @@ const Login: React.FC = () => {
 
   React.useEffect(() => {
     if (authenticated) {
-      router.push("/id");
+      router.push("/c");
     }
   }, [authenticated, router]);
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -31,7 +31,7 @@ const Login: React.FC = () => {
 
     try {
       await signInWithEmail(email, password);
-      router.push("/");
+      router.push("/c");
     } catch (error: any) {
       setError(error.message || "Đăng nhập thất bại");
     } finally {
@@ -43,7 +43,7 @@ const Login: React.FC = () => {
     setLoading(true);
     setError("");    try {
       await signInWithGoogle();
-      router.push("/");
+      router.push("/c");
     } catch (error: any) {
       setError(error.message || "Đăng nhập bằng Google thất bại");
     } finally {

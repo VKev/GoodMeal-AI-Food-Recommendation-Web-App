@@ -5,7 +5,7 @@ namespace Domain.Entities;
 
 public partial class RestaurantRating
 {
-    public int? Rating { get; set; }
+    public float? Rating { get; set; }
 
     public string? Comment { get; set; }
 
