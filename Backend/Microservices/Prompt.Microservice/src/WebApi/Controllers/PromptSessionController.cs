@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
 using SharedLibrary.Common.Messaging.Commands;
+using SharedLibrary.Utils.AuthenticationExtention;
 
 namespace WebApi.Controllers;
 
@@ -18,6 +19,7 @@ public class PromptSessionController : ApiController
     }
 
     [HttpPost("create")]
+    [ApiGatewayUser]
     public async Task<IActionResult> Create([FromBody] CreatePromptSessionCommand request,
         CancellationToken cancellationToken)
     {
@@ -35,6 +37,7 @@ public class PromptSessionController : ApiController
     }
 
     [HttpGet("read")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetAllPromptSessionQuery(), cancellationToken);
@@ -49,6 +52,7 @@ public class PromptSessionController : ApiController
     }
 
     [HttpGet("read/{id}")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetPromptSessionByIdQuery(id), cancellationToken);
@@ -64,6 +68,7 @@ public class PromptSessionController : ApiController
 
 
     [HttpDelete("soft-delete")]
+    [ApiGatewayUser]
     public async Task<IActionResult> SoftDelete([FromBody] SoftDeletePromptSessionCommand request,
         CancellationToken cancellationToken)
     {
@@ -81,6 +86,7 @@ public class PromptSessionController : ApiController
     }
 
     [HttpDelete("delete")]
+    [ApiGatewayUser]
     public async Task<IActionResult> Delete([FromBody] DeletePromptSessionCommand request,
         CancellationToken cancellationToken)
     {

@@ -12,12 +12,14 @@ const Sidebar: React.FC<SidebarProps> = ({
     setCollapsed,
     selectedChat,
     setSelectedChat,
-    chatHistory
+    chatHistory,
+    onCreateSession,
+    isCreatingSession,
+    onDeleteSession
 }) => {
     const [searchMode, setSearchMode] = useState(false);
 
-    return (
-        <Sider
+    return (        <Sider
             width={320}
             collapsed={collapsed}
             onCollapse={setCollapsed}
@@ -26,27 +28,45 @@ const Sidebar: React.FC<SidebarProps> = ({
                 background: 'linear-gradient(180deg, #1a1a1d 0%, #0f0f12 100%)',
                 borderRight: '1px solid #ff7a0033',
                 boxShadow: '4px 0 20px rgba(0, 0, 0, 0.3)',
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100vh'
+                height: '100vh',
+                minHeight: 0,
+                overflow: 'hidden'
             }}
             breakpoint="lg"
         >
-            <SidebarHeader
-                collapsed={collapsed}
-                setCollapsed={setCollapsed}
-                searchMode={searchMode}
-                setSearchMode={setSearchMode}
-                setSelectedChat={setSelectedChat}
-            />
+            <div style={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column',
+                minHeight: 0
+            }}>
+                <SidebarHeader
+                    collapsed={collapsed}
+                    setCollapsed={setCollapsed}
+                    searchMode={searchMode}
+                    setSearchMode={setSearchMode}
+                    setSelectedChat={setSelectedChat}
+                    onCreateSession={onCreateSession}
+                    isCreatingSession={isCreatingSession}
+                />
 
-            <ChatHistory
-                chatHistory={chatHistory}
-                selectedChat={selectedChat}
-                setSelectedChat={setSelectedChat}
-            />
+                <div style={{ 
+                    flex: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    minHeight: 0,
+                    overflow: 'hidden'
+                }}>
+                    <ChatHistory
+                        chatHistory={chatHistory}
+                        selectedChat={selectedChat}
+                        setSelectedChat={setSelectedChat}
+                        onDeleteSession={onDeleteSession}
+                    />
+                </div>
 
-            <UpgradeSection />
+                <UpgradeSection />
+            </div>
         </Sider>
     );
 };

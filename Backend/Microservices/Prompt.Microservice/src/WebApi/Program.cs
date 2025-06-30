@@ -24,7 +24,8 @@ builder.Services.AddHttpContextAccessor();
 
 
 // Add CORS services
-var corsOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(',') ?? new[] { "http://localhost:3000" };
+var corsOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(',') ??
+                  new[] { "http://localhost:3000" };
 var allowCredentials = bool.Parse(Environment.GetEnvironmentVariable("CORS_ALLOW_CREDENTIALS") ?? "true");
 
 builder.Services.AddCors(options =>
@@ -32,9 +33,9 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy.WithOrigins(corsOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-              
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+
         if (allowCredentials)
             policy.AllowCredentials();
     });
@@ -87,20 +88,17 @@ var scaffold = new AutoScaffold(logger)
 
 scaffold.UpdateAppSettings();
 // scaffold.Run();
-    app.UseSwagger(c =>
-    {
-        c.RouteTemplate = "api/prompt/swagger/{documentName}/swagger.json";
-    });
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/api/prompt/swagger/v1/swagger.json", "Prompt Microservice API V1");
-        c.RoutePrefix = "api/prompt/swagger";
-    });
-    app.MapGet("/", context =>
-    {
-        context.Response.Redirect("/api/prompt/swagger");
-        return Task.CompletedTask;
-    });
+app.UseSwagger(c => { c.RouteTemplate = "api/prompt/swagger/{documentName}/swagger.json"; });
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/api/prompt/swagger/v1/swagger.json", "Prompt Microservice API V1");
+    c.RoutePrefix = "api/prompt/swagger";
+});
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/api/prompt/swagger");
+    return Task.CompletedTask;
+});
 
 app.UseSerilogRequestLogging();
 

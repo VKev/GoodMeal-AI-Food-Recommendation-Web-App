@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Infrastructure;
 
-namespace Infrastructure;
+namespace Domain.Entities;
 
 public partial class PromptSession
 {
     public Guid Id { get; set; }
 
-    public Guid UserId { get; set; }
+    public required string UserId { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

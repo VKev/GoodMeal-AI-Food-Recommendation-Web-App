@@ -1,4 +1,5 @@
 using System;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.Prompt.Commands;
@@ -7,17 +8,21 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
 using SharedLibrary.Common.Messaging.Commands;
+using SharedLibrary.Utils.AuthenticationExtention;
 
 namespace WebApi.Controllers;
 
 [Route("api/prompt/[controller]")]
 public class MessageController : ApiController
 {
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
     public MessageController(IMediator mediator) : base(mediator)
     {
     }
 
     [HttpPost("create")]
+    [ApiGatewayUser]
     public async Task<IActionResult> Create([FromBody] CreateMessageCommand request,
         CancellationToken cancellationToken)
     {
@@ -35,6 +40,7 @@ public class MessageController : ApiController
     }
 
     [HttpGet("read")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetAllMessageQuery(), cancellationToken);
@@ -51,6 +57,7 @@ public class MessageController : ApiController
     }
 
     [HttpGet("read-active")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetAllActive(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetAllMessageActiveQuery(), cancellationToken);
@@ -67,6 +74,7 @@ public class MessageController : ApiController
     }
 
     [HttpGet("read/{id}")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetMessageByIdQuery(id), cancellationToken);
@@ -83,6 +91,7 @@ public class MessageController : ApiController
     }
 
     [HttpGet("read-active/{promptSessionId}")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetMessageActiveById(Guid promptSessionId, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetMessageActiveByIdQuery(promptSessionId), cancellationToken);
@@ -99,6 +108,7 @@ public class MessageController : ApiController
     }
 
     [HttpPut("update")]
+    [ApiGatewayUser]
     public async Task<IActionResult> Update([FromBody] UpdateMessageCommand request,
         CancellationToken cancellationToken)
     {
@@ -116,6 +126,7 @@ public class MessageController : ApiController
     }
 
     [HttpDelete("soft-delete")]
+    [ApiGatewayUser]
     public async Task<IActionResult> SoftDelete([FromBody] SoftDeleteMessageCommand request,
         CancellationToken cancellationToken)
     {
@@ -133,6 +144,7 @@ public class MessageController : ApiController
     }
 
     [HttpDelete("delete")]
+    [ApiGatewayUser]
     public async Task<IActionResult> Delete([FromBody] DeleteMessageCommand request,
         CancellationToken cancellationToken)
     {

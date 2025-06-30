@@ -14,6 +14,8 @@ import {
   Input,
   Dropdown,
   Badge,
+  Spin,
+  message,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -25,155 +27,105 @@ import {
   DownOutlined,
   HeartOutlined,
 } from "@ant-design/icons";
+import {
+  findRestaurantsForFood,
+  RestaurantPlace,
+} from "../../services/RestaurantService";
+import { useGeolocation } from "../../hooks/useGeolocation";
 
 const { Content, Header } = Layout;
 const { Title, Text } = Typography;
 const { Search } = Input;
 
-interface Restaurant {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  rating: number;
-  reviewCount: number;
-  openTime: string;
-  closeTime: string;
-  isOpen: boolean;
-  image: string;
-  distance: string;
-  priceRange: string;
-  specialties: string[];
-}
-
 const RestaurantsPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(
-    []
-  );
+  const { location: userLocation } = useGeolocation();
+  const [restaurants, setRestaurants] = useState<RestaurantPlace[]>([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState<
+    RestaurantPlace[]
+  >([]);
   const [dish, setDish] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [searchText, setSearchText] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("rating");
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const dishParam = searchParams.get("dish");
+    const searchParam = searchParams.get("search");
     const locationParam = searchParams.get("location");
+    const latParam = searchParams.get("lat");
+    const lngParam = searchParams.get("lng");
 
-    if (dishParam) setDish(decodeURIComponent(dishParam));
+    if (searchParam) setDish(decodeURIComponent(searchParam));
     if (locationParam) setLocation(decodeURIComponent(locationParam));
 
-    // Mock data cho các cửa hàng
-    const mockRestaurants: Restaurant[] = [
-      {
-        id: "1",
-        name: "Phở Hùng",
-        address: "123 Nguyễn Văn Dậu, Bình Thạnh, TP.HCM",
-        phone: "0901234567",
-        rating: 4.5,
-        reviewCount: 324,
-        openTime: "06:00",
-        closeTime: "22:00",
-        isOpen: true,
-        image:
-          "https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=400",
-        distance: "0.8 km",
-        priceRange: "50,000 - 80,000đ",
-        specialties: ["Phở Bò", "Phở Gà", "Bún Bò Huế"],
-      },
-      {
-        id: "2",
-        name: "Quán Việt",
-        address: "456 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM",
-        phone: "0907654321",
-        rating: 4.2,
-        reviewCount: 156,
-        openTime: "07:00",
-        closeTime: "21:30",
-        isOpen: true,
-        image:
-          "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400",
-        distance: "1.2 km",
-        priceRange: "45,000 - 75,000đ",
-        specialties: ["Phở Đặc Biệt", "Bánh Mì", "Cơm Tấm"],
-      },
-      {
-        id: "3",
-        name: "Bếp Nhà",
-        address: "789 Xô Viết Nghệ Tĩnh, Bình Thạnh, TP.HCM",
-        phone: "0908765432",
-        rating: 4.7,
-        reviewCount: 89,
-        openTime: "08:00",
-        closeTime: "20:00",
-        isOpen: false,
-        image:
-          "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400",
-        distance: "1.5 km",
-        priceRange: "60,000 - 90,000đ",
-        specialties: ["Phở Truyền Thống", "Bánh Cuốn", "Chả Cá"],
-      },
-      {
-        id: "4",
-        name: "Món Ngon Sài Gòn",
-        address: "321 Phan Văn Trị, Bình Thạnh, TP.HCM",
-        phone: "0909876543",
-        rating: 4.0,
-        reviewCount: 203,
-        openTime: "06:30",
-        closeTime: "23:00",
-        isOpen: true,
-        image:
-          "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400",
-        distance: "2.1 km",
-        priceRange: "40,000 - 70,000đ",
-        specialties: ["Phở Gà", "Bún Riêu", "Hủ Tiếu"],
-      },
-      {
-        id: "5",
-        name: "Quán Cô Ba",
-        address: "654 Võ Văn Tần, Quận 3, TP.HCM",
-        phone: "0908123456",
-        rating: 4.8,
-        reviewCount: 412,
-        openTime: "07:00",
-        closeTime: "22:30",
-        isOpen: true,
-        image:
-          "https://th.bing.com/th/id/OIP.8ClU18yqyTA1_mLhngOB6gHaE7?rs=1&pid=ImgDetMain",
-        distance: "3.2 km",
-        priceRange: "55,000 - 85,000đ",
-        specialties: ["Phở Bò Viên", "Bánh Mì Thịt", "Chè Ba Màu"],
-      },
-      {
-        id: "6",
-        name: "Bún Phở Miền Nam",
-        address: "987 Nguyễn Thị Minh Khai, Quận 1, TP.HCM",
-        phone: "0907321654",
-        rating: 3.8,
-        reviewCount: 128,
-        openTime: "08:00",
-        closeTime: "21:00",
-        isOpen: false,
-        image:
-          "https://th.bing.com/th/id/OIP.8ClU18yqyTA1_mLhngOB6gHaE7?rs=1&pid=ImgDetMain",
-        distance: "4.5 km",
-        priceRange: "35,000 - 65,000đ",
-        specialties: ["Phở Tái", "Bún Bò", "Gỏi Cuốn"],
-      },
-    ];
+    // Load restaurants when we have search parameters
+    if (searchParam) {
+      loadRestaurants(searchParam, locationParam, latParam, lngParam);
+    }
+  }, [searchParams]);
 
-    setRestaurants(mockRestaurants);
-    setFilteredRestaurants(mockRestaurants);
-  }, [searchParams]); // Filter function
+  const loadRestaurants = async (
+    foodName: string,
+    specificLocation?: string | null,
+    lat?: string | null,
+    lng?: string | null
+  ) => {
+    setLoading(true);
+    try {
+      let userCoords = null;
+
+      // Use coordinates from URL params if available
+      if (lat && lng) {
+        userCoords = {
+          latitude: parseFloat(lat),
+          longitude: parseFloat(lng),
+        };
+      } else if (userLocation) {
+        // Fallback to geolocation if available
+        userCoords = userLocation;
+      }
+
+      console.log("Loading restaurants with:", {
+        foodName,
+        specificLocation,
+        userCoords,
+      });
+
+      const response = await findRestaurantsForFood(
+        foodName,
+        userCoords,
+        specificLocation ?? undefined
+      );
+
+      if (response.isSuccess && response.value) {
+        setRestaurants(response.value);
+        setFilteredRestaurants(response.value);
+      } else {
+        message.error("Không thể tải danh sách nhà hàng");
+        setRestaurants([]);
+        setFilteredRestaurants([]);
+      }
+    } catch (error) {
+      console.error("Error loading restaurants:", error);
+      message.error("Đã có lỗi xảy ra khi tải danh sách nhà hàng");
+      setRestaurants([]);
+      setFilteredRestaurants([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter function
   useEffect(() => {
     let filtered = restaurants.filter((restaurant) => {
       const matchesSearch =
         restaurant.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        restaurant.address.toLowerCase().includes(searchText.toLowerCase()) ||
-        restaurant.specialties.some((s) =>
+        restaurant.full_address
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        restaurant.types.some((s) =>
           s.toLowerCase().includes(searchText.toLowerCase())
         );
 
@@ -184,15 +136,10 @@ const RestaurantsPage: React.FC = () => {
     if (sortBy === "rating") {
       filtered = filtered.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === "distance") {
-      filtered = filtered.sort((a, b) => {
-        const distanceA = parseFloat(a.distance.replace(" km", ""));
-        const distanceB = parseFloat(b.distance.replace(" km", ""));
-        return distanceA - distanceB;
-      });
-    } else if (sortBy === "open") {
-      filtered = filtered.sort(
-        (a, b) => (b.isOpen ? 1 : 0) - (a.isOpen ? 1 : 0)
-      );
+      // Note: distance calculation would need to be implemented based on coordinates
+      filtered = filtered.sort((a, b) => a.name.localeCompare(b.name)); // Fallback sort
+    } else if (sortBy === "review_count") {
+      filtered = filtered.sort((a, b) => b.review_count - a.review_count);
     }
 
     setFilteredRestaurants(filtered);
@@ -201,7 +148,9 @@ const RestaurantsPage: React.FC = () => {
     router.back();
   };
 
-  const handleRestaurantClick = (restaurantId: string) => {
+  const handleRestaurantClick = (restaurant: any) => {
+    // Create a unique identifier that includes both business_id and place_id
+    const restaurantId = `${restaurant.business_id}__${restaurant.place_id}`;
     router.push(`/restaurants/${restaurantId}`);
   };
 
@@ -212,12 +161,12 @@ const RestaurantsPage: React.FC = () => {
       label: "Sắp xếp theo đánh giá",
     },
     {
-      key: "distance",
-      label: "Sắp xếp theo khoảng cách",
+      key: "review_count",
+      label: "Sắp xếp theo số lượng đánh giá",
     },
     {
-      key: "open",
-      label: "Quán đang mở cửa",
+      key: "distance",
+      label: "Sắp xếp theo khoảng cách",
     },
   ];
   return (
@@ -264,7 +213,13 @@ const RestaurantsPage: React.FC = () => {
               flex: 1,
             }}
           >
-            Quán ăn có {dish} tại {location}
+            {dish && location
+              ? `Quán ăn ${dish} tại ${location}`
+              : dish
+              ? `Quán ăn ${dish}`
+              : location
+              ? `Quán ăn tại ${location}`
+              : "Danh sách quán ăn"}
           </Title>
         </div>
       </Header>
@@ -276,333 +231,357 @@ const RestaurantsPage: React.FC = () => {
         }}
       >
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          {" "}
-          {/* Search and Filter Section */}
-          <Card
-            style={{
-              background: "rgba(255, 255, 255, 0.05)",
-              padding: "24px",
-              borderRadius: "20px",
-              marginBottom: "24px",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-            }}
-          >
-            <Row gutter={[16, 16]} align="middle">
-              {" "}
-              <Col xs={24} md={18}>
-                <Search
-                  placeholder="Tìm kiếm nhà hàng, địa chỉ, món ăn..."
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  style={{
-                    borderRadius: "12px",
-                  }}
-                  size="large"
-                  prefix={<SearchOutlined style={{ color: "#ffa366" }} />}
-                />
-              </Col>
-              <Col xs={24} md={6}>
-                <Dropdown
-                  menu={{
-                    items: filterItems,
-                    onClick: ({ key }) => setSortBy(key),
-                  }}
-                  placement="bottomRight"
-                >
-                  <Button
-                    size="large"
-                    style={{
-                      width: "100%",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderColor: "#ffa366",
-                      color: "#ffa366",
-                      background: "rgba(255, 163, 102, 0.1)",
-                    }}
-                  >
-                    <Space>
-                      <FilterOutlined />
-                      {filterItems.find((item) => item.key === sortBy)?.label}
-                      <DownOutlined />
-                    </Space>
-                  </Button>
-                </Dropdown>
-              </Col>
-            </Row>
-          </Card>{" "}
-          {/* Results Count */}
-          <div style={{ marginBottom: "24px" }}>
-            <Text
+          {loading ? (
+            <div
               style={{
-                color: "rgba(255, 255, 255, 0.8)",
-                fontSize: "16px",
-                fontWeight: "500",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                minHeight: "400px",
               }}
             >
-              Tìm thấy {filteredRestaurants.length} nhà hàng
-            </Text>
-          </div>
-          <Row gutter={[24, 24]}>
-            {filteredRestaurants.map((restaurant) => (
-              <Col xs={24} lg={12} key={restaurant.id}>
-                {" "}
-                <Card
-                  hoverable
-                  onClick={() => handleRestaurantClick(restaurant.id)}
-                  style={{
-                    background: "rgba(255, 255, 255, 0.05)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: "20px",
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
-                  }}                  bodyStyle={{ padding: "0", height: "100%" }}
-                >
-                  <Row style={{ height: "100%" }}>
-                    {" "}                    <Col xs={24} sm={10}>
-                      <div
+              <Spin size="large" />
+            </div>
+          ) : (
+            <>
+              {/* Search and Filter Section */}
+              <Card
+                style={{
+                  background: "rgba(255, 255, 255, 0.05)",
+                  padding: "24px",
+                  borderRadius: "20px",
+                  marginBottom: "24px",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+                }}
+              >
+                <Row gutter={[16, 16]} align="middle">
+                  <Col xs={24} md={18}>
+                    <Search
+                      placeholder="Tìm kiếm nhà hàng, địa chỉ, món ăn..."
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      style={{
+                        borderRadius: "12px",
+                      }}
+                      size="large"
+                      prefix={<SearchOutlined style={{ color: "#ffa366" }} />}
+                    />
+                  </Col>
+                  <Col xs={24} md={6}>
+                    <Dropdown
+                      menu={{
+                        items: filterItems,
+                        onClick: ({ key }) => setSortBy(key),
+                      }}
+                      placement="bottomRight"
+                    >
+                      <Button
+                        size="large"
                         style={{
-                          height: "100%",
-                          minHeight: "350px",
-                          backgroundImage: `url(${restaurant.image})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          position: "relative",
-                          borderRadius: "20px 0 0 20px",
+                          width: "100%",
+                          borderRadius: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderColor: "#ffa366",
+                          color: "#ffa366",
+                          background: "rgba(255, 163, 102, 0.1)",
                         }}
                       >
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "16px",
-                            right: "16px",
-                            display: "flex",
-                            gap: "8px",
-                          }}
-                        >
-                          {" "}
-                          <Badge
-                            status={restaurant.isOpen ? "success" : "error"}
-                            text={restaurant.isOpen ? "Mở cửa" : "Đóng cửa"}
-                            style={{
-                              background: "rgba(0, 0, 0, 0.8)",
-                              padding: "4px 12px",
-                              borderRadius: "20px",
-                              fontSize: "12px",
-                              fontWeight: "500",
-                              color: restaurant.isOpen ? "#52c41a" : "#ff4d4f",
-                            }}
-                          />
-                        </div>
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "16px",
-                            left: "16px",
-                          }}
-                        >
-                          <Button
-                            type="text"
-                            icon={<HeartOutlined />}
-                            style={{
-                              background: "rgba(0, 0, 0, 0.8)",
-                              border: "none",
-                              borderRadius: "50%",
-                              width: "36px",
-                              height: "36px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              color: "#ffa366",
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      </div>
-                    </Col>
-                    <Col xs={24} sm={14}>
-                      <div style={{ padding: "24px" }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            marginBottom: "12px",
-                          }}
-                        >
-                          {" "}
-                          <Title
-                            level={4}
-                            style={{
-                              color: "#ffffff",
-                              margin: 0,
-                              fontSize: "18px",
-                            }}
-                          >
-                            {restaurant.name}
-                          </Title>
-                          <Text
-                            style={{
-                              color: "#ffa366",
-                              fontSize: "14px",
-                              fontWeight: "600",
-                            }}
-                          >
-                            {restaurant.distance}
-                          </Text>
-                        </div>
-                        <Space
-                          direction="vertical"
-                          size="small"
-                          style={{ width: "100%" }}
-                        >
+                        <Space>
+                          <FilterOutlined />
+                          {
+                            filterItems.find((item) => item.key === sortBy)
+                              ?.label
+                          }
+                          <DownOutlined />
+                        </Space>
+                      </Button>
+                    </Dropdown>
+                  </Col>
+                </Row>
+              </Card>
+
+              {/* Results Count */}
+              <div style={{ marginBottom: "24px" }}>
+                <Text
+                  style={{
+                    color: "rgba(255, 255, 255, 0.8)",
+                    fontSize: "16px",
+                    fontWeight: "500",
+                  }}
+                >
+                  Tìm thấy {filteredRestaurants.length} nhà hàng{" "}
+                  {dish && `cho "${dish}"`} {location && `tại ${location}`}
+                </Text>
+              </div>
+
+              <Row gutter={[24, 24]}>
+                {filteredRestaurants.map((restaurant) => (
+                  <Col xs={24} lg={12} key={restaurant.business_id}>
+                    <Card
+                      hoverable
+                      onClick={() =>
+                        handleRestaurantClick(restaurant)
+                      }
+                      style={{
+                        background: "rgba(255, 255, 255, 0.05)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        borderRadius: "20px",
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+                      }}
+                      bodyStyle={{ padding: "0", height: "100%" }}
+                    >
+                      <Row style={{ height: "100%" }}>
+                        <Col xs={24} sm={10}>
                           <div
-                            style={{ display: "flex", alignItems: "center" }}
+                            style={{
+                              height: "100%",
+                              minHeight: "350px",
+                              backgroundImage:
+                                restaurant.photos &&
+                                restaurant.photos.length > 0
+                                  ? `url(${restaurant.photos[0].src})`
+                                  : `url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400)`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              position: "relative",
+                              borderRadius: "20px 0 0 20px",
+                            }}
                           >
-                            <Rate
-                              disabled
-                              defaultValue={restaurant.rating}
-                              style={{ fontSize: "16px" }}
-                            />{" "}
-                            <Text
+                            <div
                               style={{
-                                color: "rgba(255, 255, 255, 0.8)",
-                                marginLeft: "8px",
-                                fontSize: "14px",
+                                position: "absolute",
+                                top: "16px",
+                                left: "16px",
                               }}
                             >
-                              {restaurant.rating} ({restaurant.reviewCount} đánh
-                              giá)
-                            </Text>
+                              <Button
+                                type="text"
+                                icon={<HeartOutlined />}
+                                style={{
+                                  background: "rgba(0, 0, 0, 0.8)",
+                                  border: "none",
+                                  borderRadius: "50%",
+                                  width: "36px",
+                                  height: "36px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "#ffa366",
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
                           </div>
-
-                          <div
-                            style={{ display: "flex", alignItems: "center" }}
-                          >
-                            <EnvironmentOutlined
-                              style={{ color: "#ffa366", marginRight: "8px" }}
-                            />
-                            <Text
+                        </Col>
+                        <Col xs={24} sm={14}>
+                          <div style={{ padding: "24px" }}>
+                            <div
                               style={{
-                                color: "rgba(255, 255, 255, 0.7)",
-                                fontSize: "13px",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                marginBottom: "12px",
                               }}
                             >
-                              {restaurant.address}
-                            </Text>
-                          </div>
-
-                          <div
-                            style={{ display: "flex", alignItems: "center" }}
-                          >
-                            <ClockCircleOutlined
-                              style={{ color: "#ffa366", marginRight: "8px" }}
-                            />
-                            <Text
-                              style={{
-                                color: "rgba(255, 255, 255, 0.7)",
-                                fontSize: "13px",
-                              }}
+                              <Title
+                                level={4}
+                                style={{
+                                  color: "#ffffff",
+                                  margin: 0,
+                                  fontSize: "18px",
+                                }}
+                              >
+                                {restaurant.name}
+                              </Title>
+                            </div>
+                            <Space
+                              direction="vertical"
+                              size="small"
+                              style={{ width: "100%" }}
                             >
-                              {restaurant.openTime} - {restaurant.closeTime}
-                            </Text>
-                          </div>
-
-                          <div
-                            style={{ display: "flex", alignItems: "center" }}
-                          >
-                            <PhoneOutlined
-                              style={{ color: "#ffa366", marginRight: "8px" }}
-                            />
-                            <Text
-                              style={{
-                                color: "rgba(255, 255, 255, 0.7)",
-                                fontSize: "13px",
-                              }}
-                            >
-                              {restaurant.phone}
-                            </Text>
-                          </div>
-
-                          <Text
-                            style={{
-                              color: "#ffa366",
-                              fontSize: "15px",
-                              fontWeight: "600",
-                              marginTop: "4px",
-                            }}
-                          >
-                            {restaurant.priceRange}
-                          </Text>
-
-                          <div style={{ marginTop: "12px" }}>
-                            {restaurant.specialties
-                              .slice(0, 3)
-                              .map((specialty, index) => (
-                                <Tag
-                                  key={index}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <Rate
+                                  disabled
+                                  defaultValue={restaurant.rating}
+                                  style={{ fontSize: "16px" }}
+                                />
+                                <Text
                                   style={{
-                                    background: "rgba(255, 163, 102, 0.2)",
-                                    border:
-                                      "1px solid rgba(255, 163, 102, 0.4)",
-                                    color: "#ffa366",
-                                    marginBottom: "4px",
-                                    borderRadius: "12px",
-                                    fontSize: "12px",
+                                    color: "rgba(255, 255, 255, 0.8)",
+                                    marginLeft: "8px",
+                                    fontSize: "14px",
                                   }}
                                 >
-                                  {specialty}
-                                </Tag>
-                              ))}
+                                  {restaurant.rating} ({restaurant.review_count}{" "}
+                                  đánh giá)
+                                </Text>
+                              </div>
+
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <EnvironmentOutlined
+                                  style={{
+                                    color: "#ffa366",
+                                    marginRight: "8px",
+                                  }}
+                                />
+                                <Text
+                                  style={{
+                                    color: "rgba(255, 255, 255, 0.7)",
+                                    fontSize: "13px",
+                                  }}
+                                >
+                                  {restaurant.full_address}
+                                </Text>
+                              </div>
+
+                              {restaurant.phone_number && (
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <PhoneOutlined
+                                    style={{
+                                      color: "#ffa366",
+                                      marginRight: "8px",
+                                    }}
+                                  />
+                                  <Text
+                                    style={{
+                                      color: "rgba(255, 255, 255, 0.7)",
+                                      fontSize: "13px",
+                                    }}
+                                  >
+                                    {restaurant.phone_number}
+                                  </Text>
+                                </div>
+                              )}
+
+                              {restaurant.price_level && (
+                                <Text
+                                  style={{
+                                    color: "#ffa366",
+                                    fontSize: "15px",
+                                    fontWeight: "600",
+                                    marginTop: "4px",
+                                  }}
+                                >
+                                  {restaurant.price_level}
+                                </Text>
+                              )}
+
+                              <div style={{ marginTop: "12px" }}>
+                                {restaurant.types
+                                  .slice(0, 3)
+                                  .map((type, index) => (
+                                    <Tag
+                                      key={index}
+                                      style={{
+                                        background: "rgba(255, 163, 102, 0.2)",
+                                        border:
+                                          "1px solid rgba(255, 163, 102, 0.4)",
+                                        color: "#ffa366",
+                                        marginBottom: "4px",
+                                        borderRadius: "12px",
+                                        fontSize: "12px",
+                                      }}
+                                    >
+                                      {type}
+                                    </Tag>
+                                  ))}
+                              </div>
+                            </Space>
+
+                            <div
+                              style={{
+                                marginTop: "20px",
+                                display: "flex",
+                                gap: "12px",
+                              }}
+                            >
+                              <Button
+                                type="primary"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRestaurantClick(restaurant);
+                                }}
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg, #ffa366 0%, #ff8c42 100%)",
+                                  border: "none",
+                                  borderRadius: "10px",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                Xem chi tiết
+                              </Button>
+                              {restaurant.phone_number && (
+                                <Button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(
+                                      `tel:${restaurant.phone_number}`,
+                                      "_self"
+                                    );
+                                  }}
+                                  style={{
+                                    borderRadius: "10px",
+                                    borderColor: "#ffa366",
+                                    color: "#ffa366",
+                                    fontWeight: "500",
+                                    background: "rgba(255, 163, 102, 0.1)",
+                                  }}
+                                >
+                                  Gọi ngay
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                        </Space>{" "}
-                        <div
-                          style={{
-                            marginTop: "20px",
-                            display: "flex",
-                            gap: "12px",
-                          }}
-                        >
-                          <Button
-                            type="primary"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRestaurantClick(restaurant.id);
-                            }}
-                            style={{
-                              background:
-                                "linear-gradient(135deg, #ffa366 0%, #ff8c42 100%)",
-                              border: "none",
-                              borderRadius: "10px",
-                              fontWeight: "500",
-                            }}
-                          >
-                            Xem chi tiết
-                          </Button>
-                          <Button
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                              borderRadius: "10px",
-                              borderColor: "#ffa366",
-                              color: "#ffa366",
-                              fontWeight: "500",
-                              background: "rgba(255, 163, 102, 0.1)",
-                            }}
-                          >
-                            Gọi ngay
-                          </Button>
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                        </Col>
+                      </Row>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+
+              {filteredRestaurants.length === 0 && !loading && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "60px 20px",
+                    color: "rgba(255, 255, 255, 0.6)",
+                  }}
+                >
+                  <Title
+                    level={3}
+                    style={{ color: "rgba(255, 255, 255, 0.6)" }}
+                  >
+                    Không tìm thấy nhà hàng nào
+                  </Title>
+                  <Text style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+                    Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi vị trí.
+                  </Text>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </Content>
     </Layout>

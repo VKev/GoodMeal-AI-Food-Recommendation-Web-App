@@ -7,6 +7,5 @@ public class CreatePromptSessionValidator : AbstractValidator<CreatePromptSessio
 {
     public CreatePromptSessionValidator()
     {
-        RuleFor(x => x.UserId).NotEmpty();
     }
 }
