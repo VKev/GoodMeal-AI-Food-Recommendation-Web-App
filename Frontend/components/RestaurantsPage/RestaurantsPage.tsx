@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Layout,
@@ -13,14 +13,12 @@ import {
   Space,
   Input,
   Dropdown,
-  Badge,
   Spin,
   message,
 } from "antd";
 import {
   ArrowLeftOutlined,
   EnvironmentOutlined,
-  ClockCircleOutlined,
   PhoneOutlined,
   SearchOutlined,
   FilterOutlined,
@@ -51,22 +49,7 @@ const RestaurantsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>("rating");
   const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    const searchParam = searchParams.get("search");
-    const locationParam = searchParams.get("location");
-    const latParam = searchParams.get("lat");
-    const lngParam = searchParams.get("lng");
-
-    if (searchParam) setDish(decodeURIComponent(searchParam));
-    if (locationParam) setLocation(decodeURIComponent(locationParam));
-
-    // Load restaurants when we have search parameters
-    if (searchParam) {
-      loadRestaurants(searchParam, locationParam, latParam, lngParam);
-    }
-  }, [searchParams]);
-
-  const loadRestaurants = async (
+  const loadRestaurants = useCallback(async (
     foodName: string,
     specificLocation?: string | null,
     lat?: string | null,
@@ -115,7 +98,22 @@ const RestaurantsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userLocation]);
+
+  useEffect(() => {
+    const searchParam = searchParams.get("search");
+    const locationParam = searchParams.get("location");
+    const latParam = searchParams.get("lat");
+    const lngParam = searchParams.get("lng");
+
+    if (searchParam) setDish(decodeURIComponent(searchParam));
+    if (locationParam) setLocation(decodeURIComponent(locationParam));
+
+    // Load restaurants when we have search parameters
+    if (searchParam) {
+      loadRestaurants(searchParam, locationParam, latParam, lngParam);
+    }
+  }, [searchParams, loadRestaurants]);
 
   // Filter function
   useEffect(() => {
