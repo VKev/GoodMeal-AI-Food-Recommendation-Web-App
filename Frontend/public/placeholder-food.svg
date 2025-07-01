@@ -1,0 +1,16 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#2a2a2a"/>
+  <rect x="50" y="50" width="300" height="200" rx="20" fill="#3a3a3a" stroke="#555" stroke-width="2"/>
+  
+  <!-- Food icon -->
+  <circle cx="200" cy="130" r="25" fill="#ff7a00" opacity="0.3"/>
+  <path d="M190 120 C190 115, 195 110, 200 110 C205 110, 210 115, 210 120 L210 130 C210 135, 205 140, 200 140 C195 140, 190 135, 190 130 Z" fill="#ff7a00"/>
+  
+  <!-- Utensils -->
+  <path d="M175 150 L175 170 M175 150 C175 147, 177 145, 180 145 C183 145, 185 147, 185 150" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+  <path d="M225 145 L225 170 M220 150 L225 145 L230 150" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Text -->
+  <text x="200" y="200" text-anchor="middle" fill="#888" font-family="Arial, sans-serif" font-size="14">Hình ảnh không khả dụng</text>
+  <text x="200" y="220" text-anchor="middle" fill="#666" font-family="Arial, sans-serif" font-size="12">GoodMeal</text>
+</svg>

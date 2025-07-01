@@ -5,11 +5,31 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { UserManagement } from '@/components/AdminPage/UserManagement';
 import { BusinessManagement } from '@/components/AdminPage/BusinessManagement';
+import { 
+    Layout, 
+    Menu, 
+    Button, 
+    Typography, 
+    Space, 
+    Spin
+} from 'antd';
+import { 
+    UserOutlined, 
+    ShopOutlined, 
+    LogoutOutlined,
+    DashboardOutlined,
+    MenuFoldOutlined,
+    MenuUnfoldOutlined
+} from '@ant-design/icons';
+
+const { Content, Sider } = Layout;
+const { Title, Text } = Typography;
 
 export default function AdminPage() {
     const { isAdmin, loading, authenticated, logout } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'users' | 'businesses'>('users');
+    const [collapsed, setCollapsed] = useState(false);
 
     useEffect(() => {
         if (!loading) {
@@ -27,8 +47,14 @@ export default function AdminPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+            <div style={{ 
+                minHeight: '100vh', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                backgroundColor: '#ffffff'
+            }}>
+                <Spin size="large" />
             </div>
         );
     }
@@ -37,59 +63,116 @@ export default function AdminPage() {
         return null;
     }
 
+    const menuItems = [
+        {
+            key: 'users',
+            icon: <UserOutlined />,
+            label: 'Quản lý Người dùng',
+        },
+        {
+            key: 'businesses',
+            icon: <ShopOutlined />,
+            label: 'Quản lý Doanh nghiệp',
+        },
+        {
+            type: 'divider' as const,
+        },
+        {
+            key: 'logout',
+            icon: <LogoutOutlined />,
+            label: 'Đăng xuất',
+            danger: true,
+        },
+    ];
+
+    const handleMenuClick = ({ key }: { key: string }) => {
+        if (key === 'logout') {
+            logout();
+        } else {
+            setActiveTab(key as 'users' | 'businesses');
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center py-6">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                            <p className="mt-1 text-sm text-gray-500">Manage users and businesses</p>
-                        </div>
-                        <button
-                            onClick={() => logout()}
-                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
-                        >
-                            Logout
-                        </button>
-                    </div>
+        <Layout style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
+            <Sider 
+                trigger={null} 
+                collapsible 
+                collapsed={collapsed}
+                style={{ 
+                    backgroundColor: '#fff',
+                    borderRight: '1px solid #e8e8e8',
+                    boxShadow: 'none'
+                }}
+                theme="light"
+                width={250}
+            >
+                <div style={{ 
+                    height: '64px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: collapsed ? 'center' : 'flex-start',
+                    borderBottom: '1px solid #e8e8e8',
+                    padding: '0 16px',
+                    gap: '12px'
+                }}>
+                    <Button
+                        type="text"
+                        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                        onClick={() => setCollapsed(!collapsed)}
+                        style={{
+                            fontSize: '16px',
+                            width: 32,
+                            height: 32,
+                        }}
+                    />
+                    {!collapsed && (
+                        <Space>
+                            <DashboardOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+                            <div>
+                                <div style={{ 
+                                    fontSize: '16px', 
+                                    fontWeight: 600, 
+                                    color: '#1890ff',
+                                    lineHeight: '20px'
+                                }}>
+                                    Admin Panel
+                                </div>
+                                <div style={{ 
+                                    fontSize: '12px', 
+                                    color: '#666',
+                                    lineHeight: '16px'
+                                }}>
+                                    Quản lý hệ thống
+                                </div>
+                            </div>
+                        </Space>
+                    )}
                 </div>
-            </div>
-
-            {/* Navigation Tabs */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="border-b border-gray-200">
-                    <nav className="-mb-px flex space-x-8">
-                        <button
-                            onClick={() => setActiveTab('users')}
-                            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                activeTab === 'users'
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                        >
-                            User Management
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('businesses')}
-                            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                activeTab === 'businesses'
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                        >
-                            Business Management
-                        </button>
-                    </nav>
-                </div>
-
-                {/* Tab Content */}
-                <div className="mt-6">
+                <Menu
+                    mode="inline"
+                    selectedKeys={[activeTab]}
+                    items={menuItems}
+                    onClick={handleMenuClick}
+                    style={{ 
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        fontSize: '14px',
+                        marginTop: '16px'
+                    }}
+                />
+            </Sider>
+            
+            <Layout style={{ backgroundColor: '#fff' }}>
+                <Content style={{ 
+                    margin: '24px', 
+                    minHeight: 'calc(100vh - 48px)',
+                    backgroundColor: '#fff'
+                }}>
                     {activeTab === 'users' && <UserManagement />}
                     {activeTab === 'businesses' && <BusinessManagement />}
-                </div>
-            </div>
-        </div>
+                </Content>
+            </Layout>
+        </Layout>
     );
 }

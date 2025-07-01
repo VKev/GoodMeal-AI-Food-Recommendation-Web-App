@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Layout,
@@ -13,7 +13,6 @@ import {
   Space,
   Input,
   Dropdown,
-  Spin,
   message,
 } from "antd";
 import {
@@ -25,98 +24,90 @@ import {
   DownOutlined,
   HeartOutlined,
 } from "@ant-design/icons";
-import {
-  findRestaurantsForFood,
-  RestaurantPlace,
-} from "../../services/RestaurantService";
 import { useGeolocation } from "../../hooks/useGeolocation";
+import { useRestaurantsSearch } from "../../hooks/useRestaurants";
+import LoadingComponent from "../LoadingComponent";
 
 const { Content, Header } = Layout;
 const { Title, Text } = Typography;
-const { Search } = Input;
 
 const RestaurantsPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { location: userLocation } = useGeolocation();
-  const [restaurants, setRestaurants] = useState<RestaurantPlace[]>([]);
-  const [filteredRestaurants, setFilteredRestaurants] = useState<
-    RestaurantPlace[]
-  >([]);
+  
+  // Get search parameters
+  const searchParam = searchParams.get("search");
+  const locationParam = searchParams.get("location");
+  const latParam = searchParams.get("lat");
+  const lngParam = searchParams.get("lng");
+
+  // Local state
   const [dish, setDish] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [searchText, setSearchText] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("rating");
-  const [loading, setLoading] = useState<boolean>(false);
 
-  const loadRestaurants = useCallback(async (
-    foodName: string,
-    specificLocation?: string | null,
-    lat?: string | null,
-    lng?: string | null
-  ) => {
-    setLoading(true);
-    try {
-      let userCoords = null;
-
-      // Use coordinates from URL params if available
-      if (lat && lng) {
-        userCoords = {
-          latitude: parseFloat(lat),
-          longitude: parseFloat(lng),
-        };
-      } else if (userLocation) {
-        // Fallback to geolocation if available
-        userCoords = userLocation;
-      }
-
-      console.log("Loading restaurants with:", {
-        foodName,
-        specificLocation,
-        userCoords,
-      });
-
-      const response = await findRestaurantsForFood(
-        foodName,
-        userCoords,
-        specificLocation ?? undefined
-      );
-
-      if (response.isSuccess && response.value) {
-        setRestaurants(response.value);
-        setFilteredRestaurants(response.value);
-      } else {
-        message.error("Không thể tải danh sách nhà hàng");
-        setRestaurants([]);
-        setFilteredRestaurants([]);
-      }
-    } catch (error) {
-      console.error("Error loading restaurants:", error);
-      message.error("Đã có lỗi xảy ra khi tải danh sách nhà hàng");
-      setRestaurants([]);
-      setFilteredRestaurants([]);
-    } finally {
-      setLoading(false);
+  // Enhanced function to get high quality image URL
+  const getHighQualityImageUrl = (photoUrl: string) => {
+    if (!photoUrl) return 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=600&fit=crop&crop=center&q=80';
+    
+    // Handle Google Photos URLs
+    if (photoUrl.includes('googleusercontent.com')) {
+      return photoUrl.replace(/=w\d+-h\d+/, '=w800-h600').replace(/-k-no$/, '');
     }
-  }, [userLocation]);
+    
+    // Handle Google Static URLs
+    if (photoUrl.includes('gstatic.com')) {
+      return photoUrl.replace(/=w\d+-h\d+/, '=w800-h600');
+    }
+    
+    // Handle other Google image URLs
+    if (photoUrl.includes('googleapis.com')) {
+      return photoUrl.replace(/maxwidth=\d+/, 'maxwidth=800').replace(/maxheight=\d+/, 'maxheight=600');
+    }
+    
+    return photoUrl;
+  };
 
+  // Prepare coordinates for API call
+  const userCoords = useMemo(() => {
+    if (latParam && lngParam) {
+      return {
+        latitude: parseFloat(latParam),
+        longitude: parseFloat(lngParam),
+      };
+    }
+    return userLocation;
+  }, [latParam, lngParam, userLocation]);
+
+  // Use React Query for restaurants data
+  const {
+    data: restaurants = [],
+    isLoading,
+    error,
+    isFetching
+  } = useRestaurantsSearch(
+    searchParam || "",
+    userCoords,
+    locationParam || undefined
+  );
+
+  // Update local state when URL params change
   useEffect(() => {
-    const searchParam = searchParams.get("search");
-    const locationParam = searchParams.get("location");
-    const latParam = searchParams.get("lat");
-    const lngParam = searchParams.get("lng");
-
     if (searchParam) setDish(decodeURIComponent(searchParam));
     if (locationParam) setLocation(decodeURIComponent(locationParam));
+  }, [searchParam, locationParam]);
 
-    // Load restaurants when we have search parameters
-    if (searchParam) {
-      loadRestaurants(searchParam, locationParam, latParam, lngParam);
-    }
-  }, [searchParams, loadRestaurants]);
-
-  // Filter function
+  // Show error message if query fails
   useEffect(() => {
+    if (error) {
+      message.error("Không thể tải danh sách nhà hàng");
+    }
+  }, [error]);
+
+  // Filter and sort restaurants
+  const filteredAndSortedRestaurants = useMemo(() => {
     let filtered = restaurants.filter((restaurant) => {
       const matchesSearch =
         restaurant.name.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -140,7 +131,7 @@ const RestaurantsPage: React.FC = () => {
       filtered = filtered.sort((a, b) => b.review_count - a.review_count);
     }
 
-    setFilteredRestaurants(filtered);
+    return filtered;
   }, [restaurants, searchText, sortBy]);
   const handleBackClick = () => {
     router.back();
@@ -229,17 +220,12 @@ const RestaurantsPage: React.FC = () => {
         }}
       >
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          {loading ? (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minHeight: "400px",
-              }}
-            >
-              <Spin size="large" />
-            </div>
+          {/* Loading State */}
+          {isLoading && !restaurants.length ? (
+            <LoadingComponent 
+              message="Đang tìm kiếm nhà hàng..." 
+              fullScreen={false}
+            />
           ) : (
             <>
               {/* Search and Filter Section */}
@@ -254,19 +240,29 @@ const RestaurantsPage: React.FC = () => {
                 }}
               >
                 <Row gutter={[16, 16]} align="middle">
-                  <Col xs={24} md={18}>
-                    <Search
+                  <Col xs={24} md={16} lg={18}>
+                    <Input
                       placeholder="Tìm kiếm nhà hàng, địa chỉ, món ăn..."
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
                       style={{
                         borderRadius: "12px",
+                        height: "48px",
+                      }}
+                      styles={{
+                        input: {
+                          background: "rgba(255, 255, 255, 0.9)",
+                          borderColor: "rgba(255, 163, 102, 0.5)",
+                          color: "#000000",
+                          fontSize: "16px",
+                          paddingLeft: "48px",
+                        }
                       }}
                       size="large"
-                      prefix={<SearchOutlined style={{ color: "#ffa366" }} />}
+                      prefix={<SearchOutlined style={{ color: "#ffa366", fontSize: "18px" }} />}
                     />
                   </Col>
-                  <Col xs={24} md={6}>
+                  <Col xs={24} md={8} lg={6}>
                     <Dropdown
                       menu={{
                         items: filterItems,
@@ -281,24 +277,60 @@ const RestaurantsPage: React.FC = () => {
                           borderRadius: "12px",
                           display: "flex",
                           alignItems: "center",
-                          justifyContent: "center",
+                          justifyContent: "space-between",
                           borderColor: "#ffa366",
                           color: "#ffa366",
                           background: "rgba(255, 163, 102, 0.1)",
+                          height: "48px",
+                          padding: "0 16px",
+                          fontWeight: "500",
+                          overflow: "hidden",
                         }}
                       >
-                        <Space>
-                          <FilterOutlined />
-                          {
-                            filterItems.find((item) => item.key === sortBy)
-                              ?.label
-                          }
-                          <DownOutlined />
-                        </Space>
+                        <div style={{ 
+                          display: "flex", 
+                          alignItems: "center", 
+                          gap: "8px",
+                          flex: 1,
+                          minWidth: 0
+                        }}>
+                          <FilterOutlined style={{ fontSize: "16px", flexShrink: 0 }} />
+                          <span style={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            fontSize: "14px"
+                          }}>
+                            {sortBy === "rating" ? "Đánh giá" : 
+                             sortBy === "review_count" ? "Số đánh giá" : 
+                             sortBy === "distance" ? "Khoảng cách" : "Sắp xếp"}
+                          </span>
+                        </div>
+                        <DownOutlined style={{ fontSize: "12px", flexShrink: 0, marginLeft: "4px" }} />
                       </Button>
                     </Dropdown>
                   </Col>
                 </Row>
+                
+                {/* Refreshing indicator */}
+                {isFetching && restaurants.length > 0 && (
+                  <div style={{ 
+                    marginTop: "16px", 
+                    textAlign: "center", 
+                    color: "#ffa366",
+                    fontSize: "14px",
+                    fontWeight: "500"
+                  }}>
+                    <span style={{ 
+                      padding: "8px 16px", 
+                      background: "rgba(255, 163, 102, 0.1)",
+                      borderRadius: "20px",
+                      border: "1px solid rgba(255, 163, 102, 0.3)"
+                    }}>
+                      Đang cập nhật dữ liệu...
+                    </span>
+                  </div>
+                )}
               </Card>
 
               {/* Results Count */}
@@ -310,13 +342,13 @@ const RestaurantsPage: React.FC = () => {
                     fontWeight: "500",
                   }}
                 >
-                  Tìm thấy {filteredRestaurants.length} nhà hàng{" "}
+                  Tìm thấy {filteredAndSortedRestaurants.length} nhà hàng{" "}
                   {dish && `cho "${dish}"`} {location && `tại ${location}`}
                 </Text>
               </div>
 
               <Row gutter={[24, 24]}>
-                {filteredRestaurants.map((restaurant) => (
+                {filteredAndSortedRestaurants.map((restaurant) => (
                   <Col xs={24} lg={12} key={restaurant.business_id}>
                     <Card
                       hoverable
@@ -340,17 +372,32 @@ const RestaurantsPage: React.FC = () => {
                             style={{
                               height: "100%",
                               minHeight: "350px",
-                              backgroundImage:
-                                restaurant.photos &&
-                                restaurant.photos.length > 0
-                                  ? `url(${restaurant.photos[0].src})`
-                                  : `url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400)`,
+                              backgroundImage: restaurant.photos && restaurant.photos.length > 0
+                                ? `url(${getHighQualityImageUrl(restaurant.photos[0].src)})`
+                                : `url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=600&fit=crop&crop=center&q=80)`,
                               backgroundSize: "cover",
                               backgroundPosition: "center",
                               position: "relative",
                               borderRadius: "20px 0 0 20px",
+                              overflow: "hidden"
                             }}
                           >
+                            {/* Hidden img element for error handling */}
+                            <img 
+                              src={restaurant.photos && restaurant.photos.length > 0 
+                                ? getHighQualityImageUrl(restaurant.photos[0].src) 
+                                : 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=600&fit=crop&crop=center&q=80'
+                              }
+                              alt={restaurant.name}
+                              style={{ display: 'none' }}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                const parentDiv = target.parentElement;
+                                if (parentDiv) {
+                                  parentDiv.style.backgroundImage = `url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=600&fit=crop&crop=center&q=80)`;
+                                }
+                              }}
+                            />
                             <div
                               style={{
                                 position: "absolute",
@@ -559,7 +606,7 @@ const RestaurantsPage: React.FC = () => {
                 ))}
               </Row>
 
-              {filteredRestaurants.length === 0 && !loading && (
+              {filteredAndSortedRestaurants.length === 0 && !isLoading && (
                 <div
                   style={{
                     textAlign: "center",
@@ -571,10 +618,12 @@ const RestaurantsPage: React.FC = () => {
                     level={3}
                     style={{ color: "rgba(255, 255, 255, 0.6)" }}
                   >
-                    Không tìm thấy nhà hàng nào
+                    {error ? "Đã có lỗi xảy ra" : "Không tìm thấy nhà hàng nào"}
                   </Title>
                   <Text style={{ color: "rgba(255, 255, 255, 0.6)" }}>
-                    Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi vị trí.
+                    {error 
+                      ? "Vui lòng thử lại sau" 
+                      : "Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi vị trí."}
                   </Text>
                 </div>
               )}

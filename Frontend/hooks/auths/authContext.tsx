@@ -65,21 +65,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter();    const extractTokenData = async (user: User): Promise<TokenData | null> => {
         try {
             const idToken = await user.getIdToken();
-            console.log('id token:', idToken);
+            console.log('Getting ID token...');
 
-            // Call the check-authorization API
-            const authResponse = await checkAuthorization(idToken);
-            if (authResponse) {
-                setAuthUser(authResponse.user);
+            // Call the check-authorization API with timeout
+            let rolesFromBackend: string[] = [];
+            try {
+                const authResponse = await Promise.race([
+                    checkAuthorization(idToken),
+                    new Promise<null>((_, reject) => 
+                        setTimeout(() => reject(new Error('Authorization check timeout')), 5000)
+                    )
+                ]);
+                
+                if (authResponse) {
+                    console.log('Authorization check successful:', authResponse);
+                    setAuthUser(authResponse.user);
+                    rolesFromBackend = authResponse.user.roles || [];
+                } else {
+                    console.log('Authorization check returned null');
+                }
+            } catch (authError) {
+                console.error('Authorization check failed:', authError);
+                // Continue without authorization data
             }
 
             const idTokenResult = await user.getIdTokenResult();
 
             const claims = idTokenResult.claims;
+            
+            // Prioritize roles from backend, then from Firebase claims, then default
+            let finalRoles: string[] = [];
+            if (rolesFromBackend.length > 0) {
+                finalRoles = rolesFromBackend;
+                console.log('Using roles from backend:', finalRoles);
+            } else if (Array.isArray(claims.roles) && claims.roles.length > 0) {
+                finalRoles = claims.roles;
+                console.log('Using roles from Firebase claims:', finalRoles);
+            } else {
+                finalRoles = ['user']; // Default role
+                console.log('Using default role: user');
+            }
+            
             const tokenData: TokenData = {
                 email: user.email || '',
                 name: user.displayName || '',
-                roles: Array.isArray(claims.roles) ? claims.roles : [],
+                roles: finalRoles,
                 user_id: user.uid,
                 system_user_id: typeof claims.system_user_id === 'string' ? claims.system_user_id : '',
                 email_verified: user.emailVerified,
@@ -90,29 +120,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 exp: typeof claims.exp === 'number' ? claims.exp : undefined,
             };
 
+            console.log('Token data extracted:', tokenData);
             return tokenData;
         } catch (error) {
             console.error('Error extracting token data:', error);
-            return null;
+            // Return minimal token data to allow navigation
+            return {
+                email: user.email || '',
+                name: user.displayName || '',
+                roles: ['user'], // Default role
+                user_id: user.uid,
+                system_user_id: '',
+                email_verified: user.emailVerified,
+            };
         }
     };
 
     const navigateByRole = () => {
-        if (!userRoles.length) return;
+        console.log('=== NAVIGATION DEBUG ===');
+        console.log('navigateByRole called with roles:', userRoles);
+        console.log('Current authenticated state:', authenticated);
+        console.log('UserRole.ADMIN constant:', UserRole.ADMIN);
+        console.log('Does userRoles include admin?', userRoles.includes(UserRole.ADMIN));
+        console.log('Does userRoles include "admin"?', userRoles.includes('admin'));
+        console.log('Raw userRoles array:', JSON.stringify(userRoles));
+        
+        // Don't navigate if roles are empty - wait for them to load
+        if (!userRoles.length) {
+            console.log('No roles found yet, waiting for roles to load...');
+            return;
+        }
 
-        if (userRoles.includes(UserRole.ADMIN)) {
+        if (userRoles.some(role => role.toLowerCase() === UserRole.ADMIN.toLowerCase())) {
+            console.log('✅ Admin role detected! Navigating to admin page');
             router.push('/admin');
-        } else if (userRoles.includes(UserRole.BUSINESS)) {
+        } else if (userRoles.some(role => role.toLowerCase() === UserRole.BUSINESS.toLowerCase())) {
+            console.log('✅ Business role detected! Navigating to business page');
             router.push('/bussiness');
-        } else if (userRoles.includes(UserRole.USER)) {
+        } else if (userRoles.some(role => role.toLowerCase() === UserRole.USER.toLowerCase())) {
+            console.log('✅ User role detected! Navigating to user page');
             router.push('/c');
         } else {
+            console.log('❌ No matching role found. Default navigation to /c');
             router.push('/c');
         }
+        console.log('=== END NAVIGATION DEBUG ===');
     };
 
     const hasRole = (role: string): boolean => {
-        return userRoles.includes(role);
+        return userRoles.some(userRole => userRole.toLowerCase() === role.toLowerCase());
     };
 
     const isAdmin = (): boolean => {
@@ -140,16 +196,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(FirebaseAuth, async (user) => {
+            console.log('Auth state changed:', !!user);
             setCurrentUser(user);
             setAuthenticated(!!user);
 
             if (user) {
+                console.log('User found, extracting token data...');
                 const extractedData = await extractTokenData(user);
                 setTokenData(extractedData);
 
                 if (extractedData?.roles) {
+                    console.log('Roles extracted:', extractedData.roles);
                     setUserRoles(extractedData.roles);
-                }            } else {
+                } else {
+                    console.log('No roles found in token data');
+                    setUserRoles([]);
+                }
+            } else {
                 setTokenData(null);
                 setAuthUser(null);
                 setUserRoles([]);
@@ -161,10 +224,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     useEffect(() => {
-        if (authenticated && userRoles.length > 0 && !loading) {
-
+        console.log('Effect triggered - authenticated:', authenticated, 'userRoles:', userRoles, 'loading:', loading);
+        
+        // Only navigate when user is authenticated, not loading, and has roles
+        if (authenticated && !loading && userRoles.length > 0) {
+            console.log('User is authenticated, not loading, and has roles. Attempting navigation...');
+            // Add a small delay to ensure all state is updated
+            setTimeout(() => {
+                navigateByRole();
+            }, 100);
         }
-    }, [userRoles, authenticated, loading]);
+    }, [authenticated, loading, userRoles]); // Add userRoles to dependency array
 
     const logout = async () => {
         try {
