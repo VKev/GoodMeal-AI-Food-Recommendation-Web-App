@@ -16,6 +16,7 @@ public partial class SubscriptionContext : DbContext
 
     public virtual DbSet<Subscription> Subscriptions { get; set; }
     public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
+    public virtual DbSet<SubscriptionPaymentStatus> SubscriptionPaymentStatuses { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseNpgsql("Name=DefaultConnection");
@@ -134,6 +135,70 @@ public partial class SubscriptionContext : DbContext
             entity.HasOne(d => d.Subscription).WithMany(p => p.UserSubscriptions)
                 .HasForeignKey(d => d.SubscriptionId)
                 .HasConstraintName("fk_user_subscriptions_subscription_id");
+        });
+
+        modelBuilder.Entity<SubscriptionPaymentStatus>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("subscription_payment_statuses_pkey");
+
+            entity.ToTable("subscription_payment_statuses");
+
+            entity.HasIndex(e => e.CorrelationId, "ix_subscription_payment_statuses_correlation_id").IsUnique();
+            entity.HasIndex(e => e.OrderId, "ix_subscription_payment_statuses_order_id").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id");
+            entity.Property(e => e.CorrelationId)
+                .HasColumnName("correlation_id");
+            entity.Property(e => e.UserId)
+                .UseCollation("C.utf8")
+                .HasColumnName("user_id");
+            entity.Property(e => e.SubscriptionId)
+                .HasColumnName("subscription_id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(18, 2)
+                .HasColumnName("amount");
+            entity.Property(e => e.Currency)
+                .HasMaxLength(3)
+                .UseCollation("C.utf8")
+                .HasDefaultValue("VND")
+                .HasColumnName("currency");
+            entity.Property(e => e.OrderId)
+                .UseCollation("C.utf8")
+                .HasColumnName("order_id");
+            entity.Property(e => e.CurrentState)
+                .UseCollation("C.utf8")
+                .HasColumnName("current_state");
+            entity.Property(e => e.PaymentUrl)
+                .UseCollation("C.utf8")
+                .HasColumnName("payment_url");
+            entity.Property(e => e.PaymentUrlCreated)
+                .HasDefaultValue(false)
+                .HasColumnName("payment_url_created");
+            entity.Property(e => e.PaymentCompleted)
+                .HasDefaultValue(false)
+                .HasColumnName("payment_completed");
+            entity.Property(e => e.SubscriptionActivated)
+                .HasDefaultValue(false)
+                .HasColumnName("subscription_activated");
+            entity.Property(e => e.TransactionId)
+                .UseCollation("C.utf8")
+                .HasColumnName("transaction_id");
+            entity.Property(e => e.FailureReason)
+                .UseCollation("C.utf8")
+                .HasColumnName("failure_reason");
+            entity.Property(e => e.CompletedAt)
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("completed_at");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at");
         });
         
         OnModelCreatingPartial(modelBuilder);

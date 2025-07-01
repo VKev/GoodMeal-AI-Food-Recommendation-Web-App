@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Application.Prompt.Commands;
 using Application.Prompt.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
 using SharedLibrary.Common.Messaging.Commands;

@@ -5,8 +5,9 @@ using Application.Subscriptions.Queries.GetSubscriptionByIdQuery;
 using Application.Subscriptions.Commands.CreateSubscriptionCommand;
 using Application.Subscriptions.Commands.UpdateSubscriptionCommand;
 using Application.Subscriptions.Commands.DeleteSubscriptionCommand;
-using Application.UserSubscriptions.Commands.SubscribeUserCommand;
+using Application.UserSubscriptions.Commands.RegisterSubscriptionCommand;
 using Application.UserSubscriptions.Queries.GetMySubscriptionQuery;
+using Application.UserSubscriptions.Queries.GetSubscriptionPaymentStatusQuery;
 using SharedLibrary.Common;
 using SharedLibrary.Common.Messaging.Commands;
 using SharedLibrary.Utils.AuthenticationExtention;
@@ -140,6 +141,43 @@ namespace WebApi.Controllers
 
             return Ok(result);
         }
+        
+        [HttpPost("register")]
+        [ApiGatewayUser]
+        public async Task<IActionResult> RegisterSubscription([FromBody] RegisterSubscriptionRequest request,
+            CancellationToken cancellationToken)
+        {
+            var command = new RegisterSubscriptionCommand(request.SubscriptionId);
+            var registerResult = await _mediator.Send(command, cancellationToken);
+            var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+
+            var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+                (registerResult, true),
+                (saveResult, false)
+            );
+
+            if (aggregatedResult.IsFailure)
+            {
+                return HandleFailure(aggregatedResult);
+            }
+
+            return Ok(aggregatedResult.Value);
+        }
+        
+        [HttpGet("payment-status/{correlationId}")]
+        [ApiGatewayUser]
+        public async Task<IActionResult> GetSubscriptionPaymentStatus(Guid correlationId, CancellationToken cancellationToken)
+        {
+            var query = new GetSubscriptionPaymentStatusQuery(correlationId);
+            var result = await _mediator.Send(query, cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return HandleFailure(result);
+            }
+
+            return Ok(result);
+        }
 
         [HttpGet("health")]
         public async Task<IActionResult> Health()
@@ -154,5 +192,9 @@ namespace WebApi.Controllers
         decimal Price,
         int DurationInMonths,
         string Currency
+    );
+
+    public record RegisterSubscriptionRequest(
+        Guid SubscriptionId
     );
 }

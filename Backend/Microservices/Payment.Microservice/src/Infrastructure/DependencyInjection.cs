@@ -5,12 +5,12 @@ using Microsoft.Extensions.Logging;
 using Infrastructure.Configs;
 using Infrastructure.Repositories;
 using Infrastructure.Common;
+using Infrastructure.Services;
 using MassTransit;
 using SharedLibrary.Common;
 using SharedLibrary.Common.Event;
-using Application.Sagas;
 using Application.Consumers;
-using Application.Services;
+using VNPAY.NET;
 
 namespace Infrastructure
 {
@@ -19,12 +19,11 @@ namespace Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
-            services.AddScoped<IUserSubscriptionRepository, UserSubscriptionRepository>();
-            services.AddScoped<ISubscriptionPaymentStatusRepository, SubscriptionPaymentStatusRepository>();
-            services.AddScoped<ISubscriptionPaymentStatusService, SubscriptionPaymentStatusService>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddSingleton<EnvironmentConfig>();
+
+            services.AddScoped<IVnpay, Vnpay>();
+            services.AddScoped<IVnpayRepository, VnpayRepository>();
 
             services.AddScoped<EventBuffer>();
             services.AddScoped<IEventBuffer>(sp => sp.GetRequiredService<EventBuffer>());
@@ -53,17 +52,7 @@ namespace Infrastructure
 
             services.AddMassTransit(busConfigurator =>
             {
-                busConfigurator.AddSagaStateMachine<SubscriptionPaymentSaga, SubscriptionPaymentSagaData>()
-                    .RedisRepository(r =>
-                    {
-                        r.DatabaseConfiguration(
-                            $"{config.RedisHost}:{config.RedisPort},password={config.RedisPassword}");
-                        r.KeyPrefix = "subscription-payment-saga";
-                        r.Expiry = TimeSpan.FromMinutes(30); // Extended timeout for payment processing
-                    });
-
-                busConfigurator.AddConsumer<ActivateUserSubscriptionConsumer>();
-                busConfigurator.AddConsumer<SubscriptionPaymentStatusConsumer>();
+                busConfigurator.AddConsumer<CreateSubscriptionPaymentUrlConsumer>();
 
                 busConfigurator.SetKebabCaseEndpointNameFormatter();
                 busConfigurator.UsingRabbitMq((context, configurator) =>
