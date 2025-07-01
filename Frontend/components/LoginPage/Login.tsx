@@ -10,13 +10,16 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { authenticated, navigateByRole } = useAuth();
+  const { authenticated, loading: authLoading } = useAuth();
 
+  // Remove the useEffect that calls navigateByRole since it's now handled in AuthContext
   React.useEffect(() => {
-    if (authenticated) {
-      navigateByRole();
+    // If user is already authenticated when component mounts, redirect
+    if (authenticated && !authLoading) {
+      console.log('User already authenticated, redirecting...');
+      // The navigation will be handled by AuthContext
     }
-  }, [authenticated, navigateByRole]);
+  }, [authenticated, authLoading]);
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -29,7 +32,8 @@ const Login: React.FC = () => {
 
     try {
       await signInWithEmail(email, password);
-      // navigateByRole() will be called by the useEffect when authenticated changes
+      console.log('Email login successful');
+      // Navigation will be handled by AuthContext useEffect
     } catch (error: any) {
       setError(error.message || "Đăng nhập thất bại");
     } finally {
@@ -39,9 +43,12 @@ const Login: React.FC = () => {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    setError("");    try {
+    setError("");
+
+    try {
       await signInWithGoogle();
-      // navigateByRole() will be called by the useEffect when authenticated changes
+      console.log('Google login successful');
+      // Navigation will be handled by AuthContext useEffect
     } catch (error: any) {
       setError(error.message || "Đăng nhập bằng Google thất bại");
     } finally {

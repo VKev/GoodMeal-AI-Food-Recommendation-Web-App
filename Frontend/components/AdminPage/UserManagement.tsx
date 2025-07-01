@@ -1,8 +1,45 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { 
+    Table, 
+    Button, 
+    Modal, 
+    Select, 
+    Space, 
+    Typography, 
+    Row, 
+    Col, 
+    Tag, 
+    Popconfirm,
+    notification,
+    Statistic,
+    Avatar,
+    Divider,
+    Input,
+    Badge
+} from 'antd';
+import { 
+    UserOutlined, 
+    EditOutlined, 
+    DeleteOutlined, 
+    SearchOutlined,
+    PlusOutlined,
+    EyeOutlined,
+    EyeInvisibleOutlined,
+    MailOutlined,
+    CheckCircleOutlined,
+    CloseCircleOutlined,
+    ClockCircleOutlined,
+    CrownOutlined,
+    TeamOutlined,
+    ShopOutlined
+} from '@ant-design/icons';
 import { adminService } from '@/services/AdminService';
 import { useAuth } from '@/hooks/auths/authContext';
+
+const { Title, Text } = Typography;
+const { Option } = Select;
 
 interface User {
     uid: string;           // Changed from uid to uid
@@ -26,6 +63,8 @@ export function UserManagement() {
     const [newRole, setNewRole] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const { currentUser, userRoles } = useAuth();
+    
+    const [api, contextHolder] = notification.useNotification();
 
     const filterUsersBasedOnRole = (allUsers: User[]): User[] => {
         if (!currentUser) return allUsers;
@@ -140,12 +179,18 @@ export function UserManagement() {
             setUsers(prevUsers => prevUsers.map(updateUser));
             setFilteredUsers(prevUsers => prevUsers.map(updateUser));
 
-            alert(`Role "${newRole}" added successfully`);
+            api.success({
+                message: 'Thành công',
+                description: `Vai trò "${newRole}" đã được thêm thành công`,
+            });
             setShowRoleModal(false);
             setNewRole('');
         } catch (error) {
             console.error('Error adding role:', error);
-            alert(`Failed to add role: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            api.error({
+                message: 'Lỗi',
+                description: `Không thể thêm vai trò: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`,
+            });
         }
     };
 
@@ -165,10 +210,16 @@ export function UserManagement() {
             setUsers(prevUsers => prevUsers.map(updateUser));
             setFilteredUsers(prevUsers => prevUsers.map(updateUser));
 
-            alert(`Role "${role}" removed successfully`);
+            api.success({
+                message: 'Thành công',
+                description: `Vai trò "${role}" đã được gỡ bỏ thành công`,
+            });
         } catch (error) {
             console.error('Error removing role:', error);
-            alert('Failed to remove role');
+            api.error({
+                message: 'Lỗi',
+                description: 'Không thể gỡ bỏ vai trò',
+            });
         }
     };
 
@@ -180,14 +231,20 @@ export function UserManagement() {
         
         if (!user.status) {
             console.error('User status is missing:', user);
-            alert('User status information is not available');
+            api.error({
+                message: 'Lỗi',
+                description: 'Thông tin trạng thái người dùng không khả dụng',
+            });
             return;
         }
 
         if (!user.uid) {
             console.error('User uid is missing:', user);
             console.error('User object keys:', Object.keys(user));
-            alert('User uid is missing');
+            api.error({
+                message: 'Lỗi',
+                description: 'Thiếu thông tin định danh người dùng',
+            });
             return;
         }
 
@@ -196,10 +253,16 @@ export function UserManagement() {
             
             if (user.status.isDisabled) {
                 await adminService.enableUser(user.uid);
-                alert('User enabled successfully');
+                api.success({
+                    message: 'Thành công',
+                    description: 'Kích hoạt người dùng thành công',
+                });
             } else {
                 await adminService.disableUser(user.uid);
-                alert('User disabled successfully');
+                api.success({
+                    message: 'Thành công',
+                    description: 'Vô hiệu hóa người dùng thành công',
+                });
             }
 
             // Update local state for both users and filteredUsers
@@ -212,15 +275,14 @@ export function UserManagement() {
             setFilteredUsers(prevUsers => prevUsers.map(updateUser));
         } catch (error) {
             console.error('Error toggling user status:', error);
-            alert(`Failed to update user status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            api.error({
+                message: 'Lỗi',
+                description: `Không thể cập nhật trạng thái người dùng: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`,
+            });
         }
     };
 
     const handleDeleteUser = async (user: User) => {
-        if (!confirm(`Are you sure you want to delete user "${user.email}"? This action cannot be undone.`)) {
-            return;
-        }
-
         try {
             await adminService.deleteUser(user.uid);
             
@@ -228,212 +290,358 @@ export function UserManagement() {
             setUsers(prevUsers => prevUsers.filter(u => u.uid !== user.uid));
             setFilteredUsers(prevUsers => prevUsers.filter(u => u.uid !== user.uid));
             
-            alert('User deleted successfully');
+            api.success({
+                message: 'Thành công',
+                description: 'Xóa người dùng thành công',
+            });
         } catch (error) {
             console.error('Error deleting user:', error);
-            alert('Failed to delete user');
+            api.error({
+                message: 'Lỗi',
+                description: 'Không thể xóa người dùng',
+            });
         }
     };
 
-    return (
-        <div className="space-y-6">
-            {/* Search Section */}
-            <div className="bg-white p-6 rounded-lg shadow">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Search Users</h2>
-                <div className="flex gap-4">
-                    <input
-                        type="text"
-                        placeholder="Search by email or name..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-            </div>
+    // Get role icon and color
+    const getRoleConfig = (role: string) => {
+        switch (role) {
+            case 'Admin':
+                return { icon: <CrownOutlined />, color: 'red' };
+            case 'Business':
+                return { icon: <ShopOutlined />, color: 'blue' };
+            default:
+                return { icon: <UserOutlined />, color: 'green' };
+        }
+    };
 
-            {/* Users List */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Users ({filteredUsers.length})
-                        {searchQuery && (
-                            <span className="text-sm font-normal text-gray-500 ml-2">
-                                - Filtered by &quot;{searchQuery}&quot;
-                            </span>
+    // Define table columns
+    const columns = [
+        {
+            title: 'Thông tin người dùng',
+            key: 'user',
+            width: 300,
+            render: (record: User) => (
+                <Space>
+                    <Badge 
+                        status={record.status?.isDisabled ? 'error' : 'success'}
+                        offset={[-5, 45]}
+                    >
+                        <Avatar 
+                            size="large" 
+                            style={{ backgroundColor: '#1890ff' }}
+                            icon={<UserOutlined />}
+                        >
+                            {(record.name || record.email).charAt(0).toUpperCase()}
+                        </Avatar>
+                    </Badge>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: '16px', wordBreak: 'break-word' }}>
+                            {record.name || 'Chưa có tên'}
+                        </div>
+                        <Text type="secondary" style={{ wordBreak: 'break-all' }}>
+                            <MailOutlined style={{ marginRight: 4 }} />
+                            {record.email}
+                        </Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: '12px', wordBreak: 'break-all' }}>
+                            ID: {record.uid}
+                        </Text>
+                    </div>
+                </Space>
+            ),
+        },
+        {
+            title: 'Vai trò & Quyền hạn',
+            key: 'roles',
+            width: 250,
+            render: (record: User) => (
+                <Space direction="vertical" size="small">
+                    <div>
+                        {record.roles.length === 0 ? (
+                            <Tag icon={<UserOutlined />} color="default">
+                                Người dùng mặc định
+                            </Tag>
+                        ) : (
+                            <Space wrap>
+                                {record.roles.map((role) => {
+                                    const config = getRoleConfig(role);
+                                    return (
+                                        <Tag
+                                            key={role}
+                                            icon={config.icon}
+                                            color={config.color}
+                                            closable
+                                            onClose={() => handleRemoveRole(record, role)}
+                                        >
+                                            {role}
+                                        </Tag>
+                                    );
+                                })}
+                            </Space>
                         )}
-                    </h2>
-                </div>
-                
-                {loading ? (
-                    <div className="text-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                        <p className="mt-2 text-gray-500">Loading users...</p>
                     </div>
-                ) : filteredUsers.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                        {searchQuery ? 'No users found matching your search.' : 'No users available.'}
-                    </div>
+                </Space>
+            ),
+        },
+        {
+            title: 'Trạng thái tài khoản',
+            key: 'status',
+            width: 200,
+            render: (record: User) => (
+                record.status ? (
+                    <Space direction="vertical" size="small">
+                        <Tag 
+                            icon={record.status.isDisabled ? <CloseCircleOutlined /> : <CheckCircleOutlined />}
+                            color={record.status.isDisabled ? 'error' : 'success'}
+                        >
+                            {record.status.isDisabled ? 'Bị vô hiệu hóa' : 'Hoạt động'}
+                        </Tag>
+                        <div>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                                Email: {record.status.emailVerified ? '✓ Đã xác thực' : '✗ Chưa xác thực'}
+                            </Text>
+                        </div>
+                        <div>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                                <ClockCircleOutlined /> {
+                                    record.status.lastSignInTime ? 
+                                    new Date(record.status.lastSignInTime).toLocaleDateString('vi-VN') : 
+                                    'Chưa từng'
+                                }
+                            </Text>
+                        </div>
+                    </Space>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        User
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Roles
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredUsers.map((user) => (
-                                    <tr key={user.uid}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div>
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {user.name || 'No name'}
-                                                </div>
-                                                <div className="text-sm text-gray-500">{user.email}</div>
-                                                <div className="text-xs text-gray-400 mt-1">
-                                                    ID: {user.uid}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex flex-wrap gap-1">
-                                                {user.roles.length === 0 ? (
-                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                        User
-                                                    </span>
-                                                ) : (
-                                                    user.roles.map((role) => (
-                                                        <span
-                                                            key={role}
-                                                            className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                                                        >
-                                                            {role}
-                                                            <button
-                                                                onClick={() => handleRemoveRole(user, role)}
-                                                                className="ml-1 text-blue-600 hover:text-blue-800"
-                                                                title="Remove role"
-                                                            >
-                                                                ×
-                                                            </button>
-                                                        </span>
-                                                    ))
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {user.status ? (
-                                                <div className="space-y-1">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                        user.status.isDisabled 
-                                                            ? 'bg-red-100 text-red-800' 
-                                                            : 'bg-green-100 text-green-800'
-                                                    }`}>
-                                                        {user.status.isDisabled ? 'Disabled' : 'Active'}
-                                                    </span>
-                                                    <div className="text-xs text-gray-500">
-                                                        Email: {user.status.emailVerified ? 'Verified' : 'Not verified'}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500">
-                                                        Last login: {user.status.lastSignInTime ? 
-                                                            new Date(user.status.lastSignInTime).toLocaleDateString() : 
-                                                            'Never'
-                                                        }
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <span className="text-gray-400">Unknown</span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedUser(user);
-                                                        setShowRoleModal(true);
-                                                    }}
-                                                    className="text-blue-600 hover:text-blue-900"
-                                                >
-                                                    Add Role
-                                                </button>
-                                                {user.status && (
-                                                    <button
-                                                        onClick={() => handleToggleUserStatus(user)}
-                                                        className={`${
-                                                            user.status.isDisabled 
-                                                                ? 'text-green-600 hover:text-green-900' 
-                                                                : 'text-yellow-600 hover:text-yellow-900'
-                                                        }`}
-                                                    >
-                                                        {user.status.isDisabled ? 'Enable' : 'Disable'}
-                                                    </button>
-                                                )}
-                                                <button
-                                                    onClick={() => handleDeleteUser(user)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
+                    <Text type="secondary">Không rõ trạng thái</Text>
+                )
+            ),
+        },
+        {
+            title: 'Thao tác',
+            key: 'actions',
+            width: 200,
+            fixed: 'right' as const,
+            render: (record: User) => (
+                <Space direction="vertical" size="small">
+                    <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />} 
+                        size="small"
+                        block
+                        onClick={() => {
+                            setSelectedUser(record);
+                            setShowRoleModal(true);
+                        }}
+                    >
+                        Thêm vai trò
+                    </Button>
+                    {record.status && (
+                        <Button 
+                            type={record.status.isDisabled ? 'default' : 'dashed'}
+                            icon={record.status.isDisabled ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                            size="small"
+                            block
+                            onClick={() => handleToggleUserStatus(record)}
+                        >
+                            {record.status.isDisabled ? 'Kích hoạt' : 'Vô hiệu hóa'}
+                        </Button>
+                    )}
+                    <Popconfirm
+                        title="Xóa người dùng"
+                        description={`Bạn có chắc chắn muốn xóa người dùng "${record.email}"?`}
+                        onConfirm={() => handleDeleteUser(record)}
+                        okText="Có"
+                        cancelText="Không"
+                    >
+                        <Button 
+                            danger 
+                            icon={<DeleteOutlined />} 
+                            size="small"
+                            block
+                        >
+                            Xóa
+                        </Button>
+                    </Popconfirm>
+                </Space>
+            ),
+        },
+    ];
 
-            {/* Add Role Modal */}
-            {showRoleModal && selectedUser && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Add Role to {selectedUser.email}
-                        </h3>
-                        <div className="space-y-4">
-                            <select
+    return (
+        <div style={{ backgroundColor: '#ffffff', padding: '0', minHeight: '100%' }}>
+            {contextHolder}
+            <div style={{ maxWidth: '100%', margin: '0 auto' }}>
+                <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
+                    <Col>
+                        <Title level={2} style={{ margin: 0, color: '#1890ff' }}>
+                            <TeamOutlined style={{ marginRight: '12px' }} />
+                            Quản lý Người dùng
+                        </Title>
+                        <Text type="secondary" style={{ fontSize: '16px' }}>
+                            Quản lý tài khoản, vai trò và quyền hạn người dùng
+                        </Text>
+                    </Col>
+                    
+                </Row>
+
+                <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+                    <Col xs={24} md={16}>
+                        <Input.Search
+                            placeholder="Tìm kiếm theo email hoặc tên..."
+                            allowClear
+                            size="large"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            prefix={<SearchOutlined />}
+                        />
+                    </Col>
+                </Row>
+                
+                <Divider />
+                
+                <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+                    <Col xs={24} sm={6}>
+                        <Statistic
+                            title="Người dùng hoạt động"
+                            value={users.filter(u => u.status && !u.status.isDisabled).length}
+                            valueStyle={{ color: '#3f8600' }}
+                            prefix={<CheckCircleOutlined />}
+                        />
+                    </Col>
+                    <Col xs={24} sm={6}>
+                        <Statistic
+                            title="Bị vô hiệu hóa"
+                            value={users.filter(u => u.status && u.status.isDisabled).length}
+                            valueStyle={{ color: '#cf1322' }}
+                            prefix={<CloseCircleOutlined />}
+                        />
+                    </Col>
+                    <Col xs={24} sm={6}>
+                        <Statistic
+                            title="Quản trị viên"
+                            value={users.filter(u => u.roles.includes('Admin')).length}
+                            valueStyle={{ color: '#d4380d' }}
+                            prefix={<CrownOutlined />}
+                        />
+                    </Col>
+                    <Col xs={24} sm={6}>
+                        <Statistic
+                            title="Kết quả lọc"
+                            value={filteredUsers.length}
+                            valueStyle={{ color: '#1890ff' }}
+                            prefix={<SearchOutlined />}
+                        />
+                    </Col>
+                </Row>
+
+                <Table
+                        columns={columns}
+                        dataSource={filteredUsers}
+                        loading={loading}
+                        rowKey="uid"
+                        scroll={{ x: 'max-content' }}
+                        pagination={{
+                            pageSize: 10,
+                            showSizeChanger: true,
+                            showQuickJumper: true,
+                            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} mục`,
+                        }}
+                        locale={{
+                            emptyText: searchQuery 
+                                ? `Không tìm thấy người dùng nào phù hợp với "${searchQuery}"`
+                                : 'Không có người dùng nào hiển thị.'
+                        }}
+                    />
+
+                <Modal
+                    title={
+                        <Space>
+                            <PlusOutlined />
+                            Thêm vai trò cho {selectedUser?.email}
+                        </Space>
+                    }
+                    open={showRoleModal}
+                    onCancel={() => {
+                        setShowRoleModal(false);
+                        setNewRole('');
+                    }}
+                    footer={[
+                        <Button key="cancel" onClick={() => {
+                            setShowRoleModal(false);
+                            setNewRole('');
+                        }}>
+                            Hủy
+                        </Button>,
+                        <Button 
+                            key="submit" 
+                            type="primary" 
+                            disabled={!newRole}
+                            onClick={handleAddRole}
+                        >
+                            Thêm vai trò
+                        </Button>
+                    ]}
+                >
+                    <Space direction="vertical" style={{ width: '100%' }} size="large">
+                        <div>
+                            <Text strong>Chọn vai trò để gán:</Text>
+                            <Select
+                                style={{ width: '100%', marginTop: 8 }}
+                                placeholder="Chọn một vai trò..."
                                 value={newRole}
-                                onChange={(e) => setNewRole(e.target.value)}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onChange={setNewRole}
+                                size="large"
                             >
-                                <option value="">Select a role</option>
-                                <option value="Admin">Admin</option>
-                                <option value="Business">Business</option>
-                                <option value="User">User</option>
-                            </select>
-                            <div className="flex justify-end gap-3">
-                                <button
-                                    onClick={() => {
-                                        setShowRoleModal(false);
-                                        setNewRole('');
-                                    }}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleAddRole}
-                                    disabled={!newRole}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
-                                >
-                                    Add Role
-                                </button>
+                                <Option value="Admin">
+                                    <Space>
+                                        <CrownOutlined style={{ color: '#cf1322' }} />
+                                        Admin - Toàn quyền hệ thống
+                                    </Space>
+                                </Option>
+                                <Option value="Business">
+                                    <Space>
+                                        <ShopOutlined style={{ color: '#1890ff' }} />
+                                        Business - Quản lý doanh nghiệp
+                                    </Space>
+                                </Option>
+                                <Option value="User">
+                                    <Space>
+                                        <UserOutlined style={{ color: '#52c41a' }} />
+                                        User - Người dùng tiêu chuẩn
+                                    </Space>
+                                </Option>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <Text strong>Vai trò hiện tại:</Text>
+                            <div style={{ marginTop: 8 }}>
+                                {selectedUser?.roles.length === 0 ? (
+                                    <Tag icon={<UserOutlined />} color="default">
+                                        Không có vai trò nào
+                                    </Tag>
+                                ) : (
+                                    <Space wrap>
+                                        {selectedUser?.roles.map((role) => {
+                                            const config = getRoleConfig(role);
+                                            return (
+                                                <Tag
+                                                    key={role}
+                                                    icon={config.icon}
+                                                    color={config.color}
+                                                >
+                                                    {role}
+                                                </Tag>
+                                            );
+                                        })}
+                                    </Space>
+                                )}
                             </div>
                         </div>
-                    </div>
-                </div>
-            )}
+                    </Space>
+                </Modal>
+            </div>
         </div>
     );
 }

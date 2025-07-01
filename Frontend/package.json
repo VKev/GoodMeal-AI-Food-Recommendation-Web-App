@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.0.0",
     "@aws-sdk/client-s3": "^3.817.0",
     "@fullpage/react-fullpage": "^0.1.48",
     "@heroui/react": "^2.7.8",
@@ -20,7 +21,7 @@
     "@types/node": "^20.17.52",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "antd": "^5.25.2",
+    "antd": "^5.26.3",
     "firebase": "^11.9.0",
     "framer-motion": "^11.18.2",
     "fullpage.js": "^4.0.35",

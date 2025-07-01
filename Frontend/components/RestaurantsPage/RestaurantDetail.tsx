@@ -105,27 +105,52 @@ const RestaurantDetail: React.FC = () => {
       const photoUrl = photos[0].src;
       // Try to get higher resolution by modifying Google image URL parameters
       if (photoUrl.includes('googleusercontent.com')) {
-        return photoUrl.replace(/=w\d+-h\d+/, '=w1200-h800').replace(/-k-no$/, '');
+        return photoUrl.replace(/=w\d+-h\d+/, '=w1920-h1080').replace(/-k-no$/, '');
+      }
+      if (photoUrl.includes('gstatic.com')) {
+        return photoUrl.replace(/=w\d+-h\d+/, '=w1920-h1080');
       }
       return photoUrl;
     }
     
-    if (!restaurant) return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=800&fit=crop&crop=center&q=80';
+    if (!restaurant) return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop&crop=center&q=80';
     
     const restaurantTypes = restaurant.types?.map((type: string) => type.toLowerCase()) || [];
     
     // Check for Vietnamese food
-    if (restaurantTypes.some(type => type.includes('việt') || type.includes('phở') || type.includes('bún'))) {
-      return 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=1200&h=800&fit=crop&crop=center&q=80';
+    if (restaurantTypes.some((type: string) => type.includes('việt') || type.includes('phở') || type.includes('bún'))) {
+      return 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=1920&h=1080&fit=crop&crop=center&q=80';
     }
     
     // Check for general restaurant/food
-    if (restaurantTypes.some(type => type.includes('nhà hàng') || type.includes('quán ăn'))) {
-      return 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&h=800&fit=crop&crop=center&q=80';
+    if (restaurantTypes.some((type: string)  => type.includes('nhà hàng') || type.includes('quán ăn'))) {
+      return 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1920&h=1080&fit=crop&crop=center&q=80';
     }
     
     // Default restaurant image
-    return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=800&fit=crop&crop=center&q=80';
+    return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop&crop=center&q=80';
+  };
+
+  // Enhanced function to get high quality image URL
+  const getHighQualityImageUrl = (photoUrl: string) => {
+    if (!photoUrl) return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop&crop=center&q=80';
+    
+    // Handle Google Photos URLs
+    if (photoUrl.includes('googleusercontent.com')) {
+      return photoUrl.replace(/=w\d+-h\d+/, '=w1920-h1080').replace(/-k-no$/, '');
+    }
+    
+    // Handle Google Static URLs
+    if (photoUrl.includes('gstatic.com')) {
+      return photoUrl.replace(/=w\d+-h\d+/, '=w1920-h1080');
+    }
+    
+    // Handle other Google image URLs
+    if (photoUrl.includes('googleapis.com')) {
+      return photoUrl.replace(/maxwidth=\d+/, 'maxwidth=1920').replace(/maxheight=\d+/, 'maxheight=1080');
+    }
+    
+    return photoUrl;
   };
 
   // Parse business_id and place_id from URL params - REMOVED (moved to useMemo above)
@@ -391,7 +416,24 @@ const RestaurantDetail: React.FC = () => {
                       overflow: "hidden",
                       boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
                     }}
+                    onError={(e) => {
+                      const target = e.target as HTMLDivElement;
+                      target.style.backgroundImage = `url(https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop&crop=center&q=80)`;
+                    }}
                   >
+                    {/* Hidden img element for error handling */}
+                    <img 
+                      src={getRestaurantImage(restaurant)}
+                      alt="Restaurant"
+                      style={{ display: 'none' }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        const parentDiv = target.parentElement;
+                        if (parentDiv) {
+                          parentDiv.style.backgroundImage = `url(https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop&crop=center&q=80)`;
+                        }
+                      }}
+                    />
                     {/* Overlay gradient for better text readability */}
                     <div style={{
                       position: "absolute",
@@ -444,7 +486,7 @@ const RestaurantDetail: React.FC = () => {
                             style={{
                               width: "100%",
                               height: "80px",
-                              backgroundImage: `url(${photo.src})`,
+                              backgroundImage: `url(${getHighQualityImageUrl(photo.src)})`,
                               backgroundSize: "cover",
                               backgroundPosition: "center",
                               borderRadius: "12px",
@@ -465,6 +507,19 @@ const RestaurantDetail: React.FC = () => {
                               e.currentTarget.style.borderColor = "rgba(255, 163, 102, 0.3)";
                             }}
                           >
+                            {/* Hidden img element for error handling */}
+                            <img 
+                              src={getHighQualityImageUrl(photo.src)}
+                              alt={`Restaurant photo ${index + 1}`}
+                              style={{ display: 'none' }}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                const parentDiv = target.parentElement;
+                                if (parentDiv) {
+                                  parentDiv.style.backgroundImage = `url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center&q=80)`;
+                                }
+                              }}
+                            />
                             {index === 3 && photos.length > 4 && (
                               <div style={{
                                 position: "absolute",
@@ -1263,7 +1318,18 @@ const RestaurantDetail: React.FC = () => {
           borderRadius: "16px",
           overflow: "hidden"
         }}
+        styles={{
+          mask: {
+            backgroundColor: "rgba(0, 0, 0, 0.9)"
+          },
+          content: {
+            backgroundColor: "transparent",
+            boxShadow: "none",
+            padding: 0
+          }
+        }}
         destroyOnClose={true}
+        maskClosable={true}
       >
         <div style={{ position: "relative", minHeight: "500px" }}>
           {/* Main Image */}
@@ -1271,25 +1337,44 @@ const RestaurantDetail: React.FC = () => {
             width: "100%",
             height: "80vh",
             maxHeight: "800px",
-            backgroundImage: `url(${photos[selectedPhotoIndex]?.src})`,
-            backgroundSize: "contain",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
+            position: "relative",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center"
+            justifyContent: "center",
+            background: "rgba(0, 0, 0, 0.8)"
           }}>
+            <img
+              src={getHighQualityImageUrl(photos[selectedPhotoIndex]?.src)}
+              alt={`Restaurant photo ${selectedPhotoIndex + 1}`}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+                borderRadius: "8px"
+              }}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop&crop=center&q=80';
+              }}
+            />
+            
             {/* Loading placeholder */}
-            <div style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              color: "rgba(255, 255, 255, 0.5)",
-              fontSize: "18px"
-            }}>
-              {!photos[selectedPhotoIndex]?.src && "Đang tải..."}
-            </div>
+            {!photos[selectedPhotoIndex]?.src && (
+              <div style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                color: "rgba(255, 255, 255, 0.5)",
+                fontSize: "18px",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px"
+              }}>
+                <Spin size="large" />
+                <span>Đang tải...</span>
+              </div>
+            )}
           </div>
           
           {/* Image Info */}
@@ -1415,16 +1500,32 @@ const RestaurantDetail: React.FC = () => {
                   style={{
                     width: "60px",
                     height: "40px",
-                    backgroundImage: `url(${photo.src})`,
+                    backgroundImage: `url(${getHighQualityImageUrl(photo.src)})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     borderRadius: "8px",
                     cursor: "pointer",
                     border: index === selectedPhotoIndex ? "3px solid #ffa366" : "2px solid rgba(255, 255, 255, 0.3)",
                     transition: "all 0.3s ease",
-                    flexShrink: 0
+                    flexShrink: 0,
+                    position: "relative",
+                    overflow: "hidden"
                   }}
-                />
+                >
+                  {/* Hidden img for error handling */}
+                  <img 
+                    src={getHighQualityImageUrl(photo.src)}
+                    alt={`Thumbnail ${index + 1}`}
+                    style={{ display: 'none' }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      const parentDiv = target.parentElement;
+                      if (parentDiv) {
+                        parentDiv.style.backgroundImage = `url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&h=150&fit=crop&crop=center&q=80)`;
+                      }
+                    }}
+                  />
+                </div>
               ))}
               {photos.length > 10 && (
                 <div style={{
