@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Layout,
@@ -34,12 +34,11 @@ import {
   LoadingOutlined,
 } from "@ant-design/icons";
 import { 
-  getRestaurantDetail, 
-  getRestaurantReviews, 
-  getRestaurantPhotos,
-  RestaurantDetailResponse,
-  RestaurantReview
-} from "../../services/RestaurantService";
+  useRestaurantDetail,
+  useRestaurantPhotos,
+  useAllRestaurantReviews
+} from "../../hooks/useRestaurants";
+import LoadingComponent from "../LoadingComponent";
 
 const { Content, Header } = Layout;
 const { Title, Text } = Typography;
@@ -47,20 +46,60 @@ const { Title, Text } = Typography;
 const RestaurantDetail: React.FC = () => {
   const router = useRouter();
   const params = useParams();
-  const [restaurant, setRestaurant] = useState<RestaurantDetailResponse['value'] | null>(null);
-  const [reviews, setReviews] = useState<RestaurantReview[]>([]);
-  const [photos, setPhotos] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [reviewsLoading, setReviewsLoading] = useState<boolean>(false);
-  const [, setHasMoreReviews] = useState<boolean>(true);
+  
+  // Local state
   const [selectedRating, setSelectedRating] = useState<number>(0);
   const [reviewSortBy, setReviewSortBy] = useState<string>("newest");
   const [photoModalVisible, setPhotoModalVisible] = useState<boolean>(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
   const [showAllReviews, setShowAllReviews] = useState<boolean>(false);
 
+  // Parse restaurant ID from URL params
+  const { business_id, place_id } = useMemo(() => {
+    if (!params.id) return { business_id: '', place_id: '' };
+    
+    const id = params.id as string;
+    const parts = id.split('__');
+    if (parts.length === 2) {
+      return {
+        business_id: parts[0],
+        place_id: parts[1]
+      };
+    }
+    
+    console.warn('Unable to parse restaurant ID:', id);
+    return {
+      business_id: id,
+      place_id: id
+    };
+  }, [params.id]);
+
+  // Use React Query hooks for data fetching
+  const {
+    data: restaurant,
+    isLoading: restaurantLoading,
+    error: restaurantError
+  } = useRestaurantDetail(business_id, place_id);
+
+  const {
+    data: photos = [],
+    isLoading: photosLoading
+  } = useRestaurantPhotos(business_id, place_id);
+
+  const {
+    data: reviews = [],
+    isLoading: reviewsLoading
+  } = useAllRestaurantReviews(business_id, place_id);
+
+  // Show error message if restaurant query fails
+  useEffect(() => {
+    if (restaurantError) {
+      message.error('Không thể tải thông tin nhà hàng');
+    }
+  }, [restaurantError]);
+
   // Get restaurant image with fallback
-  const getRestaurantImage = (restaurant: RestaurantDetailResponse['value']) => {
+  const getRestaurantImage = (restaurant: any) => {
     if (photos && photos.length > 0) {
       // Use the first photo from the API, but modify URL for higher quality
       const photoUrl = photos[0].src;
@@ -71,7 +110,9 @@ const RestaurantDetail: React.FC = () => {
       return photoUrl;
     }
     
-    const restaurantTypes = restaurant.types.map(type => type.toLowerCase());
+    if (!restaurant) return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=800&fit=crop&crop=center&q=80';
+    
+    const restaurantTypes = restaurant.types?.map((type: string) => type.toLowerCase()) || [];
     
     // Check for Vietnamese food
     if (restaurantTypes.some(type => type.includes('việt') || type.includes('phở') || type.includes('bún'))) {
@@ -87,119 +128,14 @@ const RestaurantDetail: React.FC = () => {
     return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=800&fit=crop&crop=center&q=80';
   };
 
-  // Parse business_id and place_id from URL params
-  const parseRestaurantId = (id: string) => {
-    // Format: business_id__place_id
-    const parts = id.split('__');
-    if (parts.length === 2) {
-      return {
-        business_id: parts[0],
-        place_id: parts[1]
-      };
-    }
-    
-    // Fallback for old format or if parsing fails
-    console.warn('Unable to parse restaurant ID:', id);
-    return {
-      business_id: id,
-      place_id: id // This might not work, but at least won't crash
-    };
-  };
+  // Parse business_id and place_id from URL params - REMOVED (moved to useMemo above)
 
   useEffect(() => {
-    const loadRestaurantData = async () => {
-      if (!params.id) return;
-      
-      setLoading(true);
-      try {
-        // Parse the restaurant ID - assuming format: business_id
-        // You might need to adjust this based on how you pass the IDs
-        const restaurantId = params.id as string;
-        const { business_id, place_id } = parseRestaurantId(restaurantId);
-        
-        console.log('Loading restaurant data for:', { business_id, place_id });
-
-        // Load restaurant details
-        const [detailResponse, photosResponse] = await Promise.all([
-          getRestaurantDetail(business_id, place_id),
-          getRestaurantPhotos(business_id, place_id)
-        ]);
-
-        if (detailResponse.isSuccess && detailResponse.value) {
-          setRestaurant(detailResponse.value);
-        } else {
-          message.error('Không thể tải thông tin nhà hàng');
-          return;
-        }
-
-        if (photosResponse.isSuccess && photosResponse.value) {
-          setPhotos(photosResponse.value);
-        }
-
-        // Load initial reviews and automatically load all remaining reviews
-        await loadAllReviews(business_id, place_id);
-
-      } catch (error) {
-        console.error('Error loading restaurant data:', error);
-        message.error('Đã có lỗi xảy ra khi tải thông tin nhà hàng');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadRestaurantData();
-  }, [params.id]);
+    // REMOVED - all data fetching is now handled by React Query hooks
+  }, []);
 
   const loadAllReviews = async (business_id: string, place_id: string) => {
-    setReviewsLoading(true);
-    
-    try {
-      let allReviews: RestaurantReview[] = [];
-      let currentCursor: string | null = null;
-      let hasMore = true;
-      let batchCount = 0;
-      
-      // Load reviews in batches until we get all of them
-      while (hasMore) {
-        batchCount++;
-        const response = await getRestaurantReviews(business_id, place_id, currentCursor || undefined);
-        
-        if (response.isSuccess && response.value && response.value.length > 0) {
-          allReviews = [...allReviews, ...response.value];
-          
-          // Check if there are more reviews to load
-          const lastReview = response.value[response.value.length - 1];
-          if (lastReview && lastReview.review_cursor) {
-            currentCursor = lastReview.review_cursor;
-            // Add safety check to prevent infinite loops
-            if (batchCount >= 50) {
-              console.warn('Stopped loading reviews after 50 batches to prevent infinite loop');
-              hasMore = false;
-            }
-          } else {
-            hasMore = false;
-          }
-        } else {
-          hasMore = false;
-        }
-
-        // Small delay between requests to avoid overwhelming the server
-        if (hasMore) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-      }
-      
-      setReviews(allReviews);
-      setHasMoreReviews(false); // All reviews loaded, no more to fetch
-      
-    } catch (error) {
-      console.error('Error loading all reviews:', error);
-      message.error('Không thể tải đánh giá');
-      setReviews([]); // Set empty array on error
-      setHasMoreReviews(false);
-    } finally {
-      setReviewsLoading(false);
-    }
+    // REMOVED - handled by useAllRestaurantReviews hook
   };
 
   const handleBackClick = () => {
@@ -287,52 +223,46 @@ const RestaurantDetail: React.FC = () => {
     return hours * 100 + minutes;
   };
 
-  // Filter reviews by rating
-  const filteredReviews = selectedRating === 0 
-    ? reviews 
-    : reviews.filter(review => review.review_rate === selectedRating);
+  // Filter and sort reviews
+  const filteredAndSortedReviews = useMemo(() => {
+    // Filter reviews by rating
+    const filteredReviews = selectedRating === 0 
+      ? reviews 
+      : reviews.filter(review => review.review_rate === selectedRating);
 
-  // Sort reviews
-  const sortedReviews = [...filteredReviews].sort((a, b) => {
-    if (reviewSortBy === "newest") {
-      return b.review_timestamp - a.review_timestamp;
-    } else if (reviewSortBy === "oldest") {
-      return a.review_timestamp - b.review_timestamp;
-    } else if (reviewSortBy === "rating-high") {
-      return b.review_rate - a.review_rate;
-    } else if (reviewSortBy === "rating-low") {
-      return a.review_rate - b.review_rate;
-    }
-    return 0;
-  });
-
-  // Debug logs
-  // console.log('Debug Reviews Info:', {
-  //   totalReviews: reviews.length,
-  //   filteredReviews: filteredReviews.length,
-  //   sortedReviews: sortedReviews.length,
-  //   selectedRating,
-  //   reviewSortBy,
-  //   showAllReviews,
-  //   hasMoreReviews
-  // });
+    // Sort reviews
+    return [...filteredReviews].sort((a, b) => {
+      if (reviewSortBy === "newest") {
+        return b.review_timestamp - a.review_timestamp;
+      } else if (reviewSortBy === "oldest") {
+        return a.review_timestamp - b.review_timestamp;
+      } else if (reviewSortBy === "rating-high") {
+        return b.review_rate - a.review_rate;
+      } else if (reviewSortBy === "rating-low") {
+        return a.review_rate - b.review_rate;
+      }
+      return 0;
+    });
+  }, [reviews, selectedRating, reviewSortBy]);
 
   // Calculate rating distribution
-  const ratingDistribution = [5, 4, 3, 2, 1].map((rating) => ({
-    rating,
-    count: reviews.filter((r) => r.review_rate === rating).length,
-    percentage: reviews.length > 0 
-      ? (reviews.filter((r) => r.review_rate === rating).length / reviews.length) * 100 
-      : 0,
-  }));
+  const ratingDistribution = useMemo(() => {
+    return [5, 4, 3, 2, 1].map((rating) => ({
+      rating,
+      count: reviews.filter((r) => r.review_rate === rating).length,
+      percentage: reviews.length > 0 
+        ? (reviews.filter((r) => r.review_rate === rating).length / reviews.length) * 100 
+        : 0,
+    }));
+  }, [reviews]);
 
-  if (loading) {
+  // Loading state - show loading only if restaurant data is not available
+  if (restaurantLoading) {
     return (
-      <Layout style={{ minHeight: "100vh", background: "linear-gradient(135deg, #000000 0%, #1a1a1a 100%)" }}>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-          <Spin size="large" indicator={<LoadingOutlined style={{ fontSize: 48, color: '#ffa366' }} spin />} />
-        </div>
-      </Layout>
+      <LoadingComponent 
+        message="Đang tải thông tin nhà hàng..." 
+        fullScreen={true}
+      />
     );
   }
 
@@ -476,7 +406,33 @@ const RestaurantDetail: React.FC = () => {
                 </div>
                 
                 {/* Photo Gallery Grid */}
-                {photos.length > 0 && (
+                {photosLoading ? (
+                  <div>
+                    <Text style={{ color: "#ffa366", fontWeight: "600", fontSize: "16px", display: "block", marginBottom: "12px" }}>
+                      Đang tải hình ảnh...
+                    </Text>
+                    <Row gutter={8}>
+                      {[1, 2, 3, 4].map((index) => (
+                        <Col xs={6} key={index}>
+                          <div
+                            style={{
+                              width: "100%",
+                              height: "80px",
+                              borderRadius: "12px",
+                              background: "rgba(255, 255, 255, 0.1)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              animation: "pulse 2s infinite",
+                            }}
+                          >
+                            <Spin size="small" />
+                          </div>
+                        </Col>
+                      ))}
+                    </Row>
+                  </div>
+                ) : photos.length > 0 && (
                   <div>
                     <Text style={{ color: "#ffa366", fontWeight: "600", fontSize: "16px", display: "block", marginBottom: "12px" }}>
                       Hình ảnh ({photos.length})
@@ -1185,12 +1141,20 @@ const RestaurantDetail: React.FC = () => {
                   <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
                     <div style={{ flex: 1, overflowY: "auto", paddingRight: "8px" }}>
                       {reviewsLoading ? (
-                        <div style={{ textAlign: 'center', padding: '20px' }}>
-                          <Spin size="large" />
+                        <LoadingComponent 
+                          message="Đang tải đánh giá..." 
+                          fullScreen={false}
+                          size="default"
+                        />
+                      ) : reviews.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                          <Text style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                            Chưa có đánh giá nào
+                          </Text>
                         </div>
                       ) : (
                         <>
-                          {(showAllReviews ? sortedReviews : sortedReviews.slice(0, 4)).map((review) => (
+                          {(showAllReviews ? filteredAndSortedReviews : filteredAndSortedReviews.slice(0, 4)).map((review) => (
                             <div
                               key={review.review_id}
                               style={{
@@ -1260,7 +1224,7 @@ const RestaurantDetail: React.FC = () => {
                           ))}
                           
                           {/* Show more reviews button if there are more than 4 */}
-                          {!showAllReviews && sortedReviews.length > 4 && (
+                          {!showAllReviews && filteredAndSortedReviews.length > 4 && (
                             <div style={{ textAlign: 'center', marginTop: '16px' }}>
                               <Button
                                 onClick={() => setShowAllReviews(true)}
@@ -1271,7 +1235,7 @@ const RestaurantDetail: React.FC = () => {
                                   borderRadius: "8px",
                                 }}
                               >
-                                Xem thêm {sortedReviews.length - 4} đánh giá có sẵn
+                                Xem thêm {filteredAndSortedReviews.length - 4} đánh giá có sẵn
                               </Button>
                             </div>
                           )}

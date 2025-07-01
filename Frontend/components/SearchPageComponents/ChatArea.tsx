@@ -43,6 +43,34 @@ const animationStyles = `
             transform: translateX(0);
         }
     }
+    
+    @keyframes shimmer {
+        0% {
+            background-position: -468px 0;
+        }
+        100% {
+            background-position: 468px 0;
+        }
+    }
+    
+    .image-loading {
+        background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 37%, #2a2a2a 63%);
+        background-size: 400% 100%;
+        animation: shimmer 1.5s ease-in-out infinite;
+    }
+    
+    @media (max-width: 768px) {
+        .food-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+        }
+    }
+    
+    @media (max-width: 1024px) and (min-width: 769px) {
+        .food-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
 `;
 
 // Inject styles
@@ -78,17 +106,25 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const [inputValue, setInputValue] = useState('');
     const [loading, setLoading] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [visibleFoodCounts, setVisibleFoodCounts] = useState<{[key: string]: number}>({});
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { currentUser, authUser } = useAuth();
     const router = useRouter();
     const [prevSessionId, setPrevSessionId] = useState<string | undefined>(sessionId);
 
+    const handleLoadMore = (messageId: string) => {
+        setVisibleFoodCounts(prev => ({
+            ...prev,
+            [messageId]: (prev[messageId] || 6) + 6
+        }));
+    };
+
     const handleFoodClick = (foodName: string, location?: string) => {
-        console.log('=== FOOD CLICK DEBUG ===');
-        console.log('foodName:', foodName);
-        console.log('food location from API:', location);
-        console.log('userLocation from props:', userLocation);
-        console.log('========================');
+        // console.log('=== FOOD CLICK DEBUG ===');
+        // console.log('foodName:', foodName);
+        // console.log('food location from API:', location);
+        // console.log('userLocation from props:', userLocation);
+        // console.log('========================');
         
         // Navigate to restaurants page with food name and location as search query
         let url = `/restaurants?search=${encodeURIComponent(foodName)}`;
@@ -375,195 +411,328 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out'
             }}>
                 {messages.map((msg, index) => (
-                    <div 
-                        key={msg.id} 
-                        className={`message-${msg.type}`}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            gap: '12px',
-                            flexDirection: msg.type === 'user' ? 'row-reverse' : 'row',
-                            animationDelay: `${index * 0.1}s`
-                        }}>
-                        <Avatar 
-                            icon={msg.type === 'user' ? <UserOutlined /> : <RobotOutlined />}
-                            style={{ 
-                                backgroundColor: msg.type === 'user' ? '#ff7a00' : '#52c41a',
-                                flexShrink: 0
-                            }}
-                        />
-                        <div style={{
-                            maxWidth: '70%',
-                            padding: '12px 16px',
-                            borderRadius: '12px',
-                            backgroundColor: msg.type === 'user' ? '#ff7a00' : '#262629',
-                            color: '#ffffff',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                            border: `1px solid ${msg.type === 'user' ? '#ff7a00' : 'rgba(255, 122, 0, 0.2)'}`,
-                            textAlign: msg.type === 'user' ? 'right' : 'left'
-                        }}>
-                            <div style={{ marginBottom: (msg.imageUrl || msg.foods) ? '8px' : '0' }}>
-                                {/* Render message with basic markdown-like formatting */}
-                                {msg.content.split('\n').map((line, index) => {
-                                    if (line.startsWith('**') && line.endsWith('**')) {
-                                        // Bold text
-                                        return (
-                                            <div key={index} style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '16px' }}>
-                                                {line.replace(/\*\*/g, '')}
-                                            </div>
-                                        );
-                                    }
-                                    return (
-                                        <div key={index} style={{ marginBottom: line.trim() ? '4px' : '8px' }}>
-                                            {line}
-                                        </div>
-                                    );
-                                })}
+                    <div key={msg.id} style={{ marginBottom: '16px' }}>
+                        {msg.type === 'user' ? (
+                            // User message - keep original format
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '12px',
+                                flexDirection: 'row-reverse',
+                                animationDelay: `${index * 0.1}s`
+                            }}>
+                                <Avatar 
+                                    icon={<UserOutlined />}
+                                    style={{ 
+                                        backgroundColor: '#ff7a00',
+                                        flexShrink: 0
+                                    }}
+                                />
+                                <div style={{
+                                    maxWidth: '70%',
+                                    padding: '12px 16px',
+                                    borderRadius: '12px',
+                                    backgroundColor: '#ff7a00',
+                                    color: '#ffffff',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                    border: '1px solid #ff7a00',
+                                    textAlign: 'right'
+                                }}>
+                                    <div>{msg.content}</div>
+                                    <div style={{
+                                        fontSize: '11px',
+                                        opacity: 0.7,
+                                        marginTop: '4px'
+                                    }}>
+                                        {msg.timestamp.toLocaleTimeString()}
+                                    </div>
+                                </div>
                             </div>
-                            
-                            {/* Render food list if available */}
-                            {msg.foods && msg.foods.length > 0 && (
-                                <div style={{ marginTop: '12px' }}>
-                                    {msg.foods.map((food: any, index: number) => (
-                                        <div key={index} style={{
-                                            marginBottom: '16px',
-                                            padding: '12px',
-                                            backgroundColor: 'rgba(255, 122, 0, 0.1)',
-                                            borderRadius: '8px',
-                                            border: '1px solid rgba(255, 122, 0, 0.2)'
-                                        }}>
-                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                                                {food.imageUrl && (
-                                                    <div 
-                                                        style={{ 
-                                                            flexShrink: 0,
-                                                            cursor: 'pointer',
-                                                            transition: 'transform 0.2s, box-shadow 0.2s'
-                                                        }}
-                                                        onClick={() => handleFoodClick(food.foodName, food.location)}
-                                                        onMouseEnter={(e) => {
-                                                            e.currentTarget.style.transform = 'scale(1.05)';
-                                                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 122, 0, 0.3)';
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            e.currentTarget.style.transform = 'scale(1)';
-                                                            e.currentTarget.style.boxShadow = 'none';
-                                                        }}
-                                                        title={`Click to find restaurants serving ${food.foodName}${food.location && food.location !== 'null' ? ` in ${food.location}` : ''}`}
-                                                    >
-                                                        <Image 
-                                                            src={food.imageUrl}
-                                                            alt={food.foodName}
-                                                            width={80}
-                                                            height={80}
-                                                            style={{
-                                                                objectFit: 'cover',
-                                                                borderRadius: '6px',
-                                                                border: '2px solid transparent'
-                                                            }}
-                                                            onError={(e) => {
-                                                                console.error('Failed to load food image:', food.imageUrl);
-                                                                e.currentTarget.style.display = 'none';
-                                                            }}
-                                                        />
-                                                    </div>
-                                                )}
-                                                <div style={{ flex: 1 }}>
-                                                    <div 
-                                                        style={{ 
-                                                            fontWeight: 'bold', 
-                                                            color: '#ff7a00',
-                                                            marginBottom: '4px',
-                                                            fontSize: '14px',
-                                                            cursor: 'pointer'
-                                                        }}
-                                                        onClick={() => handleFoodClick(food.foodName, food.location)}
-                                                        title={`Click to find restaurants serving ${food.foodName}${food.location && food.location !== 'null' ? ` in ${food.location}` : ''}`}
-                                                    >
-                                                        {index + 1}. {food.foodName} ({food.national})
-                                                    </div>
+                        ) : (
+                            // Bot message - show foods directly without message box
+                            <div>
+                                {/* Title */}
+                                {msg.content && msg.content.trim() && (
+                                    <div style={{
+                                        fontSize: '18px',
+                                        fontWeight: 'bold',
+                                        color: '#ffffff',
+                                        marginBottom: '16px',
+                                        textAlign: 'left'
+                                    }}>
+                                        {msg.content.replace(/\*\*/g, '')}
+                                    </div>
+                                )}
+                                
+                                {/* Food Grid - Direct display like in the image */}
+                                {msg.foods && msg.foods.length > 0 && (
+                                    <div>
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                                            gap: '20px',
+                                            maxWidth: '100%'
+                                        }} className="food-grid">
+                                            {msg.foods.slice(0, visibleFoodCounts[msg.id] || 6).map((food: any, foodIndex: number) => (
+                                                <div 
+                                                    key={foodIndex} 
+                                                    style={{
+                                                        background: 'linear-gradient(145deg, rgba(40,40,40,0.9) 0%, rgba(20,20,20,0.95) 100%)',
+                                                        borderRadius: '16px',
+                                                        border: '1px solid rgba(80, 80, 80, 0.3)',
+                                                        overflow: 'hidden',
+                                                        transition: 'all 0.3s ease',
+                                                        cursor: 'pointer',
+                                                        position: 'relative',
+                                                        minHeight: '280px',
+                                                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.background = 'linear-gradient(145deg, rgba(60,60,60,0.95) 0%, rgba(30,30,30,1) 100%)';
+                                                        e.currentTarget.style.transform = 'translateY(-6px)';
+                                                        e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.5)';
+                                                        e.currentTarget.style.borderColor = 'rgba(120, 120, 120, 0.5)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.background = 'linear-gradient(145deg, rgba(40,40,40,0.9) 0%, rgba(20,20,20,0.95) 100%)';
+                                                        e.currentTarget.style.transform = 'translateY(0)';
+                                                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                                                        e.currentTarget.style.borderColor = 'rgba(80, 80, 80, 0.3)';
+                                                    }}
+                                                    onClick={() => handleFoodClick(food.foodName, food.location)}
+                                                    title={`Click to find restaurants serving ${food.foodName}${food.location && food.location !== 'null' ? ` in ${food.location}` : ''}`}
+                                                >
+                                                    {/* Food Image */}
                                                     <div style={{ 
-                                                        fontSize: '12px',
-                                                        lineHeight: '1.4',
-                                                        color: '#e6e6e6'
+                                                        position: 'relative',
+                                                        width: '100%',
+                                                        height: '200px',
+                                                        overflow: 'hidden',
+                                                        backgroundColor: '#2a2a2a'
                                                     }}>
-                                                        {food.description}
+                                                        {food.imageUrl ? (
+                                                            <Image 
+                                                                src={food.imageUrl}
+                                                                alt={food.foodName}
+                                                                fill
+                                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                                quality={95}
+                                                                priority={foodIndex < 3}
+                                                                style={{
+                                                                    objectFit: 'cover',
+                                                                    objectPosition: 'center'
+                                                                }}
+                                                                onError={(e) => {
+                                                                    console.error('Failed to load food image:', food.imageUrl);
+                                                                    // Replace with fallback image instead of hiding
+                                                                    const target = e.currentTarget as HTMLImageElement;
+                                                                    target.src = '/placeholder-food.svg';
+                                                                    target.onerror = null; // Prevent infinite loop
+                                                                }}
+                                                                onLoad={(e) => {
+                                                                    // Fade in effect when image loads
+                                                                    const target = e.currentTarget as HTMLImageElement;
+                                                                    target.style.opacity = '1';
+                                                                }}
+                                                                onLoadStart={(e) => {
+                                                                    // Start with opacity 0 for smooth loading
+                                                                    const target = e.currentTarget as HTMLImageElement;
+                                                                    target.style.opacity = '0';
+                                                                    target.style.transition = 'opacity 0.3s ease-in-out';
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            // Fallback when no image URL
+                                                            <div style={{
+                                                                width: '100%',
+                                                                height: '100%',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                backgroundColor: '#3a3a3a',
+                                                                color: '#888',
+                                                                fontSize: '14px'
+                                                            }}>
+                                                                <div style={{ textAlign: 'center' }}>
+                                                                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>🍽️</div>
+                                                                    <div>Không có hình ảnh</div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {/* Gradient overlay */}
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            bottom: 0,
+                                                            left: 0,
+                                                            right: 0,
+                                                            height: '60%',
+                                                            background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)',
+                                                            pointerEvents: 'none'
+                                                        }} />
+                                                     
+                                                        {/* Food name overlay on image */}
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            bottom: '12px',
+                                                            left: '12px',
+                                                            right: '12px',
+                                                            color: '#ffffff',
+                                                            fontSize: '18px',
+                                                            fontWeight: 'bold',
+                                                            textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            whiteSpace: 'nowrap'
+                                                        }}>
+                                                            {food.foodName}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Food Info */}
+                                                    <div style={{ padding: '16px' }}>
+                                                     
+                                                        
+                                                        <div style={{ 
+                                                            fontSize: '15px',
+                                                            lineHeight: '1.5',
+                                                            color: '#ffffff',
+                                                            display: '-webkit-box',
+                                                            WebkitLineClamp: 3,
+                                                            WebkitBoxOrient: 'vertical',
+                                                            overflow: 'hidden',
+                                                            marginBottom: '16px',
+                                                            minHeight: '65px',
+                                                            fontWeight: '400'
+                                                        }}>
+                                                            {food.description}
+                                                        </div>
+                                                        
+                                                        
                                                     </div>
                                                 </div>
-                                            </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                            
-                            {/* Single image display (for backward compatibility) */}
-                            {msg.imageUrl && !msg.foods && (
-                                <div 
-                                    style={{ 
-                                        marginTop: '8px',
-                                        cursor: 'pointer',
-                                        transition: 'transform 0.2s'
-                                    }}
-                                    onClick={() => {
-                                        // Try to extract food name from message content for single food
-                                        const lines = msg.content.split('\n');
-                                        const titleLine = lines.find(line => line.startsWith('**') && line.endsWith('**'));
-                                        if (titleLine) {
-                                            const foodName = titleLine.replace(/\*\*/g, '').split('(')[0].trim();
-                                            handleFoodClick(foodName);
-                                        }
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.transform = 'scale(1.02)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = 'scale(1)';
-                                    }}
-                                    title="Click to find restaurants"
-                                >
-                                    <Image 
-                                        src={msg.imageUrl} 
-                                        alt="Generated food"
-                                        width={400}
-                                        height={300}
+                                        
+                                        {/* Load More Button */}
+                                        {msg.foods.length > (visibleFoodCounts[msg.id] || 6) && (
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                marginTop: '24px'
+                                            }}>
+                                                <Button
+                                                    type="default"
+                                                    size="large"
+                                                    onClick={() => handleLoadMore(msg.id)}
+                                                    style={{
+                                                        backgroundColor: 'transparent',
+                                                        borderColor: 'rgba(255, 122, 0, 0.5)',
+                                                        color: '#ff7a00',
+                                                        borderRadius: '12px',
+                                                        fontSize: '14px',
+                                                        height: '40px',
+                                                        padding: '0 24px',
+                                                        fontWeight: '600',
+                                                        transition: 'all 0.3s ease'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.backgroundColor = 'rgba(255, 122, 0, 0.1)';
+                                                        e.currentTarget.style.borderColor = '#ff7a00';
+                                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.backgroundColor = 'transparent';
+                                                        e.currentTarget.style.borderColor = 'rgba(255, 122, 0, 0.5)';
+                                                        e.currentTarget.style.transform = 'translateY(0)';
+                                                    }}
+                                                >
+                                                    Xem thêm món ăn ({msg.foods.length - (visibleFoodCounts[msg.id] || 6)} món còn lại)
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Single image display (for backward compatibility) */}
+                                {msg.imageUrl && !msg.foods && (
+                                    <div 
                                         style={{ 
-                                            maxWidth: '100%',
-                                            height: 'auto',
-                                            borderRadius: '8px',
-                                            display: 'block'
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.2s',
+                                            borderRadius: '12px',
+                                            overflow: 'hidden',
+                                            maxWidth: '500px',
+                                            backgroundColor: '#2a2a2a'
                                         }}
-                                        onError={(e) => {
-                                            console.error('Failed to load image:', msg.imageUrl);
-                                            e.currentTarget.style.display = 'none';
+                                        onClick={() => {
+                                            const lines = msg.content.split('\n');
+                                            const titleLine = lines.find(line => line.startsWith('**') && line.endsWith('**'));
+                                            if (titleLine) {
+                                                const foodName = titleLine.replace(/\*\*/g, '').split('(')[0].trim();
+                                                handleFoodClick(foodName);
+                                            }
                                         }}
-                                    />
-                                </div>
-                            )}
-                            <div style={{
-                                fontSize: '11px',
-                                opacity: 0.7,
-                                marginTop: '4px'
-                            }}>
-                                {msg.timestamp.toLocaleTimeString()}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = 'scale(1.02)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'scale(1)';
+                                        }}
+                                        title="Click to find restaurants"
+                                    >
+                                        <div style={{ position: 'relative', width: '100%', height: '300px' }}>
+                                            <Image 
+                                                src={msg.imageUrl} 
+                                                alt="Generated food"
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, 500px"
+                                                quality={95}
+                                                style={{ 
+                                                    objectFit: 'cover',
+                                                    objectPosition: 'center'
+                                                }}
+                                                onError={(e) => {
+                                                    console.error('Failed to load image:', msg.imageUrl);
+                                                    const target = e.currentTarget as HTMLImageElement;
+                                                    target.src = '/placeholder-food.svg';
+                                                    target.onerror = null;
+                                                }}
+                                                onLoad={(e) => {
+                                                    const target = e.currentTarget as HTMLImageElement;
+                                                    target.style.opacity = '1';
+                                                }}
+                                                onLoadStart={(e) => {
+                                                    const target = e.currentTarget as HTMLImageElement;
+                                                    target.style.opacity = '0';
+                                                    target.style.transition = 'opacity 0.3s ease-in-out';
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        )}
                     </div>
                 ))}
                 {loading && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <Avatar 
-                            icon={<RobotOutlined />}
-                            style={{ backgroundColor: '#52c41a' }}
-                        />
+                    <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        padding: '20px'
+                    }}>
                         <div style={{ 
-                            padding: '12px 16px',
+                            padding: '12px 20px',
                             backgroundColor: '#262629',
                             border: '1px solid rgba(255, 122, 0, 0.2)',
                             borderRadius: '12px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px'
                         }}>
                             <Spin size="small" style={{ color: '#ffffff' }} /> 
-                            <span style={{ color: '#ffffff', marginLeft: '8px' }}>Thinking...</span>
+                            <span style={{ color: '#ffffff', fontSize: '14px' }}>Đang tìm kiếm món ăn phù hợp...</span>
                         </div>
                     </div>
                 )}

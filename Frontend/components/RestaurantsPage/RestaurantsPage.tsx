@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Layout,
@@ -13,7 +13,6 @@ import {
   Space,
   Input,
   Dropdown,
-  Spin,
   message,
 } from "antd";
 import {
@@ -25,11 +24,9 @@ import {
   DownOutlined,
   HeartOutlined,
 } from "@ant-design/icons";
-import {
-  findRestaurantsForFood,
-  RestaurantPlace,
-} from "../../services/RestaurantService";
 import { useGeolocation } from "../../hooks/useGeolocation";
+import { useRestaurantsSearch } from "../../hooks/useRestaurants";
+import LoadingComponent from "../LoadingComponent";
 
 const { Content, Header } = Layout;
 const { Title, Text } = Typography;
@@ -39,84 +36,57 @@ const RestaurantsPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { location: userLocation } = useGeolocation();
-  const [restaurants, setRestaurants] = useState<RestaurantPlace[]>([]);
-  const [filteredRestaurants, setFilteredRestaurants] = useState<
-    RestaurantPlace[]
-  >([]);
+  
+  // Get search parameters
+  const searchParam = searchParams.get("search");
+  const locationParam = searchParams.get("location");
+  const latParam = searchParams.get("lat");
+  const lngParam = searchParams.get("lng");
+
+  // Local state
   const [dish, setDish] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [searchText, setSearchText] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("rating");
-  const [loading, setLoading] = useState<boolean>(false);
 
-  const loadRestaurants = useCallback(async (
-    foodName: string,
-    specificLocation?: string | null,
-    lat?: string | null,
-    lng?: string | null
-  ) => {
-    setLoading(true);
-    try {
-      let userCoords = null;
-
-      // Use coordinates from URL params if available
-      if (lat && lng) {
-        userCoords = {
-          latitude: parseFloat(lat),
-          longitude: parseFloat(lng),
-        };
-      } else if (userLocation) {
-        // Fallback to geolocation if available
-        userCoords = userLocation;
-      }
-
-      console.log("Loading restaurants with:", {
-        foodName,
-        specificLocation,
-        userCoords,
-      });
-
-      const response = await findRestaurantsForFood(
-        foodName,
-        userCoords,
-        specificLocation ?? undefined
-      );
-
-      if (response.isSuccess && response.value) {
-        setRestaurants(response.value);
-        setFilteredRestaurants(response.value);
-      } else {
-        message.error("Không thể tải danh sách nhà hàng");
-        setRestaurants([]);
-        setFilteredRestaurants([]);
-      }
-    } catch (error) {
-      console.error("Error loading restaurants:", error);
-      message.error("Đã có lỗi xảy ra khi tải danh sách nhà hàng");
-      setRestaurants([]);
-      setFilteredRestaurants([]);
-    } finally {
-      setLoading(false);
+  // Prepare coordinates for API call
+  const userCoords = useMemo(() => {
+    if (latParam && lngParam) {
+      return {
+        latitude: parseFloat(latParam),
+        longitude: parseFloat(lngParam),
+      };
     }
-  }, [userLocation]);
+    return userLocation;
+  }, [latParam, lngParam, userLocation]);
 
+  // Use React Query for restaurants data
+  const {
+    data: restaurants = [],
+    isLoading,
+    error,
+    isFetching
+  } = useRestaurantsSearch(
+    searchParam || "",
+    userCoords,
+    locationParam || undefined
+  );
+
+  // Update local state when URL params change
   useEffect(() => {
-    const searchParam = searchParams.get("search");
-    const locationParam = searchParams.get("location");
-    const latParam = searchParams.get("lat");
-    const lngParam = searchParams.get("lng");
-
     if (searchParam) setDish(decodeURIComponent(searchParam));
     if (locationParam) setLocation(decodeURIComponent(locationParam));
+  }, [searchParam, locationParam]);
 
-    // Load restaurants when we have search parameters
-    if (searchParam) {
-      loadRestaurants(searchParam, locationParam, latParam, lngParam);
-    }
-  }, [searchParams, loadRestaurants]);
-
-  // Filter function
+  // Show error message if query fails
   useEffect(() => {
+    if (error) {
+      message.error("Không thể tải danh sách nhà hàng");
+    }
+  }, [error]);
+
+  // Filter and sort restaurants
+  const filteredAndSortedRestaurants = useMemo(() => {
     let filtered = restaurants.filter((restaurant) => {
       const matchesSearch =
         restaurant.name.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -140,7 +110,7 @@ const RestaurantsPage: React.FC = () => {
       filtered = filtered.sort((a, b) => b.review_count - a.review_count);
     }
 
-    setFilteredRestaurants(filtered);
+    return filtered;
   }, [restaurants, searchText, sortBy]);
   const handleBackClick = () => {
     router.back();
@@ -229,17 +199,12 @@ const RestaurantsPage: React.FC = () => {
         }}
       >
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          {loading ? (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minHeight: "400px",
-              }}
-            >
-              <Spin size="large" />
-            </div>
+          {/* Loading State */}
+          {isLoading && !restaurants.length ? (
+            <LoadingComponent 
+              message="Đang tìm kiếm nhà hàng..." 
+              fullScreen={false}
+            />
           ) : (
             <>
               {/* Search and Filter Section */}
@@ -299,6 +264,18 @@ const RestaurantsPage: React.FC = () => {
                     </Dropdown>
                   </Col>
                 </Row>
+                
+                {/* Refreshing indicator */}
+                {isFetching && restaurants.length > 0 && (
+                  <div style={{ 
+                    marginTop: "12px", 
+                    textAlign: "center", 
+                    color: "#ffa366",
+                    fontSize: "14px"
+                  }}>
+                    Đang cập nhật dữ liệu...
+                  </div>
+                )}
               </Card>
 
               {/* Results Count */}
@@ -310,13 +287,13 @@ const RestaurantsPage: React.FC = () => {
                     fontWeight: "500",
                   }}
                 >
-                  Tìm thấy {filteredRestaurants.length} nhà hàng{" "}
+                  Tìm thấy {filteredAndSortedRestaurants.length} nhà hàng{" "}
                   {dish && `cho "${dish}"`} {location && `tại ${location}`}
                 </Text>
               </div>
 
               <Row gutter={[24, 24]}>
-                {filteredRestaurants.map((restaurant) => (
+                {filteredAndSortedRestaurants.map((restaurant) => (
                   <Col xs={24} lg={12} key={restaurant.business_id}>
                     <Card
                       hoverable
@@ -559,7 +536,7 @@ const RestaurantsPage: React.FC = () => {
                 ))}
               </Row>
 
-              {filteredRestaurants.length === 0 && !loading && (
+              {filteredAndSortedRestaurants.length === 0 && !isLoading && (
                 <div
                   style={{
                     textAlign: "center",
@@ -571,10 +548,12 @@ const RestaurantsPage: React.FC = () => {
                     level={3}
                     style={{ color: "rgba(255, 255, 255, 0.6)" }}
                   >
-                    Không tìm thấy nhà hàng nào
+                    {error ? "Đã có lỗi xảy ra" : "Không tìm thấy nhà hàng nào"}
                   </Title>
                   <Text style={{ color: "rgba(255, 255, 255, 0.6)" }}>
-                    Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi vị trí.
+                    {error 
+                      ? "Vui lòng thử lại sau" 
+                      : "Hãy thử tìm kiếm với từ khóa khác hoặc thay đổi vị trí."}
                   </Text>
                 </div>
               )}
