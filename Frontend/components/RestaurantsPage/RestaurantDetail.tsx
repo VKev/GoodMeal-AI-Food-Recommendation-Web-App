@@ -13,7 +13,6 @@ import {
   Divider,
   Avatar,
   Progress,
-  Image,
   Badge,
   Dropdown,
   Space,
@@ -33,7 +32,6 @@ import {
   HeartOutlined,
   ShareAltOutlined,
   LoadingOutlined,
-  EyeOutlined,
 } from "@ant-design/icons";
 import { 
   getRestaurantDetail, 
@@ -54,9 +52,7 @@ const RestaurantDetail: React.FC = () => {
   const [photos, setPhotos] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [reviewsLoading, setReviewsLoading] = useState<boolean>(false);
-  const [loadingMoreReviews, setLoadingMoreReviews] = useState<boolean>(false);
-  const [reviewCursor, setReviewCursor] = useState<string | null>(null);
-  const [hasMoreReviews, setHasMoreReviews] = useState<boolean>(true);
+  const [, setHasMoreReviews] = useState<boolean>(true);
   const [selectedRating, setSelectedRating] = useState<number>(0);
   const [reviewSortBy, setReviewSortBy] = useState<string>("newest");
   const [photoModalVisible, setPhotoModalVisible] = useState<boolean>(false);
@@ -297,16 +293,18 @@ const RestaurantDetail: React.FC = () => {
     : reviews.filter(review => review.review_rate === selectedRating);
 
   // Sort reviews
-  let sortedReviews = [...filteredReviews];
-  if (reviewSortBy === "newest") {
-    sortedReviews.sort((a, b) => b.review_timestamp - a.review_timestamp);
-  } else if (reviewSortBy === "oldest") {
-    sortedReviews.sort((a, b) => a.review_timestamp - b.review_timestamp);
-  } else if (reviewSortBy === "rating-high") {
-    sortedReviews.sort((a, b) => b.review_rate - a.review_rate);
-  } else if (reviewSortBy === "rating-low") {
-    sortedReviews.sort((a, b) => a.review_rate - b.review_rate);
-  }
+  const sortedReviews = [...filteredReviews].sort((a, b) => {
+    if (reviewSortBy === "newest") {
+      return b.review_timestamp - a.review_timestamp;
+    } else if (reviewSortBy === "oldest") {
+      return a.review_timestamp - b.review_timestamp;
+    } else if (reviewSortBy === "rating-high") {
+      return b.review_rate - a.review_rate;
+    } else if (reviewSortBy === "rating-low") {
+      return a.review_rate - b.review_rate;
+    }
+    return 0;
+  });
 
   // Debug logs
   // console.log('Debug Reviews Info:', {

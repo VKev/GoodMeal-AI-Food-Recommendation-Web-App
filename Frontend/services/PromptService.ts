@@ -65,8 +65,22 @@ export const getPromptSessions = async (idToken: string, userId: string): Promis
 export const formatTime = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
+    
+    // Chuyển đổi về múi giờ địa phương và chỉ so sánh ngày
+    const dateLocal = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const nowLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const diffInMs = nowLocal.getTime() - dateLocal.getTime();
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    console.log('formatTime debug:', {
+        original: dateString,
+        date: date.toString(),
+        now: now.toString(),
+        dateLocal: dateLocal.toString(),
+        nowLocal: nowLocal.toString(),
+        diffInDays
+    });
 
     if (diffInDays === 0) {
         return 'Hôm nay';
@@ -79,7 +93,7 @@ export const formatTime = (dateString: string): string => {
     } else if (diffInDays < 21) {
         return '2 tuần trước';
     } else {
-        return date.toLocaleDateString();
+        return date.toLocaleDateString('vi-VN');
     }
 };
 
