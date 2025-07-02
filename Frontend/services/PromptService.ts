@@ -226,7 +226,7 @@ export const processFoodRequest = async (
         console.log('=============================');
 
         const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:2406/';
-        const response = await fetch(`${baseUrl}api/prompt/Gemini/process-food-request`, {
+        const response = await fetch(`${baseUrl}api/prompt/Gemini/process-food-request/stream`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${idToken}`,

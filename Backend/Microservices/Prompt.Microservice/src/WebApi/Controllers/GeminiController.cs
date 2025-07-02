@@ -100,7 +100,8 @@ public class GeminiController : ApiController
         [FromBody] CreateMessageCommand request,
         CancellationToken cancellationToken)
     {
-        var geminiResult = await _mediator.Send(new CallGeminiCommand(request.PromptMessage), cancellationToken);
+        var geminiResult = await _mediator.Send(
+            new CallGeminiCommand(request.PromptMessage), cancellationToken);
 
         var cleanedJson = CleanGeminiResponse.CleanResponse(geminiResult.Value);
 
@@ -108,22 +109,19 @@ public class GeminiController : ApiController
             cleanedJson,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
+        if (geminiResponse is null)
+            return BadRequest("Failed to parse Gemini response.");
 
-        Result<Dictionary<string, string>> imageSearchResult =
-            Result.Failure<Dictionary<string, string>>(Error.NullValue);
+        var imageSearchResult = await _mediator.Send(
+            new GoogleImageSearchCommand(geminiResponse.FoodNames), cancellationToken);
 
-        imageSearchResult =
-            await _mediator.Send(new GoogleImageSearchCommand(geminiResponse.FoodNames), cancellationToken);
-
-        geminiResponse.Foods = geminiResponse.Foods
-            .Where(f => imageSearchResult.Value.ContainsKey(f.FoodName))
-            .Select(f =>
+        foreach (var food in geminiResponse.Foods)
+        {
+            if (imageSearchResult.Value.TryGetValue(food.FoodName, out var imageUrl))
             {
-                f.ImageUrl = imageSearchResult.Value[f.FoodName];
-                return f;
-            })
-            .ToList();
-
+                food.ImageUrl = imageUrl;
+            }
+        }
 
         var finalResponseJson = JsonSerializer.Serialize(geminiResponse);
 
@@ -135,7 +133,8 @@ public class GeminiController : ApiController
         var aggregateResult = ResultAggregator.AggregateWithNumbers(
             (geminiResult, false),
             (imageSearchResult, false),
-            (saveResult, true), (save, false)
+            (saveResult, true),
+            (save, false)
         );
 
         if (aggregateResult.IsFailure)
@@ -147,6 +146,7 @@ public class GeminiController : ApiController
             FinalResponse = geminiResponse
         });
     }
+
 
     [HttpPost("process-food-request/v2")]
     [ApiGatewayUser]
@@ -265,9 +265,14 @@ public class GeminiController : ApiController
         }
 
         var geminiResponse = geminiResult.Value;
-
-        _logger.LogInformation("🎯 GeminiResponse có {Count} món ăn.", geminiResponse.Value.Foods.Count);
-
+        var titleMessage = new
+        {
+            Title = geminiResponse.Value.Title,
+            Error = geminiResponse.Value.Error
+        };
+        var messageJson = JsonSerializer.Serialize(titleMessage);
+        await writer.WriteAsync($"data: {messageJson}\n\n");
+        await writer.FlushAsync(cancellationToken);
         foreach (var food in geminiResponse.Value.Foods)
         {
             _logger.LogInformation("🔍 Đang xử lý ảnh cho món: {FoodName}", food.FoodName);
