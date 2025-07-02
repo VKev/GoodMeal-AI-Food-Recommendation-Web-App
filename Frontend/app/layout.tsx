@@ -5,6 +5,7 @@ import "../styles/chat-animations.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ClientAuthProvider from "@/components/ClientAuthProvider";
+import QueryProvider from "@/components/QueryClientProvider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -33,9 +34,11 @@ export default function RootLayout({
       </head>      <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClientAuthProvider>
-          {children}
-        </ClientAuthProvider>
+        <QueryProvider>
+          <ClientAuthProvider>
+            {children}
+          </ClientAuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );
