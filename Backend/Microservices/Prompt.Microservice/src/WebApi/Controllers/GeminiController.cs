@@ -267,8 +267,7 @@ public class GeminiController : ApiController
         var geminiResponse = geminiResult.Value;
         var titleMessage = new
         {
-            Title = geminiResponse.Value.Title,
-            Error = geminiResponse.Value.Error
+            geminiResponse.Value.Title, geminiResponse.Value.Error
         };
         var messageJson = JsonSerializer.Serialize(titleMessage);
         await writer.WriteAsync($"data: {messageJson}\n\n");
@@ -302,6 +301,24 @@ public class GeminiController : ApiController
                 _logger.LogWarning("❌ Không tìm thấy ảnh cho món: {FoodName}", food.FoodName);
             }
         }
+
+        var finalResponse = new
+        {
+            geminiResponse.Value.Title,
+            geminiResponse.Value.Error,
+            geminiResponse.Value.Location,
+            Foods = geminiResponse.Value.Foods.Select(f => new
+            {
+                f.FoodName,
+                f.National,
+                f.Description,
+                f.ImageUrl
+            }).ToList()
+        };
+
+        var finalResponseJson = JsonSerializer.Serialize(finalResponse);
+        await _mediator.Send(
+            request with { ResponseMessage = finalResponseJson }, cancellationToken);
 
         var locationMessage = JsonSerializer.Serialize(new { geminiResponse.Value.Location });
         _logger.LogInformation("📤 Streaming location to client: {LocationMessage}", locationMessage);
