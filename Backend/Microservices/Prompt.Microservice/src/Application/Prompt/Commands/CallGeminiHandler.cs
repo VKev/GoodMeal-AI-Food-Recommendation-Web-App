@@ -43,9 +43,9 @@ internal sealed class CallGeminiHandler : ICommandHandler<CallGeminiCommand, str
 
         var jsonBody = JsonConvert.SerializeObject(requestBody);
         var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync(requestUrl, content, cancellationToken);
         
+        var response = await _httpClient.PostAsync(requestUrl, content, cancellationToken);
+
         var responseString = await response.Content.ReadAsStringAsync();
 
         var responseText = JObject.Parse(responseString)["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]

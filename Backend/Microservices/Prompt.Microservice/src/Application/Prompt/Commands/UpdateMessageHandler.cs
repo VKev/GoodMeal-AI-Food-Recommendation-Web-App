@@ -4,6 +4,7 @@ using Application.Common.GeminiApi;
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 using AutoMapper;
+using Domain.Entities;
 using Domain.Repositories;
 using Infrastructure;
 using Microsoft.AspNetCore.Http;

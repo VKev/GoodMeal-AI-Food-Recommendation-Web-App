@@ -27,6 +27,7 @@ import {
   formatTime,
   createPromptSession,
   deletePromptSession,
+  PromptSession,
 } from "../../services/PromptService";
 import { checkAuthorization } from "../../services/Auth";
 import { ChatItem } from "./types";
@@ -48,7 +49,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
   const [showLocationPermission, setShowLocationPermission] = useState(false);
   const [locationPromptKey, setLocationPromptKey] = useState(0); // Force re-render
   const [userLocation, setUserLocation] = useState<LocationData | null>(null);
-
+  const [sessions, setSessions] = useState<PromptSession[]>([]);
   // Use geolocation hook
   const {
     location,
@@ -142,15 +143,15 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
       const sortedSessions = sessions.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      
+      setSessions(sortedSessions);
       // Transform sessions to chat history format
       const transformedHistory: ChatItem[] = sortedSessions.map((session) => {
-        const sessionDate = new Date(session.createdAt);
-        const formattedTitle = `Session ${sessionDate.toLocaleDateString('vi-VN')} ${sessionDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
-        
+        // const sessionDate = new Date(session.createdAt);
+        // const formattedTitle = `Session ${sessionDate.toLocaleDateString('vi-VN')} ${sessionDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+        const formattedSessionName = session.sessionName;
         return {
           id: session.id,
-          title: formattedTitle,
+          title: formattedSessionName ?? 'New chat',
           time: formatTime(session.createdAt),
         };
       });
@@ -316,6 +317,36 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
     setLocationPromptKey(prev => prev + 1); // Force re-render
   };
 
+  // Handle first stream title for new sessions
+  const handleFirstStreamTitle = (title: string) => {
+    if (selectedChat && title) {
+      setSessions(prevSessions =>
+        prevSessions.map(session =>
+          session.id === selectedChat && (!session.sessionName || session.sessionName === "newchat")
+            ? { ...session, sessionName: title }
+            : session
+        )
+      );
+      setChatHistory(prevHistory =>
+        prevHistory.map(chat =>
+          chat.id === selectedChat
+            ? { ...chat, title }
+            : chat
+        )
+      );
+    }
+  };
+
+  // Use only currentSession.sessionName for the header
+  const currentSession = sessions.find(s => s.id === selectedChat);
+  const effectiveSessionName = currentSession?.sessionName;
+  
+  console.log("📋 Session Debug:", {
+    selectedChat,
+    currentSession: currentSession?.sessionName,
+    effectiveSessionName
+  });
+
   // Show loading spinner while fetching data
   if (loading) {
     return (
@@ -418,7 +449,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
           )}
 
           {/* Header */}
-          <SearchHeader collapsed={collapsed} />
+          <SearchHeader collapsed={collapsed} sessionName={effectiveSessionName} />
 
           {/* Content Area with Chat */}
           <div style={{ flex: 1, overflow: "hidden" }}>
@@ -426,6 +457,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
               sessionId={selectedChat || undefined} 
               userLocation={userLocation}
               onRequestLocation={handleShowLocationPermission}
+              onFirstStreamTitle={handleFirstStreamTitle}
             />
         
           </div>

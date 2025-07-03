@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Layout,
@@ -24,9 +24,10 @@ const { Title, Text } = Typography;
 
 interface SearchHeaderProps {
     collapsed: boolean;
+    sessionName?: string;
 }
 
-const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed }) => {
+const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed, sessionName }) => {
     const router = useRouter();
     const { authUser } = useAuth();
 
@@ -124,7 +125,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed }) => {
         >            <Flex justify="space-between" align="center">
                 <div style={{ marginLeft: collapsed ? '60px' : '0', transition: 'all 0.3s' }}>
                     <Title level={2} style={{ margin: 0, color: '#ffffff' }}>
-                        Xin chào! Tôi có thể giúp gì cho bạn
+                        {sessionName ? sessionName : "Xin chào! Tôi có thể giúp gì cho bạn"}
                     </Title>                    <Text type="secondary" style={{ fontSize: '14px' }}>
                         Hãy nói tôi nghe tâm trạng của bạn!
                     </Text>
