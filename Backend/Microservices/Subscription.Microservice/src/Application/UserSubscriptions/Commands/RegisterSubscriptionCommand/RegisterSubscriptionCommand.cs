@@ -26,7 +26,8 @@ public sealed record RegisterSubscriptionResponse(
     string Message
 );
 
-internal sealed class RegisterSubscriptionCommandHandler : ICommandHandler<RegisterSubscriptionCommand, RegisterSubscriptionResponse>
+internal sealed class
+    RegisterSubscriptionCommandHandler : ICommandHandler<RegisterSubscriptionCommand, RegisterSubscriptionResponse>
 {
     private readonly ILogger<RegisterSubscriptionCommandHandler> _logger;
     private readonly IUserSubscriptionRepository _userSubscriptionRepository;
@@ -60,7 +61,8 @@ internal sealed class RegisterSubscriptionCommandHandler : ICommandHandler<Regis
             if (userIdClaim is null)
             {
                 _logger.LogWarning("User ID not found in claims");
-                return Result.Failure<RegisterSubscriptionResponse>(new Error("Auth.Unauthorized", "User not authenticated"));
+                return Result.Failure<RegisterSubscriptionResponse>(new Error("Auth.Unauthorized",
+                    "User not authenticated"));
             }
 
             var userId = userIdClaim.Value;
@@ -75,16 +77,19 @@ internal sealed class RegisterSubscriptionCommandHandler : ICommandHandler<Regis
             if (subscription is null)
             {
                 _logger.LogWarning("Subscription with ID {SubscriptionId} not found", request.SubscriptionId);
-                return Result.Failure<RegisterSubscriptionResponse>(new Error("Subscription.NotFound", "Subscription not found"));
+                return Result.Failure<RegisterSubscriptionResponse>(new Error("Subscription.NotFound",
+                    "Subscription not found"));
             }
 
             if (!subscription.IsActive || subscription.IsDisable == true)
             {
                 _logger.LogWarning("Subscription {SubscriptionId} is not available", request.SubscriptionId);
-                return Result.Failure<RegisterSubscriptionResponse>(new Error("Subscription.NotAvailable", "Subscription is not available"));
+                return Result.Failure<RegisterSubscriptionResponse>(new Error("Subscription.NotAvailable",
+                    "Subscription is not available"));
             }
 
-            var existingActiveSubscription = await _userSubscriptionRepository.GetActiveSubscriptionByUserIdAsync(userId);
+            var existingActiveSubscription =
+                await _userSubscriptionRepository.GetActiveSubscriptionByUserIdAsync(userId);
             if (existingActiveSubscription != null)
             {
                 _logger.LogWarning("User {UserId} already has an active subscription", userId);
@@ -94,7 +99,7 @@ internal sealed class RegisterSubscriptionCommandHandler : ICommandHandler<Regis
 
             var correlationId = Guid.NewGuid();
             var amount = subscription.Price;
-            
+
             // Convert amount to VND if needed
             if (subscription.Currency.ToUpper() == "USD")
             {
@@ -125,15 +130,17 @@ internal sealed class RegisterSubscriptionCommandHandler : ICommandHandler<Regis
                 "Subscription registration process started. Payment URL will be created."
             );
 
-            _logger.LogInformation("Started subscription registration process for user {UserId} and subscription {SubscriptionId} with CorrelationId {CorrelationId}", 
+            _logger.LogInformation(
+                "Started subscription registration process for user {UserId} and subscription {SubscriptionId} with CorrelationId {CorrelationId}",
                 userId, request.SubscriptionId, correlationId);
-            
+
             return Result.Success(response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error registering subscription {SubscriptionId}", request.SubscriptionId);
-            return Result.Failure<RegisterSubscriptionResponse>(new Error("InternalError", "An unexpected error occurred"));
+            return Result.Failure<RegisterSubscriptionResponse>(new Error("InternalError",
+                "An unexpected error occurred"));
         }
     }
 }
@@ -146,4 +153,4 @@ public class RegisterSubscriptionCommandValidator : AbstractValidator<RegisterSu
             .NotEmpty()
             .WithMessage("Subscription ID is required");
     }
-} 
+}

@@ -48,7 +48,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        [ApiGatewayUser]
+        [ApiGatewayUser(Roles = "Admin")]
         public async Task<IActionResult> CreateSubscription([FromBody] CreateSubscriptionCommand command,
             CancellationToken cancellationToken)
         {
@@ -73,7 +73,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPut("{subscriptionId}")]
-        [ApiGatewayUser]
+        [ApiGatewayUser(Roles = "Admin")]
         public async Task<IActionResult> UpdateSubscription(Guid subscriptionId,
             [FromBody] UpdateSubscriptionRequest request,
             CancellationToken cancellationToken)
@@ -107,7 +107,7 @@ namespace WebApi.Controllers
         }
 
         [HttpDelete("{subscriptionId}")]
-        [ApiGatewayUser]
+        [ApiGatewayUser(Roles = "Admin")]
         public async Task<IActionResult> DeleteSubscription(Guid subscriptionId, CancellationToken cancellationToken)
         {
             var deleteResult = await _mediator.Send(new DeleteSubscriptionCommand(subscriptionId), cancellationToken);
@@ -128,7 +128,7 @@ namespace WebApi.Controllers
 
             return Ok(aggregatedResult.Value);
         }
-        
+
         [HttpGet("my-subscription")]
         [ApiGatewayUser]
         public async Task<IActionResult> GetMySubscription(CancellationToken cancellationToken)
@@ -141,7 +141,7 @@ namespace WebApi.Controllers
 
             return Ok(result);
         }
-        
+
         [HttpPost("register")]
         [ApiGatewayUser]
         public async Task<IActionResult> RegisterSubscription([FromBody] RegisterSubscriptionRequest request,
@@ -163,10 +163,11 @@ namespace WebApi.Controllers
 
             return Ok(aggregatedResult.Value);
         }
-        
+
         [HttpGet("payment-status/{correlationId}")]
         [ApiGatewayUser]
-        public async Task<IActionResult> GetSubscriptionPaymentStatus(Guid correlationId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetSubscriptionPaymentStatus(Guid correlationId,
+            CancellationToken cancellationToken)
         {
             var query = new GetSubscriptionPaymentStatusQuery(correlationId);
             var result = await _mediator.Send(query, cancellationToken);
