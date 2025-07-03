@@ -8,6 +8,8 @@ using Application.Business.Commands.CreateBusinessCommand;
 using Application.Business.Commands.UpdateBusinessCommand;
 using Application.Business.Commands.DisableBusinessCommand;
 using Application.Business.Commands.EnableBusinessCommand;
+using Application.Business.Commands.ActiveBusinessCommand;
+using Application.Business.Commands.InactiveBusinessCommand;
 using Application.Business.Commands.AddRestaurantToBusinessCommand;
 using SharedLibrary.Common;
 using SharedLibrary.Common.Messaging.Commands;
@@ -81,14 +83,15 @@ public class BusinessController : ApiController
     {
         var createResult = await _mediator.Send(command, cancellationToken);
         var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
-        var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(createResult.Value?.Id ?? Guid.Empty), cancellationToken);
-        
+        var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(createResult.Value?.Id ?? Guid.Empty),
+            cancellationToken);
+
         var aggregatedResult = ResultAggregator.AggregateWithNumbers(
-            (createResult, true),
+            (createResult, false),
             (saveResult, false),
             (getBusinessResult, true)
         );
-        
+
         if (aggregatedResult.IsFailure)
         {
             return HandleFailure(aggregatedResult);
@@ -115,13 +118,13 @@ public class BusinessController : ApiController
         var updateResult = await _mediator.Send(command, cancellationToken);
         var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
         var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(businessId), cancellationToken);
-        
+
         var aggregatedResult = ResultAggregator.AggregateWithNumbers(
-            (updateResult, true),
+            (updateResult, false),
             (saveResult, false),
             (getBusinessResult, true)
         );
-        
+
         if (aggregatedResult.IsFailure)
         {
             return HandleFailure(aggregatedResult);
@@ -137,13 +140,13 @@ public class BusinessController : ApiController
         var disableResult = await _mediator.Send(new DisableBusinessCommand(businessId), cancellationToken);
         var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
         var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(businessId), cancellationToken);
-        
+
         var aggregatedResult = ResultAggregator.AggregateWithNumbers(
-            (disableResult, true),
+            (disableResult, false),
             (saveResult, false),
             (getBusinessResult, true)
         );
-        
+
         if (aggregatedResult.IsFailure)
         {
             return HandleFailure(aggregatedResult);
@@ -159,13 +162,57 @@ public class BusinessController : ApiController
         var enableResult = await _mediator.Send(new EnableBusinessCommand(businessId), cancellationToken);
         var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
         var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(businessId), cancellationToken);
-        
+
         var aggregatedResult = ResultAggregator.AggregateWithNumbers(
-            (enableResult, true),
+            (enableResult, false),
             (saveResult, false),
             (getBusinessResult, true)
         );
-        
+
+        if (aggregatedResult.IsFailure)
+        {
+            return HandleFailure(aggregatedResult);
+        }
+
+        return Ok(aggregatedResult.Value);
+    }
+
+    [HttpPost("{businessId}/activate")]
+    [ApiGatewayUser]
+    public async Task<IActionResult> ActivateBusiness(Guid businessId, CancellationToken cancellationToken)
+    {
+        var activateResult = await _mediator.Send(new ActiveBusinessCommand(businessId), cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(businessId), cancellationToken);
+
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (activateResult, false),
+            (saveResult, false),
+            (getBusinessResult, true)
+        );
+
+        if (aggregatedResult.IsFailure)
+        {
+            return HandleFailure(aggregatedResult);
+        }
+
+        return Ok(aggregatedResult.Value);
+    }
+
+    [HttpPost("{businessId}/deactivate")]
+    [ApiGatewayUser]
+    public async Task<IActionResult> DeactivateBusiness(Guid businessId, CancellationToken cancellationToken)
+    {
+        var deactivateResult = await _mediator.Send(new InactiveBusinessCommand(businessId), cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var getBusinessResult = await _mediator.Send(new GetBusinessByIdQuery(businessId), cancellationToken);
+
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (deactivateResult, false),
+            (saveResult, false),
+            (getBusinessResult, true)
+        );
+
         if (aggregatedResult.IsFailure)
         {
             return HandleFailure(aggregatedResult);
@@ -190,13 +237,13 @@ public class BusinessController : ApiController
         var addResult = await _mediator.Send(command, cancellationToken);
         var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
         var getRestaurantsResult = await _mediator.Send(new GetBusinessRestaurantsQuery(businessId), cancellationToken);
-        
+
         var aggregatedResult = ResultAggregator.AggregateWithNumbers(
-            (addResult, true),
+            (addResult, false),
             (saveResult, false),
             (getRestaurantsResult, true)
         );
-        
+
         if (aggregatedResult.IsFailure)
         {
             return HandleFailure(aggregatedResult);

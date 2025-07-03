@@ -1,8 +1,15 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using Application;
 using Infrastructure;
 using Infrastructure.Configs;
+using Microsoft.AspNetCore.Builder;
 using SharedLibrary.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 using WebApi.Configs;
@@ -20,6 +27,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
+
 
 // Add CORS services
 var corsOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(',') ??

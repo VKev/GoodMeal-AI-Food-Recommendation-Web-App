@@ -84,7 +84,7 @@ internal sealed class UpdateSubscriptionCommandHandler : ICommandHandler<UpdateS
             subscription.Price = request.Price;
             subscription.DurationInMonths = request.DurationInMonths;
             subscription.Currency = request.Currency;
-            subscription.UpdatedAt = DateTime.Now;
+            subscription.UpdatedAt = DateTime.UtcNow;
             subscription.UpdatedBy = userId;
 
             _subscriptionRepository.Update(subscription);

@@ -32,5 +32,9 @@ public partial class Business
 
     public string? DisableBy { get; set; }
 
+    public string? CreateReason { get; set; }
+
+    public DateTime? ActivatedAt { get; set; }
+
     public virtual ICollection<BusinessRestaurant> BusinessRestaurants { get; set; } = new List<BusinessRestaurant>();
 }

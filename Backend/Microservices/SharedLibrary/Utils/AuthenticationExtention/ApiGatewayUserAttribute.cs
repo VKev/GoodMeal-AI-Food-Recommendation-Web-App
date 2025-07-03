@@ -66,7 +66,7 @@ public class ApiGatewayUserAttribute : Attribute, IActionFilter
             var allowedRoles = Roles.Split(',').Select(r => r.Trim()).Select(r => r.ToLower());
             var userRoles = context.HttpContext.User.Claims
                 .Where(c => c.Type == ClaimTypes.Role)
-                .Select(c => c.Value);
+                .Select(c => c.Value).Select(c => c.ToLower());
 
             if (!allowedRoles.Intersect(userRoles).Any())
             {
