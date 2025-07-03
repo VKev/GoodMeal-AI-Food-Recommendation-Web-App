@@ -34,7 +34,7 @@ public class UserSubscriptionRepository : Repository<UserSubscription>, IUserSub
     {
         return await _context.UserSubscriptions
             .Include(us => us.Subscription)
-            .Where(us => us.UserId == userId && us.IsActive && us.EndDate > DateTime.Now)
+            .Where(us => us.UserId == userId && us.IsActive && us.EndDate > DateTime.UtcNow)
             .OrderByDescending(us => us.EndDate)
             .FirstOrDefaultAsync();
     }
@@ -50,6 +50,6 @@ public class UserSubscriptionRepository : Repository<UserSubscription>, IUserSub
     public async Task<bool> ExistsActiveSubscriptionForUserAsync(string userId)
     {
         return await _context.UserSubscriptions
-            .AnyAsync(us => us.UserId == userId && us.IsActive && us.EndDate > DateTime.Now);
+            .AnyAsync(us => us.UserId == userId && us.IsActive && us.EndDate > DateTime.UtcNow);
     }
 } 

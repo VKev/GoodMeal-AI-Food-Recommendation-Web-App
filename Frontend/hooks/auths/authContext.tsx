@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter();    const extractTokenData = async (user: User): Promise<TokenData | null> => {
         try {
             const idToken = await user.getIdToken();
-            console.log('Getting ID token...');
+            console.log(idToken);
 
             // Call the check-authorization API with timeout
             let rolesFromBackend: string[] = [];

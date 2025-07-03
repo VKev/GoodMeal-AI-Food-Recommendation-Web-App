@@ -20,18 +20,47 @@ public sealed record UpdateBusinessCommand(
     string? Website
 ) : ICommand<UpdateBusinessResponse>;
 
-public sealed record UpdateBusinessResponse(
-    Guid Id,
-    string? OwnerId,
-    string Name,
-    string? Description,
-    string? Address,
-    string? Phone,
-    string? Email,
-    string? Website,
-    bool IsActive,
-    DateTime? UpdatedAt
-);
+public sealed class UpdateBusinessResponse
+{
+    public Guid Id { get; set; }
+    public string? OwnerId { get; set; }
+    public string Name { get; set; }
+    public string? Description { get; set; }
+    public string? Address { get; set; }
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? Website { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    public UpdateBusinessResponse()
+    {
+    }
+
+    public UpdateBusinessResponse(
+        Guid id,
+        string? ownerId,
+        string name,
+        string? description,
+        string? address,
+        string? phone,
+        string? email,
+        string? website,
+        bool isActive,
+        DateTime? updatedAt)
+    {
+        Id = id;
+        OwnerId = ownerId;
+        Name = name;
+        Description = description;
+        Address = address;
+        Phone = phone;
+        Email = email;
+        Website = website;
+        IsActive = isActive;
+        UpdatedAt = updatedAt;
+    }
+}
 
 internal sealed class UpdateBusinessCommandHandler : ICommandHandler<UpdateBusinessCommand, UpdateBusinessResponse>
 {
@@ -99,7 +128,7 @@ internal sealed class UpdateBusinessCommandHandler : ICommandHandler<UpdateBusin
             business.Phone = request.Phone;
             business.Email = request.Email;
             business.Website = request.Website;
-            business.UpdatedAt = DateTime.Now;
+            business.UpdatedAt = DateTime.UtcNow;
 
             _businessRepository.Update(business);
 

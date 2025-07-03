@@ -95,7 +95,7 @@ namespace SharedLibrary.Utils
         
         public void GenerateMigration()
         {
-            ExecuteMigrationCommand("add", MigrationName+"_"+DateTime.Now.ToString("yyyyMMddHHmmss"));
+            ExecuteMigrationCommand("add", MigrationName+"_"+DateTime.UtcNow.ToString("yyyyMMddHHmmss"));
         }
 
         public void ApplyMigration()

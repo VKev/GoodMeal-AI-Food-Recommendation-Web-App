@@ -5,8 +5,9 @@ using Application.Subscriptions.Queries.GetSubscriptionByIdQuery;
 using Application.Subscriptions.Commands.CreateSubscriptionCommand;
 using Application.Subscriptions.Commands.UpdateSubscriptionCommand;
 using Application.Subscriptions.Commands.DeleteSubscriptionCommand;
-using Application.UserSubscriptions.Commands.SubscribeUserCommand;
+using Application.UserSubscriptions.Commands.RegisterSubscriptionCommand;
 using Application.UserSubscriptions.Queries.GetMySubscriptionQuery;
+using Application.UserSubscriptions.Queries.GetSubscriptionPaymentStatusQuery;
 using SharedLibrary.Common;
 using SharedLibrary.Common.Messaging.Commands;
 using SharedLibrary.Utils.AuthenticationExtention;
@@ -47,7 +48,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        [ApiGatewayUser]
+        [ApiGatewayUser(Roles = "Admin")]
         public async Task<IActionResult> CreateSubscription([FromBody] CreateSubscriptionCommand command,
             CancellationToken cancellationToken)
         {
@@ -72,7 +73,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPut("{subscriptionId}")]
-        [ApiGatewayUser]
+        [ApiGatewayUser(Roles = "Admin")]
         public async Task<IActionResult> UpdateSubscription(Guid subscriptionId,
             [FromBody] UpdateSubscriptionRequest request,
             CancellationToken cancellationToken)
@@ -106,7 +107,7 @@ namespace WebApi.Controllers
         }
 
         [HttpDelete("{subscriptionId}")]
-        [ApiGatewayUser]
+        [ApiGatewayUser(Roles = "Admin")]
         public async Task<IActionResult> DeleteSubscription(Guid subscriptionId, CancellationToken cancellationToken)
         {
             var deleteResult = await _mediator.Send(new DeleteSubscriptionCommand(subscriptionId), cancellationToken);
@@ -128,35 +129,49 @@ namespace WebApi.Controllers
             return Ok(aggregatedResult.Value);
         }
 
-        //Cái này chỉ nên để cho hệ thống xử lý hoặc sửa logic nếu subscribe nó sẽ tìm kiếm xem coi user đã thanh toán gói nào đó trong tháng hay chưa để kích hoạt lên
-        // [HttpPost("subscribe")]
-        // [ApiGatewayUser]
-        // public async Task<IActionResult> SubscribeUser([FromBody] SubscribeUserCommand command,
-        //     CancellationToken cancellationToken)
-        // {
-        //     var subscribeResult = await _mediator.Send(command, cancellationToken);
-        //     var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
-        //     var getMySubscriptionResult = await _mediator.Send(new GetMySubscriptionQuery(), cancellationToken);
-        //
-        //     var aggregatedResult = ResultAggregator.AggregateWithNumbers(
-        //         (subscribeResult, true),
-        //         (saveResult, false),
-        //         (getMySubscriptionResult, true)
-        //     );
-        //
-        //     if (aggregatedResult.IsFailure)
-        //     {
-        //         return HandleFailure(aggregatedResult);
-        //     }
-        //
-        //     return Ok(aggregatedResult.Value);
-        // }
-
         [HttpGet("my-subscription")]
         [ApiGatewayUser]
         public async Task<IActionResult> GetMySubscription(CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new GetMySubscriptionQuery(), cancellationToken);
+            if (result.IsFailure)
+            {
+                return HandleFailure(result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("register")]
+        [ApiGatewayUser]
+        public async Task<IActionResult> RegisterSubscription([FromBody] RegisterSubscriptionRequest request,
+            CancellationToken cancellationToken)
+        {
+            var command = new RegisterSubscriptionCommand(request.SubscriptionId);
+            var registerResult = await _mediator.Send(command, cancellationToken);
+            var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+
+            var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+                (registerResult, true),
+                (saveResult, false)
+            );
+
+            if (aggregatedResult.IsFailure)
+            {
+                return HandleFailure(aggregatedResult);
+            }
+
+            return Ok(aggregatedResult.Value);
+        }
+
+        [HttpGet("payment-status/{correlationId}")]
+        [ApiGatewayUser]
+        public async Task<IActionResult> GetSubscriptionPaymentStatus(Guid correlationId,
+            CancellationToken cancellationToken)
+        {
+            var query = new GetSubscriptionPaymentStatusQuery(correlationId);
+            var result = await _mediator.Send(query, cancellationToken);
+
             if (result.IsFailure)
             {
                 return HandleFailure(result);
@@ -178,5 +193,9 @@ namespace WebApi.Controllers
         decimal Price,
         int DurationInMonths,
         string Currency
+    );
+
+    public record RegisterSubscriptionRequest(
+        Guid SubscriptionId
     );
 }

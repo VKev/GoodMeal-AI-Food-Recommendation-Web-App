@@ -16,21 +16,54 @@ public sealed record CreateBusinessCommand(
     string? Address,
     string? Phone,
     string? Email,
-    string? Website
+    string? Website,
+    string CreateReason
 ) : ICommand<CreateBusinessResponse>;
 
-public sealed record CreateBusinessResponse(
-    Guid Id,
-    string? OwnerId,
-    string Name,
-    string? Description,
-    string? Address,
-    string? Phone,
-    string? Email,
-    string? Website,
-    bool IsActive,
-    DateTime? CreatedAt
-);
+public sealed class CreateBusinessResponse
+{
+    public Guid Id { get; set; }
+    public string? OwnerId { get; set; }
+    public string Name { get; set; }
+    public string? Description { get; set; }
+    public string? Address { get; set; }
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? Website { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public string CreateReason { get; set; }
+
+    public CreateBusinessResponse()
+    {
+    }
+
+    public CreateBusinessResponse(
+        Guid id,
+        string? ownerId,
+        string name,
+        string? description,
+        string? address,
+        string? phone,
+        string? email,
+        string? website,
+        bool isActive,
+        DateTime? createdAt,
+        string createReason)
+    {
+        Id = id;
+        OwnerId = ownerId;
+        Name = name;
+        Description = description;
+        Address = address;
+        Phone = phone;
+        Email = email;
+        Website = website;
+        IsActive = isActive;
+        CreatedAt = createdAt;
+        CreateReason = createReason;
+    }
+}
 
 internal sealed class CreateBusinessCommandHandler : ICommandHandler<CreateBusinessCommand, CreateBusinessResponse>
 {
@@ -88,18 +121,21 @@ internal sealed class CreateBusinessCommandHandler : ICommandHandler<CreateBusin
                 Phone = request.Phone,
                 Email = request.Email,
                 Website = request.Website,
-                IsActive = true,
+                CreateReason = request.CreateReason,
+                IsActive = false,
                 IsDisable = false,
                 CreatedBy = userId,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                ActivatedAt = null
             };
 
             await _businessRepository.AddAsync(business, cancellationToken);
 
             var response = _mapper.Map<CreateBusinessResponse>(business);
 
-            _logger.LogInformation("Successfully created business {BusinessId} for user {UserId}", business.Id, userId);
+            _logger.LogInformation("Successfully created business {BusinessId} for user {UserId} - pending approval",
+                business.Id, userId);
             return Result.Success(response);
         }
         catch (Exception ex)
@@ -119,6 +155,12 @@ public class CreateBusinessCommandValidator : AbstractValidator<CreateBusinessCo
             .WithMessage("Business name is required")
             .MaximumLength(200)
             .WithMessage("Business name cannot exceed 200 characters");
+
+        RuleFor(x => x.CreateReason)
+            .NotEmpty()
+            .WithMessage("Create reason is required")
+            .MaximumLength(1000)
+            .WithMessage("Create reason cannot exceed 1000 characters");
 
         RuleFor(x => x.Description)
             .MaximumLength(1000)

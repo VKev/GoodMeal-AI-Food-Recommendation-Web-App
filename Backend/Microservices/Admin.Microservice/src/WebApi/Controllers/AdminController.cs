@@ -1,4 +1,5 @@
 using Application.Admin.Commands.AddUserRoleCommand;
+using Application.Admin.Commands.BusinessCommand.ActiveBusinessCommand;
 using Application.Admin.Commands.DeleteUserCommand;
 using Application.Admin.Commands.DisableUserCommand;
 using Application.Admin.Commands.EnableUserCommand;
@@ -7,10 +8,10 @@ using Application.Admin.Commands.UpdateUserCommand;
 using Application.Admin.Queries.GetUserRolesQuery;
 using Application.Admin.Queries.GetUserStatusQuery;
 using Application.Admin.Queries.SearchUsersQuery;
+using Application.Admin.Queries.GetAllBusinessesQuery;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Common;
-using SharedLibrary.Utils;
 using SharedLibrary.Utils.AuthenticationExtention;
 
 namespace WebApi.Controllers
@@ -139,6 +140,45 @@ namespace WebApi.Controllers
         public async Task<IActionResult> DeleteUser(string identityId, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new DeleteUserCommand(identityId), cancellationToken);
+            if (result.IsFailure)
+            {
+                return HandleFailure(result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpGet("businesses")]
+        [ApiGatewayUser(Roles = "Admin")]
+        public async Task<IActionResult> GetAllBusinesses(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetAllBusinessesQuery(), cancellationToken);
+            if (result.IsFailure)
+            {
+                return HandleFailure(result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("businesses/{businessId}/active")]
+        [ApiGatewayUser(Roles = "Admin")]
+        public async Task<IActionResult> ActiveBusiness(Guid businessId, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new ActiveBusinessCommand(businessId), cancellationToken);
+            if (result.IsFailure)
+            {
+                return HandleFailure(result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("businesses/{businessId}/deactive")]
+        [ApiGatewayUser(Roles = "Admin")]
+        public async Task<IActionResult> DeactiveBusiness(Guid businessId, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new DeactiveBusinessCommand(businessId), cancellationToken);
             if (result.IsFailure)
             {
                 return HandleFailure(result);

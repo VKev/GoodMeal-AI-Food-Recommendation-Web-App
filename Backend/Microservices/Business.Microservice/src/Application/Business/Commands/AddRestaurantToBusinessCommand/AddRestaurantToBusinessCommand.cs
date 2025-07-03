@@ -17,13 +17,28 @@ public sealed record AddRestaurantToBusinessCommand(
     string? Phone
 ) : ICommand<AddRestaurantToBusinessResponse>;
 
-public sealed record AddRestaurantToBusinessResponse(
-    Guid CorrelationId,
-    Guid BusinessId,
-    Guid RestaurantId,
-    string Name,
-    string Message
-);
+public sealed class AddRestaurantToBusinessResponse
+{
+    public Guid CorrelationId { get; set; }
+    public Guid BusinessId { get; set; }
+    public Guid RestaurantId { get; set; }
+    public string Name { get; set; }
+    public string Message { get; set; }
+
+    public AddRestaurantToBusinessResponse()
+    {
+    }
+
+    public AddRestaurantToBusinessResponse(Guid correlationId, Guid businessId, Guid restaurantId, string name,
+        string message)
+    {
+        CorrelationId = correlationId;
+        BusinessId = businessId;
+        RestaurantId = restaurantId;
+        Name = name;
+        Message = message;
+    }
+}
 
 internal sealed class AddRestaurantToBusinessCommandHandler : ICommandHandler<AddRestaurantToBusinessCommand, AddRestaurantToBusinessResponse>
 {

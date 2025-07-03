@@ -42,7 +42,7 @@ namespace Infrastructure
             services.AddMassTransit(busConfigurator =>
             {
                 busConfigurator.SetKebabCaseEndpointNameFormatter();
-                
+
                 busConfigurator.AddConsumer<GetUserStatusConsumer>();
                 busConfigurator.AddConsumer<EnableUserConsumer>();
                 busConfigurator.AddConsumer<DisableUserConsumer>();
@@ -52,7 +52,10 @@ namespace Infrastructure
                 busConfigurator.AddConsumer<AddUserRoleConsumer>();
                 busConfigurator.AddConsumer<RemoveUserRoleConsumer>();
                 busConfigurator.AddConsumer<SearchUsersConsumer>();
-                
+
+                busConfigurator.AddConsumer<BusinessActivatedEventConsumer>();
+                busConfigurator.AddConsumer<BusinessDeactivatedEventConsumer>();
+
                 busConfigurator.UsingRabbitMq((context, configurator) =>
                 {
                     if (config.IsRabbitMqCloud)
