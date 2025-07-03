@@ -6,5 +6,6 @@ public record GetPromptSessionResponse(
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     DateTime? DeletedAt,
-    bool? IsDeleted
+    bool? IsDeleted,
+    string SessionName
 );

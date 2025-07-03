@@ -249,8 +249,7 @@ public class GeminiController : ApiController
 
     [HttpPost("process-food-request/stream")]
     [ApiGatewayUser]
-    public async Task ProcessFoodRequestStreamAsync(
-        [FromBody] CreateMessageCommand request,
+    public async Task ProcessFoodRequestStreamAsync([FromBody] CreateMessageCommand request,
         CancellationToken cancellationToken)
     {
         Response.ContentType = "text/event-stream";

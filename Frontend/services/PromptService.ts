@@ -1,10 +1,11 @@
-interface PromptSession {
+export interface PromptSession {
     id: string;
     userId: string;
     createdAt: string;
     updatedAt: string | null;
     deletedAt: string | null;
     isDeleted: boolean;
+    sessionName:string;
 }
 
 interface PromptSessionResponse {
@@ -146,7 +147,6 @@ export const createPromptSession = async (idToken: string, userId: string): Prom
         console.log('Response headers:', response.headers);
 
         if (!response.ok) {
-            // Try to get error details from response
             let errorText = '';
             try {
                 errorText = await response.text();
@@ -157,7 +157,6 @@ export const createPromptSession = async (idToken: string, userId: string): Prom
             throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
         }
 
-        // Get raw response text first for debugging
         const responseText = await response.text();
         console.log('Raw response:', responseText);
         
@@ -302,7 +301,71 @@ export const processFoodRequest = async (
         return null;
     }
 };
-
+export const processFoodRequestStream = async (
+    idToken: string,
+    payload: ProcessFoodRequestPayload,
+    onMessage: (data: ProcessFoodResponse) => void,
+    onDone?: () => void
+  ): Promise<void> => {
+    if (!idToken) {
+      console.warn("No ID token provided");
+      return;
+    }
+  
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "http://localhost:2406/";
+  
+    const response = await fetch(`${baseUrl}api/prompt/Gemini/process-food-request/stream`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+  
+    if (!response.ok || !response.body) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+    }
+  
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+  
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+  
+      buffer += decoder.decode(value, { stream: true });
+  
+      // Split messages by double linebreaks
+      const parts = buffer.split("\n\n");
+  
+      for (let i = 0; i < parts.length - 1; i++) {
+        const raw = parts[i].trim();
+  
+        if (raw.startsWith("event: done")) {
+          if (onDone) onDone();
+          continue;
+        }
+  
+        if (raw.startsWith("data: ")) {
+          const jsonStr = raw.slice(6); // Remove 'data: '
+          try {
+            const message = JSON.parse(jsonStr);
+            onMessage(message);
+          } catch (err) {
+            console.error("❌ Failed to parse stream message:", err);
+          }
+        } else if (raw.startsWith("event: error")) {
+          console.error("❌ Stream error:", raw);
+        }
+      }
+  
+      // Keep any incomplete part for the next read
+      buffer = parts[parts.length - 1];
+    }
+  };
 export interface MessageResponse {
     id: string;
     promptSessionId: string;
