@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using SharedLibrary.Common;
 using SharedLibrary.Common.Event;
 using SharedLibrary.Contracts.SubscriptionPayment;
+using SharedLibrary.Utils;
 
 namespace Application.UserSubscriptions.Commands.RegisterSubscriptionCommand;
 
@@ -108,6 +109,9 @@ internal sealed class
 
             var orderDescription = $"Đăng ký gói {subscription.Name} - {subscription.DurationInMonths} tháng";
 
+            // Get client IP address
+            var ipAddress = GetClientIpAddress();
+
             // Start subscription payment saga
             _events.Add(new SubscriptionPaymentSagaStart
             {
@@ -117,6 +121,7 @@ internal sealed class
                 Amount = amount,
                 Currency = "VND",
                 OrderDescription = orderDescription,
+                IpAddress = ipAddress,
                 RequestedAt = DateTime.UtcNow
             });
 
@@ -142,6 +147,25 @@ internal sealed class
             return Result.Failure<RegisterSubscriptionResponse>(new Error("InternalError",
                 "An unexpected error occurred"));
         }
+    }
+
+    private string GetClientIpAddress()
+    {
+        try
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+
+            if (httpContext != null)
+            {
+                return NetworkHelper.GetIpAddress(httpContext);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get client IP address, using fallback");
+        }
+
+        return "127.0.0.1";
     }
 }
 

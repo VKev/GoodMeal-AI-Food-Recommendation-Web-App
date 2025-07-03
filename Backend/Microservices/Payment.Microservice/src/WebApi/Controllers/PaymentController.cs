@@ -5,6 +5,7 @@ using Application.Payments.Commands;
 using Application.Payments.Queries;
 using SharedLibrary.Contracts.SubscriptionPayment;
 using MassTransit;
+using VNPAY.NET.Utilities;
 
 namespace WebApi.Controllers;
 
@@ -12,10 +13,13 @@ namespace WebApi.Controllers;
 public class PaymentController : ApiController
 {
     private readonly IPublishEndpoint _publishEndpoint;
-    
-    public PaymentController(IMediator mediator, IPublishEndpoint publishEndpoint) : base(mediator)
+    private readonly ILogger<PaymentController> _logger;
+
+    public PaymentController(IMediator mediator, IPublishEndpoint publishEndpoint, ILogger<PaymentController> logger) :
+        base(mediator)
     {
         _publishEndpoint = publishEndpoint;
+        _logger = logger;
     }
 
     [HttpPost("CreatePaymentUrl")]
@@ -23,10 +27,13 @@ public class PaymentController : ApiController
         [FromBody] CreatePaymentUrlCommand request,
         CancellationToken cancellationToken)
     {
+        var ipAddress = NetworkHelper.GetIpAddress(HttpContext);
+
         var command = new CreatePaymentUrlCommand(
             request.Amount,
             request.OrderDescription,
-            request.OrderId
+            request.OrderId,
+            ipAddress
         );
 
         var result = await _mediator.Send(command, cancellationToken);
@@ -43,6 +50,8 @@ public class PaymentController : ApiController
     [HttpGet("IpnAction")]
     public async Task<IActionResult> IpnAction(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Received IPN callback from VnPay");
+
         var command = new ProcessIpnCommand(Request.Query);
 
         var result = await _mediator.Send(command, cancellationToken);
@@ -50,10 +59,12 @@ public class PaymentController : ApiController
         var aggregatedResult = ResultAggregator.Aggregate(result);
         if (aggregatedResult.IsFailure)
         {
+            _logger.LogWarning("IPN processing failed: {Error}", aggregatedResult.Error);
             return HandleFailure(aggregatedResult);
         }
 
-        // Handle subscription payment completion
+        _logger.LogInformation("IPN processed successfully. Payment success: {IsSuccess}", result.Value.IsSuccess);
+
         await HandleSubscriptionPaymentCompletion(Request.Query, result.Value.IsSuccess, cancellationToken);
 
         return Ok(aggregatedResult);
@@ -62,6 +73,8 @@ public class PaymentController : ApiController
     [HttpGet("Callback")]
     public async Task<IActionResult> Callback(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Received user callback from VnPay");
+
         var query = new GetPaymentCallbackQuery(Request.Query);
 
         var result = await _mediator.Send(query, cancellationToken);
@@ -69,8 +82,38 @@ public class PaymentController : ApiController
         var aggregatedResult = ResultAggregator.Aggregate(result);
         if (aggregatedResult.IsFailure)
         {
+            _logger.LogWarning("Callback processing failed: {Error}", aggregatedResult.Error);
             return HandleFailure(aggregatedResult);
         }
+
+        _logger.LogInformation("Callback processed successfully. Payment success: {IsSuccess}", result.Value.IsSuccess);
+
+        await HandleSubscriptionPaymentCompletion(Request.Query, result.Value.IsSuccess, cancellationToken);
+
+        return Ok(aggregatedResult);
+    }
+
+    [HttpGet("CheckStatus/{orderId}")]
+    public async Task<IActionResult> CheckPaymentStatus(
+        string orderId,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Received payment status check request for OrderId: {OrderId}", orderId);
+
+        var query = new CheckPaymentStatusQuery(orderId);
+
+        var result = await _mediator.Send(query, cancellationToken);
+
+        var aggregatedResult = ResultAggregator.Aggregate(result);
+        if (aggregatedResult.IsFailure)
+        {
+            _logger.LogWarning("Payment status check failed for OrderId: {OrderId}. Error: {Error}",
+                orderId, aggregatedResult.Error);
+            return HandleFailure(aggregatedResult);
+        }
+
+        _logger.LogInformation("Payment status check completed for OrderId: {OrderId}. Status: {Status}",
+            orderId, result.Value.Status);
 
         return Ok(aggregatedResult);
     }
@@ -81,17 +124,23 @@ public class PaymentController : ApiController
         return Ok();
     }
 
-    private async Task HandleSubscriptionPaymentCompletion(IQueryCollection queryParameters, bool isSuccess, CancellationToken cancellationToken)
+    private async Task HandleSubscriptionPaymentCompletion(IQueryCollection queryParameters, bool isSuccess,
+        CancellationToken cancellationToken)
     {
         try
         {
             var orderId = queryParameters["vnp_TxnRef"].FirstOrDefault();
             var transactionId = queryParameters["vnp_TransactionNo"].FirstOrDefault();
             var amount = queryParameters["vnp_Amount"].FirstOrDefault();
-            
+
+            _logger.LogInformation(
+                "Processing payment completion - OrderId: {OrderId}, TransactionId: {TransactionId}, Amount: {Amount}, Success: {Success}",
+                orderId, transactionId, amount, isSuccess);
+
             // Check if this is a subscription payment (order ID starts with SUB_)
             if (string.IsNullOrEmpty(orderId) || !orderId.StartsWith("SUB_"))
             {
+                _logger.LogDebug("Skipping non-subscription payment with OrderId: {OrderId}", orderId);
                 return; // Not a subscription payment
             }
 
@@ -99,43 +148,56 @@ public class PaymentController : ApiController
             var correlationIdString = orderId.Substring(4); // Remove "SUB_" prefix
             if (!Guid.TryParse(correlationIdString, out var correlationId))
             {
-                return; // Invalid correlation ID
+                _logger.LogWarning("Invalid correlation ID in OrderId: {OrderId}", orderId);
+                return;
             }
+
+            _logger.LogInformation("Handling subscription payment completion for CorrelationId: {CorrelationId}",
+                correlationId);
 
             if (isSuccess)
             {
-                // Parse amount (VnPay returns amount in smallest unit, so divide by 100)
                 decimal.TryParse(amount, out var amountValue);
-                amountValue = amountValue / 100;
 
-                await _publishEndpoint.Publish(new SubscriptionPaymentCompletedEvent
+                var completedEvent = new SubscriptionPaymentCompletedEvent
                 {
                     CorrelationId = correlationId,
-                    UserId = string.Empty, // Will be populated by saga
-                    SubscriptionId = Guid.Empty, // Will be populated by saga
+                    UserId = string.Empty,
+                    SubscriptionId = Guid.Empty,
                     OrderId = orderId,
                     Amount = amountValue,
                     TransactionId = transactionId ?? string.Empty,
                     CompletedAt = DateTime.UtcNow
-                }, cancellationToken);
+                };
+
+                await _publishEndpoint.Publish(completedEvent, cancellationToken);
+
+                _logger.LogInformation(
+                    "Published SubscriptionPaymentCompletedEvent for CorrelationId: {CorrelationId}, Amount: {Amount}",
+                    correlationId, amountValue);
             }
             else
             {
-                await _publishEndpoint.Publish(new SubscriptionPaymentFailedEvent
+                var failedEvent = new SubscriptionPaymentFailedEvent
                 {
                     CorrelationId = correlationId,
-                    UserId = string.Empty, // Will be populated by saga
-                    SubscriptionId = Guid.Empty, // Will be populated by saga
+                    UserId = string.Empty,
+                    SubscriptionId = Guid.Empty,
                     OrderId = orderId,
                     Reason = "Payment processing failed",
                     FailedAt = DateTime.UtcNow
-                }, cancellationToken);
+                };
+
+                await _publishEndpoint.Publish(failedEvent, cancellationToken);
+
+                _logger.LogWarning(
+                    "Published SubscriptionPaymentFailedEvent for CorrelationId: {CorrelationId}, Reason: Payment processing failed",
+                    correlationId);
             }
         }
         catch (Exception ex)
         {
-            // Log error but don't throw to avoid affecting the main payment flow
-            Console.WriteLine($"Error handling subscription payment completion: {ex.Message}");
+            _logger.LogError(ex, "Error handling subscription payment completion");
         }
     }
 }

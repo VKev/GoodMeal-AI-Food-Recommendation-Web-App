@@ -53,7 +53,8 @@ public class SubscriptionPaymentSaga : MassTransitStateMachine<SubscriptionPayme
                         Amount = context.Message.Amount,
                         Currency = context.Message.Currency,
                         OrderDescription = context.Message.OrderDescription,
-                        OrderId = context.Saga.OrderId
+                        OrderId = context.Saga.OrderId,
+                        IpAddress = context.Message.IpAddress
                     });
                 })
         );
@@ -86,13 +87,13 @@ public class SubscriptionPaymentSaga : MassTransitStateMachine<SubscriptionPayme
                     context.Saga.TransactionId = context.Message.TransactionId;
                     context.Saga.CompletedAt = context.Message.CompletedAt;
 
-                    // Publish event to activate user subscription
+                    // Publish event to activate user subscription using saga data
                     await context.Publish(new ActivateUserSubscriptionEvent
                     {
-                        CorrelationId = context.Message.CorrelationId,
-                        UserId = context.Message.UserId,
-                        SubscriptionId = context.Message.SubscriptionId,
-                        OrderId = context.Message.OrderId,
+                        CorrelationId = context.Saga.CorrelationId,
+                        UserId = context.Saga.UserId,
+                        SubscriptionId = context.Saga.SubscriptionId,
+                        OrderId = context.Saga.OrderId,
                         ActivatedAt = context.Message.CompletedAt
                     });
                 }),

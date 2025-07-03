@@ -31,7 +31,8 @@ public class CreateSubscriptionPaymentUrlConsumer : IConsumer<CreateSubscription
             var command = new CreatePaymentUrlCommand(
                 context.Message.Amount,
                 context.Message.OrderDescription,
-                context.Message.OrderId
+                context.Message.OrderId,
+                context.Message.IpAddress
             );
 
             var result = await _mediator.Send(command, context.CancellationToken);

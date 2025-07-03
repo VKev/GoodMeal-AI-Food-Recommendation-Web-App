@@ -9,6 +9,7 @@ public class SubscriptionPaymentSagaStart
     public decimal Amount { get; set; }
     public string Currency { get; set; } = "VND";
     public string OrderDescription { get; set; } = string.Empty;
+    public string IpAddress { get; set; } = string.Empty;
     public DateTime RequestedAt { get; set; }
 }
 
@@ -22,6 +23,7 @@ public class CreateSubscriptionPaymentUrlEvent
     public string Currency { get; set; } = "VND";
     public string OrderDescription { get; set; } = string.Empty;
     public string OrderId { get; set; } = string.Empty;
+    public string IpAddress { get; set; } = string.Empty;
 }
 
 // Success event from Payment microservice - payment URL created
