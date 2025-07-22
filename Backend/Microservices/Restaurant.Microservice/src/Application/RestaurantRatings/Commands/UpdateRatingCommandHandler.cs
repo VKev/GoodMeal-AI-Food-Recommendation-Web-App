@@ -7,8 +7,8 @@ namespace Application.RestaurantRatings.Commands;
 
 public sealed record UpdateRatingCommand(
     Guid Id,
-    int Rating,
-    string? Comment
+    string? Comment,
+    string? ImageUrl
 ) : ICommand;
 
 internal sealed class UpdateFoodCommandHandler : ICommandHandler<UpdateRatingCommand>
@@ -28,11 +28,16 @@ internal sealed class UpdateFoodCommandHandler : ICommandHandler<UpdateRatingCom
     {
         var restaurantRating = await _restaurantRatingRepository.GetByIdAsync(command.Id, cancellationToken);
 
-        _mapper.Map(command, restaurantRating);
+        if (!string.IsNullOrWhiteSpace(command.Comment))
+            restaurantRating.Comment = command.Comment;
+
+        if (!string.IsNullOrWhiteSpace(command.ImageUrl))
+            restaurantRating.ImageUrl = command.ImageUrl;
+
         restaurantRating.UpdatedAt = DateTime.UtcNow;
 
         _restaurantRatingRepository.Update(restaurantRating);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        // await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

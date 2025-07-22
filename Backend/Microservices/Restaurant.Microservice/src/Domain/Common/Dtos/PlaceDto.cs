@@ -1,4 +1,4 @@
-﻿namespace Application.Common.Dtos;
+﻿namespace Domain.Common.Dtos;
 
 public class PlaceDto
 {

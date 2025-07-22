@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Nodes;
-using Application.Common.Dtos;
+using Domain.Common.Dtos;
 using RestSharp;
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;

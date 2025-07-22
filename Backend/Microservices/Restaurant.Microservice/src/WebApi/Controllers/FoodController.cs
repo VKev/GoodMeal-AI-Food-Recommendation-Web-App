@@ -2,7 +2,10 @@
 using Application.Foods.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Common;
+using SharedLibrary.Common;
+using SharedLibrary.Common.Messaging.Commands;
+using SharedLibrary.Utils.AuthenticationExtention;
+using ApiController = WebApi.Common.ApiController;
 
 namespace WebApi.Controllers;
 
@@ -14,18 +17,24 @@ public class FoodController : ApiController
     }
 
     [HttpPost()]
+    [ApiGatewayUser(Roles = "Business")]
     public async Task<IActionResult> Create([FromBody] CreateFoodCommand request, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var createResult = await _mediator.Send(request, cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (createResult, true), 
+            (saveResult, false));
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
 
-        return Ok(result);
+        return Ok(aggregatedResult.Value);
     }
 
     [HttpGet()]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetAllFoodsQuery(), cancellationToken);
@@ -33,6 +42,7 @@ public class FoodController : ApiController
     }
 
     [HttpGet("{id}")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetFoodByIdQuery(id), cancellationToken);
@@ -45,26 +55,36 @@ public class FoodController : ApiController
     }
 
     [HttpPut()]
+    [ApiGatewayUser(Roles = "Business")]
     public async Task<IActionResult> Update([FromBody] UpdateFoodCommand request, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var updateResult = await _mediator.Send(request, cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (updateResult, true), 
+            (saveResult, false));
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
 
-        return Ok(result);
+        return Ok(aggregatedResult.Value);
     }
 
     [HttpDelete()]
+    [ApiGatewayUser(Roles = "Business")]
     public async Task<IActionResult> Delete([FromBody] DisableFoodCommand request, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var deleteResult = await _mediator.Send(request, cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (deleteResult, true), 
+            (saveResult, false));
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
 
-        return Ok(result);
+        return Ok(aggregatedResult.Value);
     }
 }

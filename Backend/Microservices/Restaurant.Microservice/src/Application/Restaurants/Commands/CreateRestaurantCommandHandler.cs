@@ -10,7 +10,15 @@ namespace Application.Restaurants.Commands;
 public sealed record CreateRestaurantCommand(
     string Name,
     string Address,
-    string Phone
+    string Phone,
+    string? PlaceLink,
+    string? Website,
+    string? Types,
+    float Latitude,
+    float Longitude,
+    string? TimeZone,
+    string? Description,
+    string? ImageUrl
 ) : ICommand;
 
 internal sealed class CreateRestaurantCommandHandler : ICommandHandler<CreateRestaurantCommand>
@@ -34,7 +42,7 @@ internal sealed class CreateRestaurantCommandHandler : ICommandHandler<CreateRes
         restaurant.CreatedAt = DateTime.UtcNow;
         restaurant.IsDisable = false;
         await _restaurantRepository.AddAsync(restaurant, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        // await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

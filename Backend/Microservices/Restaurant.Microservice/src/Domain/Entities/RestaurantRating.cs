@@ -25,5 +25,7 @@ public partial class RestaurantRating
 
     public string? DisableBy { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public virtual Restaurant? Restaurant { get; set; }
 }

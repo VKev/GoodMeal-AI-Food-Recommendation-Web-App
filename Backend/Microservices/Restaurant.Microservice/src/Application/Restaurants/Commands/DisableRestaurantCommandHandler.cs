@@ -27,7 +27,7 @@ internal sealed class DisableRestaurantCommandHandler : ICommandHandler<DisableR
         restaurant.UpdatedAt = DateTime.UtcNow;
 
         _restaurantRepository.Update(restaurant);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        // await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

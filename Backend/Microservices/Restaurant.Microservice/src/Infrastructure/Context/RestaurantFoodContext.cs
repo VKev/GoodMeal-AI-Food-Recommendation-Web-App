@@ -45,6 +45,7 @@ public partial class RestaurantFoodContext : DbContext
                 .HasColumnName("created_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.DisableAt).HasColumnName("disable_at");
+            entity.Property(e => e.ImageUrl).HasColumnName("image_url");
             entity.Property(e => e.IsAvailable)
                 .HasDefaultValue(true)
                 .HasColumnName("is_available");
@@ -81,20 +82,34 @@ public partial class RestaurantFoodContext : DbContext
             entity.Property(e => e.CreatedBy)
                 .UseCollation("C.utf8")
                 .HasColumnName("created_by");
+            entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.DisableAt).HasColumnName("disable_at");
             entity.Property(e => e.DisableBy)
                 .UseCollation("C.utf8")
                 .HasColumnName("disable_by");
+            entity.Property(e => e.ImageUrl).HasColumnName("image_url");
             entity.Property(e => e.IsDisable).HasColumnName("is_disable");
+            entity.Property(e => e.Latitude).HasColumnName("latitude");
+            entity.Property(e => e.Longitude).HasColumnName("longitude");
             entity.Property(e => e.Name)
                 .HasColumnType("character varying")
                 .HasColumnName("name");
             entity.Property(e => e.Phone)
                 .UseCollation("C.utf8")
                 .HasColumnName("phone");
+            entity.Property(e => e.PlaceLink)
+                .HasComment("Google Map Links")
+                .HasColumnName("place_link");
+            entity.Property(e => e.TimeZone).HasColumnName("time_zone");
+            entity.Property(e => e.Types)
+                .HasComment("types of restaurant")
+                .HasColumnName("types");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
+            entity.Property(e => e.Website)
+                .HasComment("Link website")
+                .HasColumnName("website");
         });
 
         modelBuilder.Entity<RestaurantRating>(entity =>
@@ -114,6 +129,7 @@ public partial class RestaurantFoodContext : DbContext
             entity.Property(e => e.DisableBy)
                 .UseCollation("C")
                 .HasColumnName("disable_by");
+            entity.Property(e => e.ImageUrl).HasColumnName("image_url");
             entity.Property(e => e.IsDisable).HasColumnName("is_disable");
             entity.Property(e => e.Rating).HasColumnName("rating");
             entity.Property(e => e.RestaurantId).HasColumnName("restaurant_id");
