@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Text.Json.Nodes;
-using Application.Common.Dtos;
+using Domain.Common.Dtos;
 using SharedLibrary.Common.Messaging;
 using SharedLibrary.Common.ResponseModel;
 

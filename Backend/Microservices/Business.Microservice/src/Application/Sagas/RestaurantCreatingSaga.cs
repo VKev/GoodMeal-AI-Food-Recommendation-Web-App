@@ -3,7 +3,7 @@ using SharedLibrary.Contracts.RestaurantCreating;
 
 namespace Application.Sagas;
 
-public class RestaurantCreatingSaga : MassTransitStateMachine<RestaurantCreatingSagaData>
+public class  RestaurantCreatingSaga : MassTransitStateMachine<RestaurantCreatingSagaData>
 {
     public State RestaurantCreating { get; set; }
     public State BusinessRestaurantCreating { get; set; }

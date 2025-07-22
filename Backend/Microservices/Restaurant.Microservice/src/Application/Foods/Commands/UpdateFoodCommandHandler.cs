@@ -10,8 +10,11 @@ public sealed record UpdateFoodCommand(
     string? Name,
     string? Description,
     decimal? Price,
-    bool? IsAvailable
-) : ICommand;
+    bool? IsAvailable,
+    bool? IsDisable,
+    DateTime? DisableAt,
+    string? ImageUrl
+    ) : ICommand;
 
 internal sealed class UpdateFoodCommandHandler : ICommandHandler<UpdateFoodCommand>
 {
@@ -30,11 +33,31 @@ internal sealed class UpdateFoodCommandHandler : ICommandHandler<UpdateFoodComma
     {
         var food = await _foodRepository.GetByIdAsync(command.Id, cancellationToken);
 
-        _mapper.Map(command, food);
+        if (!string.IsNullOrWhiteSpace(command.Name))
+            food.Name = command.Name;
+
+        if (!string.IsNullOrWhiteSpace(command.Description))
+            food.Description = command.Description;
+
+        if (command.Price.HasValue)
+            food.Price = command.Price;
+
+        if (command.IsAvailable.HasValue)
+            food.IsAvailable = command.IsAvailable;
+
+        if (command.IsDisable.HasValue)
+            food.IsDisable = command.IsDisable;
+
+        if (command.DisableAt.HasValue)
+            food.DisableAt = command.DisableAt;
+
+        if (!string.IsNullOrWhiteSpace(command.ImageUrl))
+            food.ImageUrl = command.ImageUrl;
+        
         food.UpdatedAt = DateTime.UtcNow;
 
         _foodRepository.Update(food);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        // await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

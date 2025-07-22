@@ -1,6 +1,7 @@
 ﻿using Application.SearchPlaces.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using SharedLibrary.Utils.AuthenticationExtention;
 using WebApi.Common;
 
 namespace WebApi.Controllers;
@@ -14,6 +15,7 @@ public class PlaceController: ApiController
     
     //FourSquare API
     [HttpPost("search")]
+    [ApiGatewayUser]
     public async Task<IActionResult> Search([FromBody] SearchPlacesCommand request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new SearchPlacesCommand(request.Query, request.Latitude, request.Longitude), cancellationToken);
@@ -25,6 +27,7 @@ public class PlaceController: ApiController
     }
     
     [HttpPost("nearby")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetNearbyPlaces([FromBody] SearchNearbyPlacesCommand request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new SearchNearbyPlacesCommand(request.Query, request.Lat, request.Lng, request.Limit, request.Offset, request.Country, request.Lang, request.Zoom), cancellationToken);
@@ -36,6 +39,7 @@ public class PlaceController: ApiController
     }
     
     [HttpPost("detail")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetPlaceDetail([FromBody] SearchPlaceDetailCommand request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new SearchPlaceDetailCommand(request.Business_id, request.Place_id, request.Country, request.Lang), cancellationToken);
@@ -47,6 +51,7 @@ public class PlaceController: ApiController
     }
     
     [HttpPost("geocoding")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetGeocodingAddress([FromBody] SearchGeocodingAddressCommand request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new SearchGeocodingAddressCommand(request.Query, request.Lang, request.Country), cancellationToken);
@@ -58,6 +63,7 @@ public class PlaceController: ApiController
     }
     
     [HttpPost("review")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetPlaceReviews([FromBody] SearchPlaceReviewsCommand request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new SearchPlaceReviewsCommand(request.Business_id, request.Place_id, request.Country, request.Lang, request.limit, request.cursor, request.sort), cancellationToken);
@@ -69,6 +75,7 @@ public class PlaceController: ApiController
     }
     
     [HttpPost("photo")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetPlacePhotos([FromBody] SearchPlacePhotosCommand request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new SearchPlacePhotosCommand(request.Business_id, request.Place_id, request.Country, request.Lang, request.cursor), cancellationToken);

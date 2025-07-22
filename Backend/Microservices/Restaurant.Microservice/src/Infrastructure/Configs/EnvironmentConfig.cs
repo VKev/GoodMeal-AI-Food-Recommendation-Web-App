@@ -24,6 +24,9 @@ namespace Infrastructure.Configs
         
         public string GoogleApiKey => Environment.GetEnvironmentVariable("GOOGLE_API_KEY") ?? "your-google-api-key";
         public string FoursquareApiKey => Environment.GetEnvironmentVariable("FOURSQUARE_API_KEY") ?? "your-foursquare-api-key";
-        
+        public string ElasticSearchHost => Environment.GetEnvironmentVariable("ELASTICSEARCH_HOSTS") ??  "elastic-search-host";
+        public string ElasticSearchUsername => Environment.GetEnvironmentVariable("ELASTICSEARCH_USERNAME") ?? "elastic-search-username";
+        public string ElasticSearchPassword => Environment.GetEnvironmentVariable("ELASTICSEARCH_PASSWORD") ?? "elastic-search-password";
+        public string ElasticSearchDefaultIndex =>  Environment.GetEnvironmentVariable("ELASTICSEARCH_INDEX");
     }
 }

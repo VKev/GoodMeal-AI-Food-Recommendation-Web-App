@@ -74,24 +74,24 @@ var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILogger<AutoScaffold>>();
 var config = app.Services.GetRequiredService<EnvironmentConfig>();
 
-// var scaffold = new AutoScaffold(logger)
-//     .Configure(
-//         config.DatabaseHost,
-//         config.DatabasePort,
-//         config.DatabaseName,
-//         config.DatabaseUser,
-//         config.DatabasePassword,
-//         config.DatabaseProvider)
-//     .SetPaths(
-//         outputDir: "../Domain/Entities",
-//         contextDir: "Context",
-//         contextName: "RestaurantFoodContext",
-//         msBuildPath: "Build/obj",
-//         projectPath: "../Infrastructure/Infrastructure.csproj"
-//     );
-//
-// scaffold.UpdateAppSettings();
-// scaffold.Run();
+var scaffold = new AutoScaffold(logger)
+    .Configure(
+        config.DatabaseHost,
+        config.DatabasePort,
+        config.DatabaseName,
+        config.DatabaseUser,
+        config.DatabasePassword,
+        config.DatabaseProvider)
+    .SetPaths(
+        outputDir: "../Domain/Entities",
+        contextDir: "Context",
+        contextName: "RestaurantFoodContext",
+        msBuildPath: "Build/obj",
+        projectPath: "../Infrastructure/Infrastructure.csproj"
+    );
+
+scaffold.UpdateAppSettings();
+scaffold.Run();
     app.UseSwagger(c =>
     {
         c.RouteTemplate = "api/restaurant/swagger/{documentName}/swagger.json";

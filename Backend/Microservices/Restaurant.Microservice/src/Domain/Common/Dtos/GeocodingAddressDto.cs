@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Application.Common.Dtos;
+namespace Domain.Common.Dtos;
 
 public class GeocodingAddressDto
 {

@@ -2,7 +2,10 @@
 using Application.RestaurantRatings.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Common;
+using SharedLibrary.Common;
+using SharedLibrary.Common.Messaging.Commands;
+using SharedLibrary.Utils.AuthenticationExtention;
+using ApiController = WebApi.Common.ApiController;
 
 namespace WebApi.Controllers;
 
@@ -14,16 +17,23 @@ public class RatingController: ApiController
     }
     
     [HttpPost()]
+    [ApiGatewayUser]
     public async Task<IActionResult> Create([FromBody] CreateRatingCommand request, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var createResult = await _mediator.Send(request, cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (createResult, true), 
+            (saveResult, false));
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
-        return Ok(result);
+
+        return Ok(aggregatedResult.Value);
     }
     [HttpGet()]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetAllRatingsQuery(), cancellationToken);
@@ -31,6 +41,7 @@ public class RatingController: ApiController
     }
     
     [HttpGet("{id}")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetRatingByIdQuery(id), cancellationToken);
@@ -41,6 +52,7 @@ public class RatingController: ApiController
         return Ok(result);
     }
     [HttpGet("restaurant/{id}")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetByRestaurantId(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetRatingByRestaurantIdQuery(id), cancellationToken);
@@ -51,6 +63,7 @@ public class RatingController: ApiController
         return Ok(result);
     }
     [HttpGet("user/{id}")]
+    [ApiGatewayUser]
     public async Task<IActionResult> GetByUserId(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetRatingByUserIdQuery(id), cancellationToken);
@@ -61,23 +74,35 @@ public class RatingController: ApiController
         return Ok(result);
     }
     [HttpPut()]
+    [ApiGatewayUser]
     public async Task<IActionResult> Update([FromBody] UpdateRatingCommand request, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var updateResult = await _mediator.Send(request, cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (updateResult, true), 
+            (saveResult, false));
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
-        return Ok(result);
+
+        return Ok(aggregatedResult.Value);
     }
     [HttpDelete()]
+    [ApiGatewayUser(Roles = "admin")]
     public async Task<IActionResult> Delete([FromBody] DisableRatingCommand request, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(request, cancellationToken);
-        if (result.IsFailure)
+        var deleteResult = await _mediator.Send(request, cancellationToken);
+        var saveResult = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregatedResult = ResultAggregator.AggregateWithNumbers(
+            (deleteResult, true), 
+            (saveResult, false));
+        if (aggregatedResult.IsFailure)
         {
-            return HandleFailure(result);
+            return HandleFailure(aggregatedResult);
         }
-        return Ok(result);
+
+        return Ok(aggregatedResult.Value);
     }
 }
