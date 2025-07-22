@@ -8,6 +8,7 @@ import {
   RestaurantDetailResponse,
   RestaurantReview
 } from '../services/RestaurantService';
+import { FirebaseAuth } from '@/firebase/firebase';
 
 // Query keys for caching
 export const restaurantKeys = {
@@ -65,7 +66,9 @@ export const useRestaurantDetail = (businessId: string, placeId: string) => {
   return useQuery({
     queryKey: restaurantKeys.detail(businessId, placeId),
     queryFn: async () => {
-      const response = await getRestaurantDetail(businessId, placeId);
+      const user = FirebaseAuth.currentUser;
+      const idToken = user ? await user.getIdToken() : '';
+      const response = await getRestaurantDetail(idToken, businessId, placeId);
       
       if (!response.isSuccess || !response.value) {
         throw new Error('Failed to fetch restaurant details');
@@ -84,7 +87,9 @@ export const useRestaurantPhotos = (businessId: string, placeId: string) => {
   return useQuery({
     queryKey: restaurantKeys.photos(businessId, placeId),
     queryFn: async () => {
-      const response = await getRestaurantPhotos(businessId, placeId);
+      const user = FirebaseAuth.currentUser;
+      const idToken = user ? await user.getIdToken() : '';
+      const response = await getRestaurantPhotos(idToken, businessId, placeId);
       
       if (!response.isSuccess) {
         return []; // Return empty array on error instead of throwing
@@ -107,7 +112,9 @@ export const useRestaurantReviews = (
   return useQuery({
     queryKey: restaurantKeys.reviews(businessId, placeId, cursor),
     queryFn: async () => {
-      const response = await getRestaurantReviews(businessId, placeId, cursor);
+      const user = FirebaseAuth.currentUser;
+      const idToken = user ? await user.getIdToken() : '';
+      const response = await getRestaurantReviews(idToken, businessId, placeId, cursor);
       
       if (!response.isSuccess) {
         return [];
@@ -130,11 +137,13 @@ export const useAllRestaurantReviews = (businessId: string, placeId: string) => 
       let currentCursor: string | null = null;
       let hasMore = true;
       let batchCount = 0;
+      const user = FirebaseAuth.currentUser;
+      const idToken = user ? await user.getIdToken() : '';
       
       // Load reviews in batches until we get all of them
       while (hasMore && batchCount < 50) { // Safety limit
         batchCount++;
-        const response = await getRestaurantReviews(businessId, placeId, currentCursor || undefined);
+        const response = await getRestaurantReviews(idToken, businessId, placeId, currentCursor || undefined);
         
         if (response.isSuccess && response.value && response.value.length > 0) {
           allReviews = [...allReviews, ...response.value];

@@ -21,7 +21,6 @@ import {
 } from 'antd';
 import { 
     UserOutlined, 
-    EditOutlined, 
     DeleteOutlined, 
     SearchOutlined,
     PlusOutlined,

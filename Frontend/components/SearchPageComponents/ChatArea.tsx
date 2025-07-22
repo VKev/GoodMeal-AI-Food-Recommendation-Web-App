@@ -153,7 +153,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     // Use API location first, then fallback to user location
     if (location && location !== "null" && location.trim()) {
       url += `&location=${encodeURIComponent(location)}`;
-      console.log("Using API location:", location);
     } else if (userLocation) {
       // If no API location, use user's coordinates
       url += `&lat=${userLocation.latitude}&lng=${userLocation.longitude}`;
@@ -164,7 +163,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       );
     }
 
-    console.log("Final URL:", url);
     router.push(url);
   };
 
