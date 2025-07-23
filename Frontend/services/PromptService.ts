@@ -45,8 +45,6 @@ export const getPromptSessions = async (idToken: string, userId: string): Promis
         }
 
         const data: PromptSessionResponse = await response.json();
-        console.log('Prompt sessions response:', data);
-
         if (data.isSuccess && data.value.results.length > 0) {
             // Lọc sessions theo userId và chỉ lấy những session chưa bị xóa
             const allSessions = data.value.results[0].data || [];
@@ -74,14 +72,7 @@ export const formatTime = (dateString: string): string => {
     const diffInMs = nowLocal.getTime() - dateLocal.getTime();
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-    console.log('formatTime debug:', {
-        original: dateString,
-        date: date.toString(),
-        now: now.toString(),
-        dateLocal: dateLocal.toString(),
-        nowLocal: nowLocal.toString(),
-        diffInDays
-    });
+ 
 
     if (diffInDays === 0) {
         return 'Hôm nay';
@@ -411,7 +402,6 @@ export const getSessionMessages = async (
             },
         });
 
-        console.log('Get session messages response status:', response.status);
 
         if (!response.ok) {
             let errorText = '';
@@ -425,7 +415,6 @@ export const getSessionMessages = async (
         }
 
         const data: MessagesApiResponse = await response.json();
-        console.log('Session messages response:', data);
 
         if (data.isSuccess && data.value.results.length > 0) {
             const result = data.value.results[0];
