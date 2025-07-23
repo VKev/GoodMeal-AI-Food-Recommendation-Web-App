@@ -29,7 +29,6 @@ export const checkAuthorization = async (idToken: string): Promise<AuthCheckResp
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }        const data: AuthCheckResponse = await response.json();
-        console.log('Auth response data:', data);
 
         return data;
     } catch (error) {

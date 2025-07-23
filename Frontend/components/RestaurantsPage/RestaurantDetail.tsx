@@ -31,7 +31,6 @@ import {
   DownOutlined,
   HeartOutlined,
   ShareAltOutlined,
-  LoadingOutlined,
 } from "@ant-design/icons";
 import { 
   useRestaurantDetail,
@@ -159,9 +158,7 @@ const RestaurantDetail: React.FC = () => {
     // REMOVED - all data fetching is now handled by React Query hooks
   }, []);
 
-  const loadAllReviews = async (business_id: string, place_id: string) => {
-    // REMOVED - handled by useAllRestaurantReviews hook
-  };
+
 
   const handleBackClick = () => {
     router.back();

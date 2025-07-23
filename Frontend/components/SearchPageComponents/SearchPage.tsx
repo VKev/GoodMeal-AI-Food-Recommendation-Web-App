@@ -68,10 +68,8 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
           try {
             const idToken = await firebaseUser.getIdToken();
             const authResponse = await checkAuthorization(idToken);
-            console.log("Auth response:", authResponse);
             if (authResponse?.user) {
-              console.log("User from auth:", authResponse.user);
-              console.log("UserId from auth:", authResponse.user.userId);
+             
               setUserId(authResponse.user.userId);
               // Load prompt sessions after getting userId
               await loadPromptSessions(idToken, authResponse.user.userId);
@@ -110,11 +108,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
   // Handle location permission modal display
   useEffect(() => {
     if (user && userId && permission !== 'unavailable') {
-      console.log('=== LOCATION PROMPT CHECK ===');
-      console.log('Has location:', hasLocation);
-      console.log('Permission:', permission);
-      console.log('Should show prompt:', locationPromptUtils.shouldShowPrompt(hasLocation, permission));
-      console.log('=============================');
+    
       
       if (locationPromptUtils.shouldShowPrompt(hasLocation, permission)) {
         const timer = setTimeout(() => {
@@ -341,11 +335,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
   const currentSession = sessions.find(s => s.id === selectedChat);
   const effectiveSessionName = currentSession?.sessionName;
   
-  console.log("📋 Session Debug:", {
-    selectedChat,
-    currentSession: currentSession?.sessionName,
-    effectiveSessionName
-  });
+ 
 
   // Show loading spinner while fetching data
   if (loading) {
