@@ -264,7 +264,6 @@ export const findRestaurantsForFood = async (
       };
     } else if (userLocation) {
       // Case 2: Use user's current location
-      console.log('Using user location:', userLocation);
       coordinates = {
         lat: userLocation.latitude,
         lng: userLocation.longitude

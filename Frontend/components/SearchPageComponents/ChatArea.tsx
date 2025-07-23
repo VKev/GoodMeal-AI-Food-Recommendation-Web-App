@@ -141,26 +141,20 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   };
 
   const handleFoodClick = (foodName: string, location?: string) => {
-    // console.log('=== FOOD CLICK DEBUG ===');
-    // console.log('foodName:', foodName);
-    // console.log('food location from API:', location);
-    // console.log('userLocation from props:', userLocation);
-    // console.log('========================');
+
 
     // Navigate to restaurants page with food name and location as search query
     let url = `/restaurants?search=${encodeURIComponent(foodName)}`;
 
-    // Use API location first, then fallback to user location
-    if (location && location !== "null" && location.trim()) {
+    // Prioritize API location (from prompt) if available, then fallback to user coordinates
+    if (location && location !== "null" && location !== "undefined" && location.trim()) {
+      // Use location from prompt (e.g., "Đà Nẵng" when user searched for food in Đà Nẵng)
       url += `&location=${encodeURIComponent(location)}`;
+      console.log("Using API location from prompt:", location);
     } else if (userLocation) {
-      // If no API location, use user's coordinates
+      // Fallback to current user coordinates when prompt didn't specify location
       url += `&lat=${userLocation.latitude}&lng=${userLocation.longitude}`;
-      console.log(
-        "Using user coordinates:",
-        userLocation.latitude,
-        userLocation.longitude
-      );
+   
     }
 
     router.push(url);
@@ -319,10 +313,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         }),
       };
 
-      console.log("=== DEBUG LOCATION DATA ===");
-      console.log("userLocation:", userLocation);
-      console.log("payload with location:", payload);
-      console.log("===========================");
 
       let hasError = false;
       let isFirstMessage = true;
@@ -338,16 +328,16 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         (data) => {
           if (hasError) return;
 
-          console.log("📥 Stream data:", data);
 
           if (isFirstMessage) {
             isFirstMessage = false;
 
             if (data.Error && data.Error !== "null") {
+              
               const errorMessage: Message = {
                 id: Date.now().toString(),
                 type: "bot",
-                content: data.Error,
+                content: ` **Lỗi:** ${data.Error}\n\nVui lòng thử lại với yêu cầu cụ thể hơn.`,
                 timestamp: new Date(),
               };
               setMessages((prev) => [...prev, errorMessage]);
@@ -359,13 +349,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           // Handle different data types from stream
           if (data.Title) {
             streamTitle = data.Title;
-            console.log("🎯 Stream Title received:", data.Title);
-            console.log("🎯 hasSetStreamTitle.current:", hasSetStreamTitle.current);
-            console.log("🎯 onFirstStreamTitle exists:", !!onFirstStreamTitle);
+     
             
             // Call onFirstStreamTitle immediately when we get the first title
             if (!hasSetStreamTitle.current && onFirstStreamTitle) {
-              console.log("🎯 Calling onFirstStreamTitle with:", data.Title);
               hasSetStreamTitle.current = true;
               onFirstStreamTitle(data.Title);
             }
@@ -412,12 +399,75 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           );
         },
         () => {
-          console.log("✅ Stream completed");
+    
+          
+          // Don't show additional errors if there was already an API error
+          if (hasError) {
+            setLoading(false);
+            return;
+          }
+          
+          // Check if we got foods but no images
+          if (streamedFoods.length > 0) {
+            const foodsWithoutImages = streamedFoods.filter(food => {
+              const hasNoImage = !food.imageUrl || 
+                food.imageUrl === "null" || 
+                food.imageUrl === "undefined" || 
+                food.imageUrl.trim() === "";
+              
+              return hasNoImage;
+            });
+            
+            
+            if (foodsWithoutImages.length === streamedFoods.length) {
+              // All foods have no images - add warning message to chat
+              console.log("⚠️ Adding warning message: All foods have no images");
+              const warningMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                type: "bot",
+                content: "🖼️ **Thông báo:** Không thể tải hình ảnh cho các món ăn này. Bạn vẫn có thể click để tìm nhà hàng gần bạn!",
+                timestamp: new Date(),
+              };
+              setMessages((prev) => [...prev, warningMessage]);
+            } else if (foodsWithoutImages.length > 0) {
+              // Some foods have no images - add info message to chat
+              const infoMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                type: "bot",
+                content: `📷 **Lưu ý:** ${foodsWithoutImages.length}/${streamedFoods.length} món ăn không có hình ảnh.`,
+                timestamp: new Date(),
+              };
+              setMessages((prev) => [...prev, infoMessage]);
+            } else {
+            }
+          } else if (!streamedFoods.length && !streamTitle) {
+            // No foods and no title - complete failure
+            console.log("❌ Adding error message: No foods and no title");
+            const errorMessage: Message = {
+              id: (Date.now() + 2).toString(),
+              type: "bot",
+              content: "❌ **Lỗi:** Không thể tìm thấy thông tin món ăn.\n\nVui lòng thử lại với yêu cầu cụ thể hơn như:\n• Tên món ăn cụ thể\n• Loại món ăn\n• Khu vực bạn muốn tìm",
+              timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+          } else if (streamTitle && !streamedFoods.length) {
+            // Got title but no foods at all
+            console.log("❌ Adding error message: Got title but no foods");
+            const errorMessage: Message = {
+              id: (Date.now() + 2).toString(),
+              type: "bot",
+              content: "❌ **Lỗi:** Có tiêu đề nhưng không tìm thấy món ăn nào.\n\nVui lòng thử lại với từ khóa khác hoặc mô tả chi tiết hơn.",
+              timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+          } else {
+            console.log("🤷 No error conditions met");
+          }
+          
           setLoading(false);
         }
       );
     } catch (error) {
-      console.error("❌ Error sending message:", error);
       message.error("Failed to send message. Please try again.");
 
       const errorMessage: Message = {
@@ -527,6 +577,35 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             ) : (
               // Bot message - show foods directly without message box
               <div>
+                {/* Error/Warning/Info Messages */}
+                {(msg.content.includes("🚨 **Lỗi:**") || 
+                  msg.content.includes("❌ **Lỗi:**") || 
+                  msg.content.includes("🖼️ **Thông báo:**") || 
+                  msg.content.includes("📷 **Lưu ý:**")) && (
+                  <div
+                    style={{
+                      marginBottom: "16px",
+                      padding: "16px",
+                      borderRadius: "12px",
+                      background: msg.content.includes("🚨") || msg.content.includes("❌") 
+                        ? "linear-gradient(135deg, rgba(255, 77, 77, 0.1) 0%, rgba(255, 40, 40, 0.05) 100%)"
+                        : msg.content.includes("🖼️")
+                        ? "linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 163, 0, 0.05) 100%)"
+                        : "linear-gradient(135deg, rgba(24, 144, 255, 0.1) 0%, rgba(64, 169, 255, 0.05) 100%)",
+                      border: msg.content.includes("🚨") || msg.content.includes("❌")
+                        ? "1px solid rgba(255, 77, 77, 0.3)"
+                        : msg.content.includes("🖼️")
+                        ? "1px solid rgba(255, 193, 7, 0.3)"
+                        : "1px solid rgba(24, 144, 255, 0.3)",
+                      color: "#ffffff",
+                      whiteSpace: "pre-line",
+                      lineHeight: "1.5",
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    }}
+                  />
+                )}
 
 
                 {/* Food Grid - Direct display like in the image */}
@@ -638,7 +717,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                   }}
                                 />
                               ) : (
-                                // Fallback when no image URL
+                                // Enhanced fallback when no image URL
                                 <div
                                   style={{
                                     width: "100%",
@@ -646,21 +725,58 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    backgroundColor: "#3a3a3a",
-                                    color: "#888",
+                                    backgroundColor: "linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%)",
+                                    background: "linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%)",
+                                    color: "#999",
                                     fontSize: "14px",
+                                    position: "relative",
+                                    overflow: "hidden",
                                   }}
                                 >
-                                  <div style={{ textAlign: "center" }}>
+                                  {/* Background pattern */}
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      bottom: 0,
+                                      backgroundImage: `radial-gradient(circle at 25% 25%, rgba(255, 122, 0, 0.1) 0%, transparent 50%),
+                                                       radial-gradient(circle at 75% 75%, rgba(255, 122, 0, 0.05) 0%, transparent 50%)`,
+                                      pointerEvents: "none"
+                                    }}
+                                  />
+                                  
+                                  <div style={{ 
+                                    textAlign: "center", 
+                                    position: "relative",
+                                    zIndex: 1 
+                                  }}>
                                     <div
                                       style={{
-                                        fontSize: "24px",
-                                        marginBottom: "8px",
+                                        fontSize: "48px",
+                                        marginBottom: "12px",
+                                        filter: "grayscale(20%)",
+                                        opacity: 0.8
                                       }}
                                     >
                                       🍽️
                                     </div>
-                                    <div>Không có hình ảnh</div>
+                                    <div style={{ 
+                                      fontSize: "16px",
+                                      fontWeight: "500",
+                                      color: "#bbb",
+                                      marginBottom: "8px"
+                                    }}>
+                                      Không có hình ảnh
+                                    </div>
+                                    <div style={{
+                                      fontSize: "12px",
+                                      color: "#888",
+                                      lineHeight: "1.4"
+                                    }}>
+                                      Nhấn để tìm nhà hàng
+                                    </div>
                                   </div>
                                 </div>
                               )}
@@ -790,6 +906,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                           .replace(/\*\*/g, "")
                           .split("(")[0]
                           .trim();
+                        // Use handleFoodClick without location parameter so it uses current userLocation
                         handleFoodClick(foodName);
                       }
                     }}

@@ -402,7 +402,6 @@ export const getSessionMessages = async (
             },
         });
 
-        console.log('Get session messages response status:', response.status);
 
         if (!response.ok) {
             let errorText = '';
@@ -416,7 +415,6 @@ export const getSessionMessages = async (
         }
 
         const data: MessagesApiResponse = await response.json();
-        console.log('Session messages response:', data);
 
         if (data.isSuccess && data.value.results.length > 0) {
             const result = data.value.results[0];
