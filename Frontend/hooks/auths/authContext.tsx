@@ -207,11 +207,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         
         // Only navigate when user is authenticated, not loading, and has roles
+        // and when user is on login/signup pages or root page
         if (authenticated && !loading && userRoles.length > 0) {
-            // Add a small delay to ensure all state is updated
-            setTimeout(() => {
-                navigateByRole();
-            }, 100);
+            const currentPath = window.location.pathname;
+            const shouldRedirect = currentPath === '/' || 
+                                 currentPath === '/sign-in' || 
+                                 currentPath === '/create-account';
+            
+            if (shouldRedirect) {
+                // Add a small delay to ensure all state is updated
+                setTimeout(() => {
+                    navigateByRole();
+                }, 100);
+            }
         }
     }, [authenticated, loading, userRoles]); // Add userRoles to dependency array
 
