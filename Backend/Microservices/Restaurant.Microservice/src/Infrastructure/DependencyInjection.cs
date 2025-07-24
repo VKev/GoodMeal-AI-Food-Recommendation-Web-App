@@ -73,28 +73,7 @@ namespace Infrastructure
                 });
 
             });
-            // services.AddMassTransit(busConfigurator =>
-            // {
-            //     busConfigurator.AddSagaStateMachine<RatingPromptSaga, RatingPromptSagaData>()
-            //         .RedisRepository(r =>
-            //         {
-            //             r.DatabaseConfiguration($"{config.RedisHost}:{config.RedisPort},password={config.RedisPassword}");
-            //             r.KeyPrefix = "rating-prompt-saga";
-            //             r.Expiry = TimeSpan.FromMinutes(10);
-            //         });
-            //
-            //     // Đăng ký các consumer khác nếu có
-            //     busConfigurator.SetKebabCaseEndpointNameFormatter();
-            //     busConfigurator.UsingRabbitMq((context, configurator) =>
-            //     {
-            //         configurator.Host(new Uri($"rabbitmq://{config.RabbitMqHost}:{config.RabbitMqPort}/"), h =>
-            //         {
-            //             h.Username(config.RabbitMqUser);
-            //             h.Password(config.RabbitMqPassword);
-            //         });
-            //         configurator.ConfigureEndpoints(context);
-            //     });
-            // });
+
             services.AddSingleton<ElasticsearchClient>(sp =>
             {
                 var uri = new Uri(config.ElasticSearchHost);

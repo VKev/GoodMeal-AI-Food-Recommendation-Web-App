@@ -10,14 +10,16 @@ namespace Application.Business.Queries.GetBusinessRestaurantsQuery;
 
 public sealed record GetBusinessRestaurantsQuery(Guid BusinessId) : IQuery<GetBusinessRestaurantsResponse>;
 
-public sealed record BusinessRestaurantInfo(
-    Guid Id,
-    Guid BusinessId,
-    Guid RestaurantId,
-    RestaurantInfo? Restaurant,
-    DateTime? CreatedAt,
-    bool? IsDisable
-);
+public sealed class BusinessRestaurantInfo
+{
+    public Guid Id { get; set; }
+    public Guid BusinessId { get; set; }
+    public Guid RestaurantId { get; set; }
+    public RestaurantInfo? Restaurant { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public bool? IsDisable { get; set; }
+}
+
 
 public sealed record GetBusinessRestaurantsResponse(
     Guid BusinessId,
@@ -82,8 +84,8 @@ internal sealed class
                 var restaurantInfo = restaurantsResult.FirstOrDefault(r => r.Id == businessRestaurant.RestaurantId);
 
                 var businessRestaurantInfo = _mapper.Map<BusinessRestaurantInfo>(businessRestaurant);
-                businessRestaurantInfo = businessRestaurantInfo with { Restaurant = restaurantInfo };
-
+                businessRestaurantInfo.Restaurant = restaurantInfo;
+                
                 restaurantInfos.Add(businessRestaurantInfo);
             }
 
