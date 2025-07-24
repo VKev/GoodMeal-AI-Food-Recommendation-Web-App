@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
     Table, 
     Button, 
@@ -55,19 +55,11 @@ export function RestaurantManagement({ business }: RestaurantManagementProps) {
     const [form] = Form.useForm();
     const [api, contextHolder] = notification.useNotification();
 
-    useEffect(() => {
-        if (business) {
-            loadRestaurants();
-        }
-    }, [business]);
-
-    // Khi setRestaurants, lọc bỏ phần tử null/undefined
-    const loadRestaurants = async () => {
+    const loadRestaurants = useCallback(async () => {
         if (!business) return;
         try {
             setLoading(true);
             const data = await businessService.getBusinessRestaurants(business.id);
-            // Lọc bỏ phần tử null/undefined và chỉ nhận object có id, name
             const safeData = Array.isArray(data)
                 ? data.filter(r => r && typeof r.id === 'string' && typeof r.name === 'string')
                 : [];
@@ -78,11 +70,39 @@ export function RestaurantManagement({ business }: RestaurantManagementProps) {
                 message: 'Lỗi',
                 description: 'Không thể tải danh sách nhà hàng. Vui lòng thử lại hoặc liên hệ admin.',
             });
-            // Không xóa danh sách cũ nếu lỗi
         } finally {
             setLoading(false);
         }
-    };
+    }, [business, api]);
+
+    useEffect(() => {
+        if (business) {
+            loadRestaurants();
+        }
+    }, [business, loadRestaurants]);
+
+    // Khi setRestaurants, lọc bỏ phần tử null/undefined
+    // const loadRestaurants = async () => {
+    //     if (!business) return;
+    //     try {
+    //         setLoading(true);
+    //         const data = await businessService.getBusinessRestaurants(business.id);
+    //         // Lọc bỏ phần tử null/undefined và chỉ nhận object có id, name
+    //         const safeData = Array.isArray(data)
+    //             ? data.filter(r => r && typeof r.id === 'string' && typeof r.name === 'string')
+    //             : [];
+    //         setRestaurants(safeData);
+    //     } catch (error) {
+    //         console.error('Error loading restaurants:', error);
+    //         api.error({
+    //             message: 'Lỗi',
+    //             description: 'Không thể tải danh sách nhà hàng. Vui lòng thử lại hoặc liên hệ admin.',
+    //         });
+    //         // Không xóa danh sách cũ nếu lỗi
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     // Filter restaurants based on search
     const filteredRestaurants = restaurants.filter(restaurant => {
@@ -429,4 +449,4 @@ export function RestaurantManagement({ business }: RestaurantManagementProps) {
             </div>
         </div>
     );
-} 
+}

@@ -178,7 +178,7 @@ export default function BusinessPage() {
                 }}>
                     {activeTab === 'business' && <BusinessInfo onBusinessChange={setCurrentBusiness} />}
                     {activeTab === 'restaurants' && <RestaurantManagement business={currentBusiness} />}
-                    {activeTab === 'foods' && <FoodManagement />}
+                    {activeTab === 'foods' && <FoodManagement businessId={currentBusiness?.id || ''} />}
                 </Content>
             </Layout>
         </Layout>

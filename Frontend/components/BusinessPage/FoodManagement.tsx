@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
     Table, 
     Button, 
@@ -58,12 +58,7 @@ export function FoodManagement({ businessId }: { businessId: string }) {
     const [form] = Form.useForm();
     const [api, contextHolder] = notification.useNotification();
 
-    useEffect(() => {
-        fetchFoods();
-        fetchRestaurants();
-    }, []);
-
-    const fetchFoods = async () => {
+    const fetchFoods = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getFoods();
@@ -73,9 +68,9 @@ export function FoodManagement({ businessId }: { businessId: string }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [api]);
 
-    const fetchRestaurants = async () => {
+    const fetchRestaurants = useCallback(async () => {
         if (!businessId) return;
         try {
             const data = await businessService.getBusinessRestaurants(businessId);
@@ -83,7 +78,12 @@ export function FoodManagement({ businessId }: { businessId: string }) {
         } catch (error) {
             api.error({ message: 'Không thể tải danh sách nhà hàng' });
         }
-    };
+    }, [api, businessId]);
+
+    useEffect(() => {
+        fetchFoods();
+        fetchRestaurants();
+    }, [fetchFoods, fetchRestaurants]);
 
     const handleSubmit = async (values: any) => {
         try {
@@ -438,4 +438,4 @@ export function FoodManagement({ businessId }: { businessId: string }) {
             </Modal>
         </div>
     );
-} 
+}

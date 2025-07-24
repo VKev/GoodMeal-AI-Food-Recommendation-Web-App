@@ -65,7 +65,7 @@ export function UserManagement() {
     
     const [api, contextHolder] = notification.useNotification();
 
-    const filterUsersBasedOnRole = (allUsers: User[]): User[] => {
+    const filterUsersBasedOnRole = useCallback((allUsers: User[]): User[] => {
         if (!currentUser) return allUsers;
         
         return allUsers.filter(user => {
@@ -81,7 +81,7 @@ export function UserManagement() {
             
             return true;
         });
-    };
+    }, [currentUser, userRoles]);
 
     const loadAllUsers = useCallback(async () => {
         setLoading(true);
@@ -110,7 +110,6 @@ export function UserManagement() {
             
             // Filter out current user and same-level users
             const filteredUsers = filterUsersBasedOnRole(convertedUsers);
-            console.log('Final filtered users:', filteredUsers);
             setUsers(filteredUsers);
         } catch (error) {
             console.error('Error loading users:', error);
@@ -118,7 +117,7 @@ export function UserManagement() {
         } finally {
             setLoading(false);
         }
-    }, [currentUser, userRoles]);
+    }, [filterUsersBasedOnRole]);
 
     // Load all users on component mount
     useEffect(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
     Card, 
     Button, 
@@ -50,11 +50,7 @@ export function BusinessInfo({ onBusinessChange }: BusinessInfoProps) {
     const [api, contextHolder] = notification.useNotification();
     // Bỏ useState showDeleteModal
 
-    useEffect(() => {
-        loadBusinessInfo();
-    }, []);
-
-    const loadBusinessInfo = async () => {
+    const loadBusinessInfo = useCallback(async () => {
         try {
             setLoading(true);
             const business = await businessService.getMyBusiness();
@@ -73,7 +69,11 @@ export function BusinessInfo({ onBusinessChange }: BusinessInfoProps) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [api, onBusinessChange]);
+
+    useEffect(() => {
+        loadBusinessInfo();
+    }, [loadBusinessInfo]);
 
     const handleCreateBusiness = async (values: CreateBusinessRequest) => {
         try {
@@ -553,4 +553,4 @@ export function BusinessInfo({ onBusinessChange }: BusinessInfoProps) {
             {/* Bỏ Modal xác nhận xóa doanh nghiệp */}
         </div>
     );
-} 
+}
