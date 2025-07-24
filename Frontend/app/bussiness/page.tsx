@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { RestaurantManagement } from '@/components/BusinessPage/RestaurantManagement';
 import { FoodManagement } from '@/components/BusinessPage/FoodManagement';
+import { BusinessInfo } from '@/components/BusinessPage/BusinessInfo';
+import { Business } from '@/services/BusinessService';
 import { 
     Layout, 
     Menu, 
@@ -27,8 +29,9 @@ const { Content, Sider } = Layout;
 export default function BusinessPage() {
     const { isBusiness, loading, authenticated, logout } = useAuth();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'restaurants' | 'foods'>('restaurants');
+    const [activeTab, setActiveTab] = useState<'business' | 'restaurants' | 'foods'>('business');
     const [collapsed, setCollapsed] = useState(false);
+    const [currentBusiness, setCurrentBusiness] = useState<Business | null>(null);
 
     useEffect(() => {
         if (!loading) {
@@ -63,6 +66,11 @@ export default function BusinessPage() {
     }
 
     const menuItems = [
+        {
+            key: 'business',
+            icon: <DashboardOutlined />,
+            label: 'Thông tin Doanh nghiệp',
+        },
         {
             key: 'restaurants',
             icon: <BankOutlined />,
@@ -168,7 +176,8 @@ export default function BusinessPage() {
                     minHeight: 'calc(100vh - 48px)',
                     backgroundColor: '#fff'
                 }}>
-                    {activeTab === 'restaurants' && <RestaurantManagement />}
+                    {activeTab === 'business' && <BusinessInfo onBusinessChange={setCurrentBusiness} />}
+                    {activeTab === 'restaurants' && <RestaurantManagement business={currentBusiness} />}
                     {activeTab === 'foods' && <FoodManagement />}
                 </Content>
             </Layout>

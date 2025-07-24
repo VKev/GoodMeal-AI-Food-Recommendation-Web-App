@@ -171,6 +171,72 @@ export interface RestaurantPhotoResponse {
   };
 }
 
+// ================= FOOD CRUD APIs =================
+
+export interface Food {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  isAvailable: boolean;
+  restaurantId: string;
+  imageUrl?: string;
+  isDisable?: boolean;
+  disableAt?: string;
+}
+
+// Lấy danh sách món ăn
+export const getFoods = async (): Promise<Food[]> => {
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!response.ok) throw new Error('Không thể lấy danh sách món ăn');
+  return await response.json();
+};
+
+// Lấy chi tiết món ăn
+export const getFoodById = async (id: string): Promise<Food> => {
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food/${id}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!response.ok) throw new Error('Không thể lấy chi tiết món ăn');
+  return await response.json();
+};
+
+// Tạo món ăn mới
+export const createFood = async (food: Omit<Food, 'id'>): Promise<Food> => {
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(food)
+  });
+  if (!response.ok) throw new Error('Không thể tạo món ăn');
+  return await response.json();
+};
+
+// Cập nhật món ăn
+export const updateFood = async (food: Food): Promise<Food> => {
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(food)
+  });
+  if (!response.ok) throw new Error('Không thể cập nhật món ăn');
+  return await response.json();
+};
+
+// Xóa món ăn
+export const deleteFood = async (id: string): Promise<void> => {
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id })
+  });
+  if (!response.ok) throw new Error('Không thể xóa món ăn');
+};
+
 // Get nearby restaurants using coordinates
 export const getNearbyRestaurants = async (
   idToken: string,

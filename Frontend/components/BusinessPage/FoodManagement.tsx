@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
     Table, 
     Button, 
@@ -34,95 +34,23 @@ import {
     StarOutlined,
     FireOutlined
 } from '@ant-design/icons';
+import {
+    getFoods,
+    createFood,
+    updateFood,
+    deleteFood,
+    Food
+} from '@/services/RestaurantService';
+import { businessService, Restaurant } from '@/services/BusinessService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-interface Food {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    category: string;
-    restaurantId: string;
-    restaurantName: string;
-    preparationTime: number;
-    rating: number;
-    isAvailable: boolean;
-    isSpicy: boolean;
-    ingredients: string[];
-    createdAt: string;
-}
-
-// Mock data
-const mockFoods: Food[] = [
-    {
-        id: '1',
-        name: 'Phở Bò Tái',
-        description: 'Phở bò tái đặc biệt với nước dùng trong, thịt bò tươi ngon',
-        price: 85000,
-        category: 'Món chính',
-        restaurantId: '1',
-        restaurantName: 'Nhà hàng Phương Nam',
-        preparationTime: 15,
-        rating: 4.6,
-        isAvailable: true,
-        isSpicy: false,
-        ingredients: ['Bánh phở', 'Thịt bò', 'Hành lá', 'Ngò gai', 'Chanh'],
-        createdAt: '2024-01-15T00:00:00Z'
-    },
-    {
-        id: '2',
-        name: 'Gà rán giòn cay',
-        description: 'Gà rán Kentucky giòn cay đậm đà, ăn kèm khoai tây chiên',
-        price: 125000,
-        category: 'Fast Food',
-        restaurantId: '2',
-        restaurantName: 'KFC Landmark 81',
-        preparationTime: 8,
-        rating: 4.3,
-        isAvailable: true,
-        isSpicy: true,
-        ingredients: ['Đùi gà', 'Bột tẩm', 'Gia vị cay', 'Khoai tây'],
-        createdAt: '2024-02-10T00:00:00Z'
-    },
-    {
-        id: '3',
-        name: 'Sashimi cá hồi',
-        description: 'Sashimi cá hồi tươi nhập khẩu từ Na Uy, cắt lát mỏng',
-        price: 180000,
-        category: 'Sashimi',
-        restaurantId: '3',
-        restaurantName: 'Sushi Hokkaido',
-        preparationTime: 5,
-        rating: 4.9,
-        isAvailable: false,
-        isSpicy: false,
-        ingredients: ['Cá hồi Na Uy', 'Wasabi', 'Gừng chua', 'Xì dầu'],
-        createdAt: '2024-01-20T00:00:00Z'
-    }
-];
-
-const foodCategories = [
-    'Món chính',
-    'Khai vị',
-    'Tráng miệng',
-    'Đồ uống',
-    'Fast Food',
-    'Pizza',
-    'Sushi',
-    'Sashimi'
-];
-
-const mockRestaurants = [
-    { id: '1', name: 'Nhà hàng Phương Nam' },
-    { id: '2', name: 'KFC Landmark 81' },
-    { id: '3', name: 'Sushi Hokkaido' }
-];
-
-export function FoodManagement() {
-    const [foods, setFoods] = useState<Food[]>(mockFoods);
+// Thêm props businessId cho FoodManagement
+export function FoodManagement({ businessId }: { businessId: string }) {
+    const [foods, setFoods] = useState<Food[]>([]);
+    const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingFood, setEditingFood] = useState<Food | null>(null);
@@ -130,51 +58,79 @@ export function FoodManagement() {
     const [form] = Form.useForm();
     const [api, contextHolder] = notification.useNotification();
 
-    const filteredFoods = foods.filter(food => 
-        food.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        food.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    useEffect(() => {
+        fetchFoods();
+        fetchRestaurants();
+    }, []);
+
+    const fetchFoods = async () => {
+        setLoading(true);
+        try {
+            const data = await getFoods();
+            setFoods(data);
+        } catch (error) {
+            api.error({ message: 'Không thể tải danh sách món ăn' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchRestaurants = async () => {
+        if (!businessId) return;
+        try {
+            const data = await businessService.getBusinessRestaurants(businessId);
+            setRestaurants(data);
+        } catch (error) {
+            api.error({ message: 'Không thể tải danh sách nhà hàng' });
+        }
+    };
 
     const handleSubmit = async (values: any) => {
         try {
             setLoading(true);
-            const ingredientsArray = values.ingredients.split(',').map((i: string) => i.trim()).filter(Boolean);
-            const restaurantName = mockRestaurants.find(r => r.id === values.restaurantId)?.name || '';
-            
+            // Chuẩn bị dữ liệu gửi lên API
+            const foodData = {
+                ...values,
+                price: Number(values.price),
+                isAvailable: values.isAvailable !== undefined ? values.isAvailable : true,
+                imageUrl: values.imageUrl || '',
+                restaurantId: values.restaurantId,
+            };
             if (editingFood) {
-                const updatedFood = {
-                    ...editingFood,
-                    ...values,
-                    ingredients: ingredientsArray,
-                    restaurantName
-                };
-                setFoods(prev => prev.map(f => 
-                    f.id === editingFood.id ? updatedFood : f
-                ));
+                await updateFood({ ...editingFood, ...foodData });
                 api.success({ message: 'Cập nhật món ăn thành công' });
             } else {
-                const newFood: Food = {
-                    id: Date.now().toString(),
-                    ...values,
-                    ingredients: ingredientsArray,
-                    restaurantName,
-                    rating: 0,
-                    isAvailable: true,
-                    createdAt: new Date().toISOString()
-                };
-                setFoods(prev => [...prev, newFood]);
+                await createFood(foodData);
                 api.success({ message: 'Tạo món ăn mới thành công' });
             }
-            
             setShowModal(false);
             setEditingFood(null);
             form.resetFields();
+            fetchFoods();
         } catch (error) {
             api.error({ message: 'Không thể lưu thông tin món ăn' });
         } finally {
             setLoading(false);
         }
     };
+
+    const handleDelete = async (id: string) => {
+        try {
+            setLoading(true);
+            await deleteFood(id);
+            api.success({ message: 'Xóa món ăn thành công' });
+            fetchFoods();
+        } catch (error) {
+            api.error({ message: 'Không thể xóa món ăn' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const filteredFoods = foods.filter(food => 
+        food.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        food.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const columns = [
         {
@@ -193,17 +149,8 @@ export function FoodManagement() {
                     <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{ fontWeight: 600, fontSize: '16px' }}>
                             {record.name}
-                            {record.isSpicy && <FireOutlined style={{ marginLeft: 8, color: '#ff4d4f' }} />}
                         </div>
                         <Text type="secondary">{record.description}</Text>
-                        <br />
-                        <Space>
-                            <Tag color="orange">{record.category}</Tag>
-                            <Space>
-                                <StarOutlined style={{ color: '#faad14' }} />
-                                <Text>{record.rating}</Text>
-                            </Space>
-                        </Space>
                     </div>
                 </Space>
             ),
@@ -214,12 +161,9 @@ export function FoodManagement() {
             width: 250,
             render: (record: Food) => (
                 <Space direction="vertical" size="small">
-                    <Text strong style={{ color: '#52c41a' }}>{record.restaurantName}</Text>
+                    <Text strong style={{ color: '#52c41a' }}>{restaurants.find(r => r.id === record.restaurantId)?.name || record.restaurantId}</Text>
                     <Text style={{ fontSize: '18px', fontWeight: 600, color: '#fa541c' }}>
                         <DollarOutlined /> {record.price.toLocaleString('vi-VN')} đ
-                    </Text>
-                    <Text type="secondary">
-                        <ClockCircleOutlined /> {record.preparationTime} phút
                     </Text>
                 </Space>
             ),
@@ -236,9 +180,6 @@ export function FoodManagement() {
                     >
                         {record.isAvailable ? 'Có sẵn' : 'Hết món'}
                     </Tag>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                        <CalendarOutlined /> {new Date(record.createdAt).toLocaleDateString('vi-VN')}
-                    </Text>
                 </Space>
             ),
         },
@@ -256,8 +197,7 @@ export function FoodManagement() {
                         onClick={() => {
                             setEditingFood(record);
                             form.setFieldsValue({
-                                ...record,
-                                ingredients: record.ingredients.join(', ')
+                                ...record
                             });
                             setShowModal(true);
                         }}
@@ -267,10 +207,7 @@ export function FoodManagement() {
                     <Popconfirm
                         title="Xóa món ăn"
                         description="Bạn có chắc chắn muốn xóa món ăn này?"
-                        onConfirm={() => {
-                            setFoods(prev => prev.filter(f => f.id !== record.id));
-                            api.success({ message: 'Xóa món ăn thành công' });
-                        }}
+                        onConfirm={() => handleDelete(record.id)}
                         okText="Có"
                         cancelText="Không"
                     >
@@ -411,10 +348,8 @@ export function FoodManagement() {
                                 rules={[{ required: true, message: 'Vui lòng chọn nhà hàng!' }]}
                             >
                                 <Select placeholder="Chọn nhà hàng">
-                                    {mockRestaurants.map(restaurant => (
-                                        <Option key={restaurant.id} value={restaurant.id}>
-                                            {restaurant.name}
-                                        </Option>
+                                    {restaurants.map(r => (
+                                        <Option key={r.id} value={r.id}>{r.name}</Option>
                                     ))}
                                 </Select>
                             </Form.Item>
@@ -427,6 +362,16 @@ export function FoodManagement() {
                                 rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
                             >
                                 <TextArea placeholder="Mô tả về món ăn" rows={3} />
+                            </Form.Item>
+                        </Col>
+                        
+                        <Col xs={24}>
+                            <Form.Item
+                                label="Link ảnh món ăn (imageUrl)"
+                                name="imageUrl"
+                                rules={[{ required: true, message: 'Vui lòng nhập link ảnh!' }]}
+                            >
+                                <Input placeholder="https://..." />
                             </Form.Item>
                         </Col>
                         
@@ -447,20 +392,6 @@ export function FoodManagement() {
                         
                         <Col xs={24} md={8}>
                             <Form.Item
-                                label="Danh mục"
-                                name="category"
-                                rules={[{ required: true, message: 'Vui lòng chọn danh mục!' }]}
-                            >
-                                <Select placeholder="Chọn danh mục">
-                                    {foodCategories.map(category => (
-                                        <Option key={category} value={category}>{category}</Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                        
-                        <Col xs={24} md={8}>
-                            <Form.Item
                                 label="Thời gian chế biến (phút)"
                                 name="preparationTime"
                                 rules={[{ required: true, message: 'Vui lòng nhập thời gian!' }]}
@@ -476,19 +407,9 @@ export function FoodManagement() {
                         
                         <Col xs={24}>
                             <Form.Item
-                                label="Nguyên liệu (cách nhau bằng dấu phẩy)"
-                                name="ingredients"
-                                rules={[{ required: true, message: 'Vui lòng nhập nguyên liệu!' }]}
+                                label="Món cay"
+                                name="isSpicy"
                             >
-                                <TextArea 
-                                    placeholder="Thịt bò, Bánh phở, Hành lá, Ngò gai"
-                                    rows={2}
-                                />
-                            </Form.Item>
-                        </Col>
-                        
-                        <Col xs={24}>
-                            <Form.Item label="Món cay" name="isSpicy">
                                 <Select style={{ width: '200px' }}>
                                     <Option value={false}>Không cay</Option>
                                     <Option value={true}>Món cay <FireOutlined style={{ color: '#ff4d4f' }} /></Option>
