@@ -33,6 +33,18 @@ public class FoodController : ApiController
         return Ok(aggregatedResult.Value);
     }
 
+    [HttpGet("restaurant/{id}")]
+    [ApiGatewayUser]
+    public async Task<IActionResult> GetByRestaurantId(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetFoodByRestaurantIdQuery(id), cancellationToken);
+        if (result.IsFailure)
+        {
+            return HandleFailure(result);
+        }
+        return Ok(result);
+    }
+    
     [HttpGet()]
     [ApiGatewayUser]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)

@@ -1,4 +1,4 @@
-const RESTAURANT_API_BASE = 'http://localhost:2406/api/restaurant';
+const RESTAURANT_API_BASE = "http://localhost:2406/api/restaurant";
 import { FirebaseAuth } from "@/firebase/firebase";
 
 export interface RestaurantPlace {
@@ -180,16 +180,16 @@ export const getNearbyRestaurants = async (
 ): Promise<NearbyRestaurantsResponse> => {
   try {
     const response = await fetch(`${RESTAURANT_API_BASE}/place/nearby`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         query,
         Lat: lat,
-        Lng: lng
-      } as NearbyRestaurantsRequest)
+        Lng: lng,
+      } as NearbyRestaurantsRequest),
     });
 
     if (!response.ok) {
@@ -199,7 +199,7 @@ export const getNearbyRestaurants = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching nearby restaurants:', error);
+    console.error("Error fetching nearby restaurants:", error);
     throw error;
   }
 };
@@ -212,12 +212,12 @@ export const getLocationCoordinates = async (
   try {
     if (!idToken) throw new Error("No idToken provided");
     const response = await fetch(`${RESTAURANT_API_BASE}/place/geocoding`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify({ query })
+      body: JSON.stringify({ query }),
     });
 
     if (!response.ok) {
@@ -227,7 +227,7 @@ export const getLocationCoordinates = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching location coordinates:', error);
+    console.error("Error fetching location coordinates:", error);
     throw error;
   }
 };
@@ -242,56 +242,67 @@ export const findRestaurantsForFood = async (
     let coordinates: { lat: number; lng: number };
     // Lấy idToken một lần ở đầu hàm
     const user = FirebaseAuth.currentUser;
-    const idToken = user ? await user.getIdToken() : '';
+    const idToken = user ? await user.getIdToken() : "";
 
     // console.log("findRestaurantsForFood - user:", user);
     // console.log("findRestaurantsForFood - idToken:", idToken);
 
-    if (specificLocation && specificLocation !== 'null' && specificLocation.trim()) {
+    if (
+      specificLocation &&
+      specificLocation !== "null" &&
+      specificLocation.trim()
+    ) {
       // Case 1: User specified a location (e.g., "phở ở Hà Nội")
       // console.log('Using specific location:', specificLocation);
       // console.log('token:', idToken);
 
-      const geoResponse = await getLocationCoordinates(idToken, specificLocation);
+      const geoResponse = await getLocationCoordinates(
+        idToken,
+        specificLocation
+      );
 
       if (!geoResponse.isSuccess || !geoResponse.value) {
-        throw new Error('Failed to get coordinates for specified location');
+        throw new Error("Failed to get coordinates for specified location");
       }
 
       coordinates = {
         lat: geoResponse.value.latitude,
-        lng: geoResponse.value.longitude
+        lng: geoResponse.value.longitude,
       };
     } else if (userLocation) {
       // Case 2: Use user's current location
       coordinates = {
         lat: userLocation.latitude,
-        lng: userLocation.longitude
+        lng: userLocation.longitude,
       };
     } else {
       // Case 3: Default to Vietnam (fallback)
-      console.log('Using default location (Vietnam)');
-      const geoResponse = await getLocationCoordinates(idToken, 'Vietnam');
+      console.log("Using default location (Vietnam)");
+      const geoResponse = await getLocationCoordinates(idToken, "Vietnam");
 
       if (!geoResponse.isSuccess || !geoResponse.value) {
         // Fallback coordinates for Vietnam (Ho Chi Minh City)
         coordinates = {
           lat: 10.8231,
-          lng: 106.6297
+          lng: 106.6297,
         };
       } else {
         coordinates = {
           lat: geoResponse.value.latitude,
-          lng: geoResponse.value.longitude
+          lng: geoResponse.value.longitude,
         };
       }
     }
 
     // Now get nearby restaurants using the coordinates
-    return await getNearbyRestaurants(idToken, foodName, coordinates.lat, coordinates.lng);
-
+    return await getNearbyRestaurants(
+      idToken,
+      foodName,
+      coordinates.lat,
+      coordinates.lng
+    );
   } catch (error) {
-    console.error('Error in findRestaurantsForFood:', error);
+    console.error("Error in findRestaurantsForFood:", error);
     throw error;
   }
 };
@@ -305,15 +316,15 @@ export const getRestaurantDetail = async (
   try {
     if (!idToken) throw new Error("No idToken provided");
     const response = await fetch(`${RESTAURANT_API_BASE}/place/detail`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         Business_id: businessId,
-        Place_id: placeId
-      } as RestaurantDetailRequest)
+        Place_id: placeId,
+      } as RestaurantDetailRequest),
     });
 
     if (!response.ok) {
@@ -323,7 +334,7 @@ export const getRestaurantDetail = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching restaurant detail:', error);
+    console.error("Error fetching restaurant detail:", error);
     throw error;
   }
 };
@@ -339,7 +350,7 @@ export const getRestaurantReviews = async (
     if (!idToken) throw new Error("No idToken provided");
     const requestBody: RestaurantReviewRequest = {
       Business_id: businessId,
-      Place_id: placeId
+      Place_id: placeId,
     };
 
     if (cursor) {
@@ -347,12 +358,12 @@ export const getRestaurantReviews = async (
     }
 
     const response = await fetch(`${RESTAURANT_API_BASE}/place/review`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -362,7 +373,7 @@ export const getRestaurantReviews = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching restaurant reviews:', error);
+    console.error("Error fetching restaurant reviews:", error);
     throw error;
   }
 };
@@ -376,15 +387,15 @@ export const getRestaurantPhotos = async (
   try {
     if (!idToken) throw new Error("No idToken provided");
     const response = await fetch(`${RESTAURANT_API_BASE}/place/photo`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         Business_id: businessId,
-        Place_id: placeId
-      } as RestaurantPhotoRequest)
+        Place_id: placeId,
+      } as RestaurantPhotoRequest),
     });
 
     if (!response.ok) {
@@ -394,7 +405,7 @@ export const getRestaurantPhotos = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching restaurant photos:', error);
+    console.error("Error fetching restaurant photos:", error);
     throw error;
   }
 };

@@ -44,7 +44,8 @@ public class CreateSubscriptionPaymentUrlConsumer : IConsumer<CreateSubscription
                 {
                     CorrelationId = context.Message.CorrelationId,
                     PaymentUrl = result.Value.PaymentUrl,
-                    OrderId = result.Value.OrderId
+                    OrderId = result.Value.OrderId,
+                    UrlCreatedAt = result.Value.TransactionDate
                 });
 
                 _logger.LogInformation(
@@ -80,4 +81,4 @@ public class CreateSubscriptionPaymentUrlConsumer : IConsumer<CreateSubscription
             });
         }
     }
-} 
+}

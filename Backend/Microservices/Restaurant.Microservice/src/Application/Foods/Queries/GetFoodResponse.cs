@@ -5,9 +5,11 @@ public sealed record GetFoodResponse(
     string Name,
     string? Description,
     decimal Price,
+    bool? IsAvailable,
     Guid RestaurantId,
     DateTime? CreatedAt,
     DateTime? UpdatedAt,
     bool IsDisable,
-    DateTime? DisableAt
+    DateTime? DisableAt,
+    string? ImageUrl
 );

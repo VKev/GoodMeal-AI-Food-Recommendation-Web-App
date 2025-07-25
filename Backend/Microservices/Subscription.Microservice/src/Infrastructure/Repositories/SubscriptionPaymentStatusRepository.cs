@@ -23,4 +23,11 @@ public class SubscriptionPaymentStatusRepository : Repository<SubscriptionPaymen
         return await _context.Set<SubscriptionPaymentStatus>()
             .FirstOrDefaultAsync(x => x.OrderId == orderId, cancellationToken);
     }
+
+    public async Task<IEnumerable<SubscriptionPaymentStatus>> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<SubscriptionPaymentStatus>()
+            .Where(x => x.UserId == userId)
+            .ToListAsync(cancellationToken);
+    }
 } 

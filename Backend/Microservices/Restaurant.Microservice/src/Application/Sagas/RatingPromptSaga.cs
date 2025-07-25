@@ -1,4 +1,5 @@
-﻿using MassTransit;
+﻿using Application.RestaurantRatings.Commands;
+using MassTransit;
 using SharedLibrary.Contracts.RatingPrompt;
 
 namespace Application.Sagas;
@@ -26,27 +27,37 @@ namespace Application.Sagas;
                     .TransitionTo(PromptProcessing)
                     .ThenAsync(async context =>
                     {
-                        context.Saga.RatingId = context.Message.RatingId;
                         context.Saga.UserId = context.Message.UserId;
                         context.Saga.RestaurantId = context.Message.RestaurantId;
                         context.Saga.Comment = context.Message.Comment;
+                        context.Saga.ImageUrl = context.Message.ImageUrl;
                         // Gửi event sang Prompt Service để AI xử lý
                         await context.Publish(new ProcessRatingPromptEvent
                         {
                             CorrelationId = context.Message.CorrelationId,
-                            RatingId = context.Message.RatingId,
                             Comment = context.Message.Comment,
                             UserId = context.Message.UserId,
-                            RestaurantId = context.Message.RestaurantId
+                            RestaurantId = context.Message.RestaurantId,
+                            ImageUrl = context.Message.ImageUrl
                         });
                     })
             );
 
             During(PromptProcessing,
                 When(PromptProcessed)
-                    .Then(context =>
+                    .Then(async context =>
                     {
                         context.Saga.AIScore = context.Message.AIScore;
+                        await context.Publish(new RatingScoreReadyEvent
+                        {
+                            CorrelationId = context.Saga.CorrelationId,
+                            UserId = context.Message.UserId,
+                            RestaurantId = context.Message.RestaurantId,
+                            Comment = context.Message.Comment,
+                            AIScore = context.Message.AIScore,
+                            ImageUrl = context.Message.ImageUrl,
+                            ProcessedAt = DateTime.UtcNow
+                        });
                     })
                     .TransitionTo(Completed),
 

@@ -3,7 +3,6 @@
 public class PromptProcessFailedEvent
 {
     public Guid CorrelationId { get; set; }
-    public Guid RatingId { get; set; }
     public string Reason { get; set; }
     public DateTime FailedAt { get; set; }
 }
