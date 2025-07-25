@@ -202,6 +202,21 @@ export const getFoods = async (idToken?: string): Promise<Food[]> => {
   return [];
 };
 
+// Lấy danh sách món ăn theo nhà hàng
+export const getFoodsByRestaurantId = async (restaurantId: string, idToken?: string): Promise<Food[]> => {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food/restaurant/${restaurantId}`, {
+    method: 'GET',
+    headers
+  });
+  if (!response.ok) throw new Error('Không thể lấy danh sách món ăn theo nhà hàng');
+  const data = await response.json();
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.value)) return data.value;
+  return [];
+};
+
 // Lấy chi tiết món ăn
 export const getFoodById = async (id: string, idToken?: string): Promise<Food> => {
   console.log('getFoodById idToken:', idToken);

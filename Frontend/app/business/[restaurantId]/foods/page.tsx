@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Table, Button, Modal, Form, Input, InputNumber, Space, Typography, Tag, Popconfirm, notification } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined } from "@ant-design/icons";
-import { getFoods, createFood, updateFood, deleteFood, Food, getFoodById } from "@/services/RestaurantService";
+import { getFoods, createFood, updateFood, deleteFood, Food, getFoodsByRestaurantId } from "@/services/RestaurantService";
 import { FirebaseAuth } from "@/firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -29,9 +29,9 @@ export default function FoodsPage() {
         return;
       }
       const idToken = await user.getIdToken();
-      // Gọi API getFoodById với restaurantId
-      const food = await getFoodById(restaurantId, idToken);
-      setFoods(Array.isArray(food) ? food : [food]);
+      // Gọi API lấy danh sách món ăn theo nhà hàng
+      const foods = await getFoodsByRestaurantId(restaurantId, idToken);
+      setFoods(foods);
     } catch (error: any) {
       api.error({ message: "Lỗi", description: error?.message || "Không thể tải danh sách món ăn" });
     } finally {

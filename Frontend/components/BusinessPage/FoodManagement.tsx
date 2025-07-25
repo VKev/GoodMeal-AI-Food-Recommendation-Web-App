@@ -39,7 +39,8 @@ import {
     createFood,
     updateFood,
     deleteFood,
-    Food
+    Food,
+    getFoodsByRestaurantId
 } from '@/services/RestaurantService';
 import { FirebaseAuth } from '@/firebase/firebase';
 import { businessService, Restaurant } from '@/services/BusinessService';
@@ -64,14 +65,16 @@ export function FoodManagement({ businessId }: { businessId: string }) {
         try {
             const user = FirebaseAuth.currentUser;
             const idToken = user ? await user.getIdToken() : undefined;
-            const data = await getFoods(idToken);
+            // Gọi đúng endpoint lấy danh sách món ăn theo nhà hàng
+            if (!businessId) throw new Error('Thiếu businessId');
+            const data = await getFoodsByRestaurantId(businessId, idToken);
             setFoods(data);
         } catch (error) {
             api.error({ message: 'Không thể tải danh sách món ăn' });
         } finally {
             setLoading(false);
         }
-    }, [api]);
+    }, [api, businessId]);
 
     const fetchRestaurants = useCallback(async () => {
         if (!businessId) return;
