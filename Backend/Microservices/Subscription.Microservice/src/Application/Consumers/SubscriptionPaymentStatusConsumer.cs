@@ -12,7 +12,8 @@ public class SubscriptionPaymentStatusConsumer :
     IConsumer<SubscriptionPaymentCompletedEvent>,
     IConsumer<SubscriptionPaymentFailedEvent>,
     IConsumer<UserSubscriptionActivatedEvent>,
-    IConsumer<UserSubscriptionActivationFailedEvent>
+    IConsumer<UserSubscriptionActivationFailedEvent>,
+    IConsumer<SubscriptionPaymentStatusCheckedEvent>
 {
     private readonly ILogger<SubscriptionPaymentStatusConsumer> _logger;
     private readonly ISubscriptionPaymentStatusService _statusService;
@@ -45,7 +46,7 @@ public class SubscriptionPaymentStatusConsumer :
         
         await _statusService.UpdatePaymentUrlCreatedAsync(
             context.Message.CorrelationId,
-            context.Message.PaymentUrl);
+            context.Message.PaymentUrl, context.Message.UrlCreatedAt);
     }
 
     public async Task Consume(ConsumeContext<SubscriptionPaymentUrlCreationFailedEvent> context)
@@ -91,5 +92,31 @@ public class SubscriptionPaymentStatusConsumer :
         await _statusService.UpdateSubscriptionActivationFailedAsync(
             context.Message.CorrelationId,
             context.Message.Reason);
+    }
+    
+    public async Task Consume(ConsumeContext<SubscriptionPaymentStatusCheckedEvent> context)
+    {
+        _logger.LogInformation("Received payment status check result for CorrelationId {CorrelationId}, OrderId {OrderId}, IsCompleted: {IsCompleted}", 
+            context.Message.CorrelationId, 
+            context.Message.OrderId, 
+            context.Message.IsCompleted);
+        
+        if (context.Message.IsCompleted)
+        {
+            // If payment is completed, update status
+            await _statusService.UpdatePaymentCompletedAsync(
+                context.Message.CorrelationId,
+                $"Payment check confirmed: {context.Message.Message}",
+                context.Message.CheckedAt);
+            
+            _logger.LogInformation("Updated payment status to completed for CorrelationId {CorrelationId}", context.Message.CorrelationId);
+        }
+        else
+        {
+            // Log the status check but don't update the status unless it's a definitive failure
+            _logger.LogInformation("Payment not completed yet for CorrelationId {CorrelationId}: {Message}", 
+                context.Message.CorrelationId, 
+                context.Message.Message);
+        }
     }
 } 

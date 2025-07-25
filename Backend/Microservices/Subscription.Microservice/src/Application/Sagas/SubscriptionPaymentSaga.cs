@@ -66,6 +66,7 @@ public class SubscriptionPaymentSaga : MassTransitStateMachine<SubscriptionPayme
                 {
                     context.Saga.PaymentUrl = context.Message.PaymentUrl;
                     context.Saga.PaymentUrlCreated = true;
+                    context.Saga.TransactionId = context.Message.UrlCreatedAt;
                     Console.WriteLine($"Payment URL created for subscription {context.Saga.SubscriptionId}: {context.Message.PaymentUrl}");
                 }),
 

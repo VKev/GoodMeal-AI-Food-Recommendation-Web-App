@@ -14,7 +14,8 @@ public sealed record CreatePaymentUrlCommand(
 
 public sealed record CreatePaymentUrlResponse(
     string PaymentUrl,
-    string OrderId
+    string OrderId,
+    string TransactionDate
 );
 
 internal sealed class
@@ -36,17 +37,16 @@ internal sealed class
     {
         try
         {
-            // Use IP address from command parameter (passed from saga or HTTP context)
             var ipAddress = !string.IsNullOrEmpty(request.IpAddress) ? request.IpAddress : "127.0.0.1";
             _logger.LogDebug("Using IP address: {IpAddress} for order {OrderId}", ipAddress, request.OrderId);
 
-            var paymentUrl = _vnpayRepository.CreatePaymentUrl(
+            var payment = _vnpayRepository.CreatePaymentUrl(
                 request.Amount,
                 request.OrderDescription,
                 request.OrderId,
                 ipAddress);
 
-            var response = new CreatePaymentUrlResponse(paymentUrl, request.OrderId);
+            var response = new CreatePaymentUrlResponse(payment.Item1, request.OrderId, payment.Item2);
             return Result.Success(response);
         }
         catch (Exception ex)

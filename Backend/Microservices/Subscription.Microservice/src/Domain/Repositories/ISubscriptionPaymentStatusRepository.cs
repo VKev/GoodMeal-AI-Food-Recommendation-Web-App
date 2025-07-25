@@ -7,4 +7,5 @@ public interface ISubscriptionPaymentStatusRepository : IRepository<Subscription
 {
     Task<SubscriptionPaymentStatus?> GetByCorrelationIdAsync(Guid correlationId, CancellationToken cancellationToken = default);
     Task<SubscriptionPaymentStatus?> GetByOrderIdAsync(string orderId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<SubscriptionPaymentStatus>> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default);
 } 
