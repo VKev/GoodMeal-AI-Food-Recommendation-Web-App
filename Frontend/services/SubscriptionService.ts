@@ -164,10 +164,14 @@ export const registerSubscription = async (idToken: string, subscriptionId: stri
 export interface PaymentStatusResponse {
   value: {
     correlationId: string;
-    status: string;
-    paymentUrl?: string;
-    message: string;
-    isCompleted: boolean;
+    currentState: string;
+    paymentUrl: string;
+    paymentUrlCreated: boolean;
+    paymentCompleted: boolean;
+    subscriptionActivated: boolean;
+    failureReason: string | null;
+    createdAt: string;
+    completedAt: string | null;
   };
   isSuccess: boolean;
   isFailure: boolean;
@@ -202,6 +206,55 @@ export const getSubscriptionPaymentStatus = async (idToken: string, correlationI
     return data;
   } catch (error) {
     console.error("Error checking payment status:", error);
+    return null;
+  }
+}; 
+
+export interface PaymentUrlResponse {
+  value: {
+    correlationId: string;
+    paymentUrl: string;
+    currentState: string;
+    paymentUrlCreated: boolean;
+    paymentCompleted: boolean;
+    subscriptionActivated: boolean;
+    failureReason: string | null;
+    createdAt: string;
+    completedAt: string | null;
+  };
+  isSuccess: boolean;
+  isFailure: boolean;
+  error?: {
+    code: string;
+    description: string;
+  };
+}
+
+export const getPaymentUrl = async (idToken: string, correlationId: string) => {
+  try {
+    if (!idToken || !correlationId) {
+      console.warn("No ID token or correlationId provided");
+      return null;
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "http://localhost:2406/";
+    const response = await fetch(`${baseUrl}api/subscription/payment-url/${correlationId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data: PaymentUrlResponse = await response.json();
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching payment URL:", error);
     return null;
   }
 }; 

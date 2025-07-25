@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Typography, Card, message, Spin, Empty, Modal, Button } from "antd";
+import {
+  Row,
+  Col,
+  Typography,
+  Card,
+  message,
+  Spin,
+  Empty,
+  Modal,
+  Button,
+} from "antd";
 import {
   QuestionCircleOutlined,
   CloseOutlined,
@@ -9,11 +19,12 @@ import {
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../hooks/auths/authContext";
 import SubscriptionCard from "./SubscriptionCard";
-import { 
-  getAllSubscriptions, 
-  Subscription, 
-  registerSubscription, 
-  getSubscriptionPaymentStatus 
+import {
+  getAllSubscriptions,
+  Subscription,
+  registerSubscription,
+  getSubscriptionPaymentStatus,
+  getPaymentUrl,
 } from "../../services/SubscriptionService";
 
 const { Title, Paragraph, Text } = Typography;
@@ -22,15 +33,21 @@ const Prices: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeSubscription, setActiveSubscription] = useState<string>("");
-  const [processingSubscription, setProcessingSubscription] = useState<boolean>(false);
+  const [processingSubscription, setProcessingSubscription] =
+    useState<boolean>(false);
   const [correlationId, setCorrelationId] = useState<string | null>(null);
-  const [statusCheckInterval, setStatusCheckInterval] = useState<NodeJS.Timeout | null>(null);
+  const [paymentUrlPollingInterval, setPaymentUrlPollingInterval] =
+    useState<NodeJS.Timeout | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
-  const [paymentModalVisible, setPaymentModalVisible] = useState<boolean>(false);
-  
+  const [paymentModalVisible, setPaymentModalVisible] =
+    useState<boolean>(false);
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+  const [paymentWindowOpened, setPaymentWindowOpened] =
+    useState<boolean>(false);
+
   const router = useRouter();
   const { currentUser } = useAuth();
-  
+
   // Fetch subscriptions from the backend
   useEffect(() => {
     const fetchSubscriptions = async () => {
@@ -41,9 +58,11 @@ const Prices: React.FC = () => {
           const data = await getAllSubscriptions(idToken);
           if (data && data.length > 0) {
             // Sort subscriptions by price (ascending)
-            const sortedSubscriptions = [...data].sort((a, b) => a.price - b.price);
+            const sortedSubscriptions = [...data].sort(
+              (a, b) => a.price - b.price
+            );
             setSubscriptions(sortedSubscriptions);
-            
+
             // Set the middle subscription as active by default
             const middleIndex = Math.floor(sortedSubscriptions.length / 2);
             setActiveSubscription(sortedSubscriptions[middleIndex].id);
@@ -51,7 +70,9 @@ const Prices: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching subscriptions:", error);
-        message.error("Không thể tải thông tin gói dịch vụ. Vui lòng thử lại sau.");
+        message.error(
+          "Không thể tải thông tin gói dịch vụ. Vui lòng thử lại sau."
+        );
       } finally {
         setLoading(false);
       }
@@ -60,42 +81,188 @@ const Prices: React.FC = () => {
     fetchSubscriptions();
   }, [currentUser]);
 
-  // Clean up interval when component unmounts
+  // Clean up intervals when component unmounts
   useEffect(() => {
     return () => {
-      if (statusCheckInterval) {
-        clearInterval(statusCheckInterval);
+      if (paymentUrlPollingInterval) {
+        clearInterval(paymentUrlPollingInterval);
       }
     };
-  }, [statusCheckInterval]);
+  }, [paymentUrlPollingInterval]);
 
-  // Check payment status
-  const checkPaymentStatus = async () => {
-    if (!currentUser || !correlationId) return;
+  // Set up polling when correlationId changes
+  useEffect(() => {
+    console.log("correlationId effect triggered:", correlationId);
+
+    // Clear any existing interval first
+    if (paymentUrlPollingInterval) {
+      console.log("Clearing existing interval");
+      clearInterval(paymentUrlPollingInterval);
+      setPaymentUrlPollingInterval(null);
+    }
+
+    // Only set up polling if we have a correlationId
+    if (correlationId && currentUser) {
+      console.log(
+        "Setting up payment URL polling for correlationId:",
+        correlationId
+      );
+
+      // Function to poll with specific correlationId and user
+      const pollPaymentUrlWithIDs = async () => {
+        try {
+          console.log("Polling with specific IDs:", correlationId);
+          const idToken = await currentUser.getIdToken();
+          console.log("Calling getPaymentUrl API...");
+          const response = await getPaymentUrl(idToken, correlationId);
+          console.log("Payment URL response:", response);
+
+          if (response && response.isSuccess && response.value) {
+            const paymentUrlData = response.value;
+            setPaymentStatus(paymentUrlData.currentState);
+            console.log("Payment status updated:", paymentUrlData.currentState);
+
+            // If payment URL is available
+            if (paymentUrlData.paymentUrl && paymentUrlData.paymentUrlCreated) {
+              console.log("Payment URL received:", paymentUrlData.paymentUrl);
+              setPaymentUrl(paymentUrlData.paymentUrl);
+
+              // Clear polling interval once URL is received
+              if (paymentUrlPollingInterval) {
+                console.log("Clearing polling interval");
+                clearInterval(paymentUrlPollingInterval);
+                setPaymentUrlPollingInterval(null);
+              }
+
+              // Open payment URL in a new tab
+              if (!paymentWindowOpened) {
+                console.log("Opening payment URL in new tab");
+                window.open(paymentUrlData.paymentUrl, "_blank");
+                setPaymentWindowOpened(true);
+              }
+            } else {
+              console.log("Payment URL not yet created, continuing to poll");
+            }
+          }
+        } catch (error) {
+          console.error("Error polling for payment URL:", error);
+        }
+      };
+
+      // Poll immediately once
+      pollPaymentUrlWithIDs();
+
+      // Then set up interval
+      const interval = setInterval(() => {
+        console.log("Polling interval triggered");
+        pollPaymentUrlWithIDs();
+      }, 1000);
+
+      setPaymentUrlPollingInterval(interval);
+
+      return () => {
+        console.log("Cleaning up polling interval");
+        clearInterval(interval);
+      };
+    }
+  }, [
+    correlationId,
+    currentUser,
+    paymentUrlPollingInterval,
+    paymentWindowOpened,
+  ]); // Include all dependencies
+
+  // Poll for payment URL
+  const pollPaymentUrl = async () => {
+    console.log("Polling for payment URL...", { correlationId });
+    if (!currentUser || !correlationId) {
+      console.warn("Missing currentUser or correlationId for polling");
+      return;
+    }
 
     try {
       const idToken = await currentUser.getIdToken();
-      const statusResponse = await getSubscriptionPaymentStatus(idToken, correlationId);
-      
+      console.log("Calling getPaymentUrl API...");
+      const response = await getPaymentUrl(idToken, correlationId);
+      console.log("Payment URL response:", response);
+
+      if (response && response.isSuccess && response.value) {
+        const paymentUrlData = response.value;
+        setPaymentStatus(paymentUrlData.currentState);
+        console.log("Payment status updated:", paymentUrlData.currentState);
+
+        // If payment URL is available
+        if (paymentUrlData.paymentUrl && paymentUrlData.paymentUrlCreated) {
+          console.log("Payment URL received:", paymentUrlData.paymentUrl);
+          setPaymentUrl(paymentUrlData.paymentUrl);
+
+          // Clear polling interval once URL is received
+          if (paymentUrlPollingInterval) {
+            console.log("Clearing polling interval");
+            clearInterval(paymentUrlPollingInterval);
+            setPaymentUrlPollingInterval(null);
+          }
+
+          // Open payment URL in a new tab
+          if (!paymentWindowOpened) {
+            console.log("Opening payment URL in new tab");
+            window.open(paymentUrlData.paymentUrl, "_blank");
+            setPaymentWindowOpened(true);
+          }
+        } else {
+          console.log("Payment URL not yet created, continuing to poll");
+        }
+      }
+    } catch (error) {
+      console.error("Error polling for payment URL:", error);
+    }
+  };
+
+  // Check payment status
+  const checkPaymentStatus = async () => {
+    console.log("Checking payment status...", { correlationId });
+    if (!currentUser || !correlationId) {
+      console.warn("Missing currentUser or correlationId for status check");
+      return;
+    }
+
+    try {
+      setProcessingSubscription(true);
+      const idToken = await currentUser.getIdToken();
+      console.log("Calling getSubscriptionPaymentStatus API...");
+      const statusResponse = await getSubscriptionPaymentStatus(
+        idToken,
+        correlationId
+      );
+      console.log("Payment status response:", statusResponse);
+
       if (statusResponse && statusResponse.isSuccess) {
         const status = statusResponse.value;
-        setPaymentStatus(status.status);
-        
-        if (status.isCompleted) {
-          if (statusCheckInterval) {
-            clearInterval(statusCheckInterval);
-            setStatusCheckInterval(null);
-          }
-          
+        setPaymentStatus(status.currentState);
+        console.log("Payment status updated to:", status.currentState);
+
+        if (status.currentState === "Completed" && status.paymentCompleted) {
+          console.log("Payment completed successfully, redirecting to /c");
           message.success("Đăng ký gói dịch vụ thành công!");
           setPaymentModalVisible(false);
           router.push("/c");
+        } else {
+          console.log("Payment still processing...");
+          message.info("Giao dịch đang xử lý. Vui lòng đợi hoặc thử lại sau.");
         }
       } else {
         console.error("Error checking payment status:", statusResponse);
+        message.error(
+          "Không thể kiểm tra trạng thái thanh toán. Vui lòng thử lại sau."
+        );
       }
     } catch (error) {
       console.error("Error checking payment status:", error);
+      message.error(
+        "Không thể kiểm tra trạng thái thanh toán. Vui lòng thử lại sau."
+      );
+    } finally {
+      setProcessingSubscription(false);
     }
   };
 
@@ -106,19 +273,25 @@ const Prices: React.FC = () => {
         router.push("/sign-in");
         return;
       }
-      
+
       setProcessingSubscription(true);
       const idToken = await currentUser.getIdToken();
+      console.log("Calling registerSubscription API...");
       const result = await registerSubscription(idToken, subscriptionId);
-      
+      console.log("Registration result:", result);
+
       if (result.success && result.data) {
-        setCorrelationId(result.data.correlationId);
+        const newCorrelationId = result.data.correlationId;
+        console.log("Setting correlationId:", newCorrelationId);
+
+        // Reset states
+        setPaymentUrl(null);
+        setPaymentWindowOpened(false);
         setPaymentStatus("Đang xử lý");
         setPaymentModalVisible(true);
-        
-        // Start checking payment status
-        const interval = setInterval(checkPaymentStatus, 5000); // Check every 5 seconds
-        setStatusCheckInterval(interval);
+
+        // Set correlationId last, which will trigger the useEffect
+        setCorrelationId(newCorrelationId);
       } else {
         message.error("Không thể đăng ký gói dịch vụ. Vui lòng thử lại sau.");
       }
@@ -131,15 +304,15 @@ const Prices: React.FC = () => {
   };
 
   const handleManualConfirm = async () => {
-    if (!correlationId) return;
-    
-    try {
-      await checkPaymentStatus();
-      message.info("Đang kiểm tra trạng thái thanh toán...");
-    } catch (error) {
-      console.error("Error confirming payment:", error);
-      message.error("Không thể xác nhận thanh toán. Vui lòng thử lại sau.");
+    if (!correlationId) {
+      console.warn("Missing correlationId for payment confirmation");
+      return;
     }
+    console.log(
+      "Manual confirmation clicked, checking payment status for correlationId:",
+      correlationId
+    );
+    await checkPaymentStatus();
   };
 
   const handleCardClick = (subscriptionId: string) => {
@@ -224,42 +397,59 @@ const Prices: React.FC = () => {
         title="Trạng thái đăng ký gói dịch vụ"
         open={paymentModalVisible}
         onCancel={() => {
-          if (statusCheckInterval) {
-            clearInterval(statusCheckInterval);
-            setStatusCheckInterval(null);
-          }
+          console.log("Payment modal closing...");
+          // Just hide the modal but keep polling
           setPaymentModalVisible(false);
         }}
         footer={[
-          <Button 
-            key="confirm" 
-            type="primary" 
+          <Button
+            key="confirm"
+            type="primary"
             onClick={handleManualConfirm}
             loading={processingSubscription}
           >
             Xác nhận đã thanh toán
-          </Button>
+          </Button>,
         ]}
       >
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          {paymentStatus === "Đang xử lý" ? (
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
+          {!paymentUrl ? (
             <>
-              <LoadingOutlined style={{ fontSize: 48, color: '#ff7a00', marginBottom: 16 }} />
-              <Paragraph>
-                Đang xử lý đăng ký gói dịch vụ của bạn...
-              </Paragraph>
+              <LoadingOutlined
+                style={{ fontSize: 48, color: "#ff7a00", marginBottom: 16 }}
+              />
+              <Paragraph>Đang tạo đường dẫn thanh toán...</Paragraph>
             </>
           ) : paymentStatus === "Completed" ? (
             <>
-              <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a', marginBottom: 16 }} />
-              <Paragraph>
-                Đăng ký gói dịch vụ thành công!
-              </Paragraph>
+              <CheckCircleOutlined
+                style={{ fontSize: 48, color: "#52c41a", marginBottom: 16 }}
+              />
+              <Paragraph>Đăng ký gói dịch vụ thành công!</Paragraph>
             </>
           ) : (
-            <Paragraph>
-              Vui lòng hoàn tất thanh toán để kích hoạt gói dịch vụ. Sau khi thanh toán, nhấn nút "Xác nhận đã thanh toán".
-            </Paragraph>
+            <>
+              <Paragraph>
+                Vui lòng hoàn tất thanh toán để kích hoạt gói dịch vụ.
+              </Paragraph>
+              <Paragraph>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    if (paymentUrl) {
+                      window.open(paymentUrl, "_blank");
+                      setPaymentWindowOpened(true);
+                    }
+                  }}
+                >
+                  Mở trang thanh toán
+                </Button>
+              </Paragraph>
+              <Paragraph>
+                Sau khi thanh toán, hãy quay lại đây và nhấn nút "Xác nhận đã
+                thanh toán".
+              </Paragraph>
+            </>
           )}
         </div>
       </Modal>
@@ -369,7 +559,8 @@ const Prices: React.FC = () => {
                   Trải nghiệm không giới hạn
                 </Title>
                 <Text style={{ color: "#b3b3b3" }}>
-                  Truy cập không giới hạn vào tất cả các tính năng gợi ý món ăn AI
+                  Truy cập không giới hạn vào tất cả các tính năng gợi ý món ăn
+                  AI
                 </Text>
               </div>
             </Card>

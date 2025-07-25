@@ -8,6 +8,7 @@ using Application.Subscriptions.Commands.DeleteSubscriptionCommand;
 using Application.UserSubscriptions.Commands.RegisterSubscriptionCommand;
 using Application.UserSubscriptions.Queries.GetMySubscriptionQuery;
 using Application.UserSubscriptions.Queries.GetSubscriptionPaymentStatusQuery;
+using Application.UserSubscriptions.Queries.GetPaymentUrlQuery;
 using SharedLibrary.Common;
 using SharedLibrary.Common.Messaging.Commands;
 using SharedLibrary.Utils.AuthenticationExtention;
@@ -170,6 +171,22 @@ namespace WebApi.Controllers
             CancellationToken cancellationToken)
         {
             var query = new GetSubscriptionPaymentStatusQuery(correlationId);
+            var result = await _mediator.Send(query, cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return HandleFailure(result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpGet("payment-url/{correlationId}")]
+        [ApiGatewayUser]
+        public async Task<IActionResult> GetPaymentUrl(Guid correlationId,
+            CancellationToken cancellationToken)
+        {
+            var query = new GetPaymentUrlQuery(correlationId);
             var result = await _mediator.Send(query, cancellationToken);
 
             if (result.IsFailure)

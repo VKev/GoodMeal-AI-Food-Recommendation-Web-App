@@ -1,50 +1,49 @@
-using Domain.Repositories;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SharedLibrary.Common.ResponseModel;
-using SharedLibrary.Common.Messaging;
-using Microsoft.AspNetCore.Http;
+using VNPAY.NET;
 
 namespace Application.Payments.Commands;
 
-public sealed record ProcessIpnCommand(
-    IQueryCollection QueryParameters
-) : ICommand<ProcessIpnResponse>;
-
-public sealed record ProcessIpnResponse(
-    bool IsSuccess,
-    string Message
-);
-
-internal sealed class ProcessIpnCommandHandler : ICommandHandler<ProcessIpnCommand, ProcessIpnResponse>
+public class ProcessIpnCommandHandler : IRequestHandler<ProcessIpnCommand, Result>
 {
-    private readonly IVnpayRepository _vnpayRepository;
+    private readonly ILogger<ProcessIpnCommandHandler> _logger;
 
-    public ProcessIpnCommandHandler(IVnpayRepository vnpayRepository)
+    private readonly IVnpay _vnpay;
+
+    public ProcessIpnCommandHandler(ILogger<ProcessIpnCommandHandler> logger, IVnpay vnpay)
     {
-        _vnpayRepository = vnpayRepository;
+        _logger = logger;
+        _vnpay = vnpay;
     }
 
-    public async Task<Result<ProcessIpnResponse>> Handle(ProcessIpnCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(ProcessIpnCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            if (!request.QueryParameters.Any())
-            {
-                return Result.Failure<ProcessIpnResponse>(new Error("Ipn.Invalid",
-                    "Không tìm thấy thông tin thanh toán."));
-            }
+            _logger.LogInformation("Processing IPN with parameters: {Parameters}", request.QueryParameters);
 
-            var paymentResult = _vnpayRepository.GetPaymentResult(request.QueryParameters);
+            var paymentResult = _vnpay.GetPaymentResult(request.QueryParameters);
+
             if (paymentResult.IsSuccess)
             {
-                var response = new ProcessIpnResponse(true, "Thanh toán thành công");
-                return Result.Success(response);
+                _logger.LogInformation("Payment successful for OrderId: {OrderId}",
+                    request.QueryParameters["vnp_TxnRef"].ToString());
+
+                return Result.Success(true);
             }
 
-            return Result.Failure<ProcessIpnResponse>(new Error("Payment.Failed", "Thanh toán thất bại"));
+            _logger.LogWarning("Payment failed for OrderId: {OrderId}. Message: {Message}",
+                request.QueryParameters["vnp_TxnRef"].ToString(),
+                paymentResult.Description);
+
+            return Result.Success(false);
         }
         catch (Exception ex)
         {
-            return Result.Failure<ProcessIpnResponse>(new Error("Ipn.Processing", ex.Message));
+            _logger.LogError(ex, "Error processing IPN");
+            return Result.Failure(Error.FromException(ex));
         }
     }
 }
