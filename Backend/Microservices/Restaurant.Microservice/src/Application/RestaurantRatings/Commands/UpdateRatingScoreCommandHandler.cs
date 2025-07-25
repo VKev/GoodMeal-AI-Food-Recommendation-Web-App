@@ -1,44 +1,43 @@
-﻿using SharedLibrary.Common.Messaging;
-using SharedLibrary.Common.ResponseModel;
-using AutoMapper;
+﻿using AutoMapper;
 using Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using SharedLibrary.Common;
+using SharedLibrary.Common.Messaging;
+using SharedLibrary.Common.ResponseModel;
+
 namespace Application.RestaurantRatings.Commands;
 
-public sealed record UpdateRatingCommand(
+public sealed record UpdateRatingScoreCommand(
     Guid Id,
-    string? Comment,
-    float? Rating,
-    string? ImageUrl
+    float Rating
 ) : ICommand;
 
-internal sealed class UpdateRatingCommandHandler : ICommandHandler<UpdateRatingCommand>
+internal sealed class UpdateRatingScoreCommandHandler : ICommandHandler<UpdateRatingScoreCommand>
 {
     private readonly IRestaurantRatingRepository _restaurantRatingRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ILogger<UpdateRatingScoreCommandHandler> _logger;
+    
 
-    public UpdateRatingCommandHandler(IRestaurantRatingRepository restaurantRatingRepository, IUnitOfWork unitOfWork, IMapper mapper)
+    public UpdateRatingScoreCommandHandler(IRestaurantRatingRepository restaurantRatingRepository, IUnitOfWork unitOfWork, IMapper mapper, ILogger<UpdateRatingScoreCommandHandler> logger)
     {
         _restaurantRatingRepository = restaurantRatingRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _logger = logger;
     }
 
-    public async Task<Result> Handle(UpdateRatingCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateRatingScoreCommand command, CancellationToken cancellationToken)
     {
         var restaurantRating = await _restaurantRatingRepository.GetByIdAsync(command.Id, cancellationToken);
-
-        if (!string.IsNullOrWhiteSpace(command.Comment))
-            restaurantRating.Comment = command.Comment;
 
         if (command.Rating != null)
         {
             restaurantRating.Rating = command.Rating;
+            _logger.LogInformation("Updated Rating Score: {RatingScore} for Rating Id: {RatingId}", command.Rating, command.Id);
         }
         
-        if (!string.IsNullOrWhiteSpace(command.ImageUrl))
-            restaurantRating.ImageUrl = command.ImageUrl;
 
         restaurantRating.UpdatedAt = DateTime.UtcNow;
 
