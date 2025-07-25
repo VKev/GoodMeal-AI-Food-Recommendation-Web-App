@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
     Table, 
     Button, 
@@ -63,11 +63,7 @@ export function BusinessManagement() {
         return matchesSearch && matchesStatus;
     });
 
-    useEffect(() => {
-        loadBusinesses();
-    }, []);
-
-    const loadBusinesses = async () => {
+    const loadBusinesses = useCallback(async () => {
         setLoading(true);
         try {
             const response = await adminService.getAllBusinesses();
@@ -81,7 +77,11 @@ export function BusinessManagement() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [api]);
+
+    useEffect(() => {
+        loadBusinesses();
+    }, [loadBusinesses]);
 
     const handleSubmit = async (values: CreateBusinessRequest) => {
         try {

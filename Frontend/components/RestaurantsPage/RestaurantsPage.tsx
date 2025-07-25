@@ -27,6 +27,7 @@ import {
 import { useGeolocation } from "../../hooks/useGeolocation";
 import { useRestaurantsSearch } from "../../hooks/useRestaurants";
 import LoadingComponent from "../LoadingComponent";
+import Image from "next/image";
 
 const { Content, Header } = Layout;
 const { Title, Text } = Typography;
@@ -383,12 +384,14 @@ const RestaurantsPage: React.FC = () => {
                             }}
                           >
                             {/* Hidden img element for error handling */}
-                            <img 
+                            <Image 
                               src={restaurant.photos && restaurant.photos.length > 0 
                                 ? getHighQualityImageUrl(restaurant.photos[0].src) 
                                 : 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=600&fit=crop&crop=center&q=80'
                               }
                               alt={restaurant.name}
+                              width={350}
+                              height={350}
                               style={{ display: 'none' }}
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
@@ -397,6 +400,7 @@ const RestaurantsPage: React.FC = () => {
                                   parentDiv.style.backgroundImage = `url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=600&fit=crop&crop=center&q=80)`;
                                 }
                               }}
+                              priority
                             />
                             <div
                               style={{

@@ -171,6 +171,106 @@ export interface RestaurantPhotoResponse {
   };
 }
 
+// ================= FOOD CRUD APIs =================
+
+export interface Food {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  isAvailable: boolean;
+  restaurantId: string;
+  imageUrl?: string;
+  isDisable?: boolean;
+  disableAt?: string;
+}
+
+// Lấy danh sách món ăn
+export const getFoods = async (idToken?: string): Promise<Food[]> => {
+  console.log('getFoods idToken:', idToken); // Log idToken để debug
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'GET',
+    headers
+  });
+  if (!response.ok) throw new Error('Không thể lấy danh sách món ăn');
+  const data = await response.json();
+  // Nếu API trả về { value: [...] } thì lấy .value, nếu trả về mảng thì trả luôn
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.value)) return data.value;
+  return [];
+};
+
+// Lấy danh sách món ăn theo nhà hàng
+export const getFoodsByRestaurantId = async (restaurantId: string, idToken?: string): Promise<Food[]> => {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food/restaurant/${restaurantId}`, {
+    method: 'GET',
+    headers
+  });
+  if (!response.ok) throw new Error('Không thể lấy danh sách món ăn theo nhà hàng');
+  const data = await response.json();
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.value)) return data.value;
+  return [];
+};
+
+// Lấy chi tiết món ăn
+export const getFoodById = async (id: string, idToken?: string): Promise<Food> => {
+  console.log('getFoodById idToken:', idToken);
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food/${id}`, {
+    method: 'GET',
+    headers
+  });
+  if (!response.ok) throw new Error('Không thể lấy chi tiết món ăn');
+  return await response.json();
+};
+
+// Tạo món ăn mới
+export const createFood = async (food: Omit<Food, 'id'>, idToken?: string): Promise<Food> => {
+  console.log('createFood idToken:', idToken);
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(food)
+  });
+  if (!response.ok) throw new Error('Không thể tạo món ăn');
+  return await response.json();
+};
+
+// Cập nhật món ăn
+export const updateFood = async (food: Food, idToken?: string): Promise<Food> => {
+  console.log('updateFood idToken:', idToken);
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(food)
+  });
+  if (!response.ok) throw new Error('Không thể cập nhật món ăn');
+  return await response.json();
+};
+
+// Xóa món ăn
+export const deleteFood = async (id: string, idToken?: string): Promise<void> => {
+  console.log('deleteFood idToken:', idToken);
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'DELETE',
+    headers,
+    body: JSON.stringify({ id })
+  });
+  if (!response.ok) throw new Error('Không thể xóa món ăn');
+};
+
 // Get nearby restaurants using coordinates
 export const getNearbyRestaurants = async (
   idToken: string,
