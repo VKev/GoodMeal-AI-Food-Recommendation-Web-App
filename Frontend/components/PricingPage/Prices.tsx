@@ -451,8 +451,7 @@ const Prices: React.FC = () => {
                 </Button>
               </Paragraph>
               <Paragraph>
-                Sau khi thanh toán, hãy quay lại đây và nhấn nút "Xác nhận đã
-                thanh toán".
+                Sau khi thanh toán, hãy quay lại đây và nhấn nút &quot;Xác nhận đã thanh toán&quot;.
               </Paragraph>
             </>
           )}

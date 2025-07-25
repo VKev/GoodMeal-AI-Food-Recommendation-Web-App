@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
+// ...existing code...
 import { useParams, useRouter } from "next/navigation";
 import {
   Layout,
@@ -32,6 +33,7 @@ import {
   HeartOutlined,
   ShareAltOutlined,
 } from "@ant-design/icons";
+import Image from "next/image";
 import { 
   useRestaurantDetail,
   useRestaurantPhotos,
@@ -419,9 +421,11 @@ const RestaurantDetail: React.FC = () => {
                     }}
                   >
                     {/* Hidden img element for error handling */}
-                    <img 
+                    <Image 
                       src={getRestaurantImage(restaurant)}
                       alt="Restaurant"
+                      width={1200}
+                      height={400}
                       style={{ display: 'none' }}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
@@ -430,6 +434,7 @@ const RestaurantDetail: React.FC = () => {
                           parentDiv.style.backgroundImage = `url(https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop&crop=center&q=80)`;
                         }
                       }}
+                      priority
                     />
                     {/* Overlay gradient for better text readability */}
                     <div style={{
@@ -505,9 +510,11 @@ const RestaurantDetail: React.FC = () => {
                             }}
                           >
                             {/* Hidden img element for error handling */}
-                            <img 
+                            <Image 
                               src={getHighQualityImageUrl(photo.src)}
                               alt={`Restaurant photo ${index + 1}`}
+                              width={200}
+                              height={80}
                               style={{ display: 'none' }}
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
@@ -516,6 +523,7 @@ const RestaurantDetail: React.FC = () => {
                                   parentDiv.style.backgroundImage = `url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop&crop=center&q=80)`;
                                 }
                               }}
+                              priority={index === 0}
                             />
                             {index === 3 && photos.length > 4 && (
                               <div style={{
@@ -784,7 +792,7 @@ const RestaurantDetail: React.FC = () => {
                           fontWeight: "500",
                           borderColor: "#ffa366",
                           color: "#ffa366",
-                          background: "rgba(255, 163, 102, 0.1)",
+                          background: "rgba(255,163,102,0.1)",
                         }}
                       >
                         Gọi điện
@@ -1340,9 +1348,11 @@ const RestaurantDetail: React.FC = () => {
             justifyContent: "center",
             background: "rgba(0, 0, 0, 0.8)"
           }}>
-            <img
+            <Image
               src={getHighQualityImageUrl(photos[selectedPhotoIndex]?.src)}
               alt={`Restaurant photo ${selectedPhotoIndex + 1}`}
+              width={1200}
+              height={800}
               style={{
                 maxWidth: "100%",
                 maxHeight: "100%",
@@ -1353,6 +1363,7 @@ const RestaurantDetail: React.FC = () => {
                 const target = e.target as HTMLImageElement;
                 target.src = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop&crop=center&q=80';
               }}
+              priority
             />
             
             {/* Loading placeholder */}
@@ -1510,9 +1521,11 @@ const RestaurantDetail: React.FC = () => {
                   }}
                 >
                   {/* Hidden img for error handling */}
-                  <img 
+                  <Image 
                     src={getHighQualityImageUrl(photo.src)}
                     alt={`Thumbnail ${index + 1}`}
+                    width={60}
+                    height={40}
                     style={{ display: 'none' }}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -1521,6 +1534,7 @@ const RestaurantDetail: React.FC = () => {
                         parentDiv.style.backgroundImage = `url(https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&h=150&fit=crop&crop=center&q=80)`;
                       }
                     }}
+                    priority={index === selectedPhotoIndex}
                   />
                 </div>
               ))}
