@@ -25,21 +25,7 @@ namespace Infrastructure
             services.AddScoped<IEventUnitOfWork>(sp => sp.GetRequiredService<EventBuffer>());
             services.AddScoped<IEventFlusher>(sp => sp.GetRequiredService<EventBuffer>());
 
-            services.AddMassTransit(busConfigurator =>
-            {
-                busConfigurator.SetKebabCaseEndpointNameFormatter();
-                busConfigurator.UsingRabbitMq((context, configurator) =>
-                {
-                    var config = context.GetRequiredService<EnvironmentConfig>();
-
-                    configurator.Host(new Uri($"rabbitmq://{config.RabbitMqHost}:{config.RabbitMqPort}/"), h =>
-                    {
-                        h.Username(config.RabbitMqUser);
-                        h.Password(config.RabbitMqPassword);
-                    });
-                    configurator.ConfigureEndpoints(context);
-                });
-            });
+            
 
             return services;
         }

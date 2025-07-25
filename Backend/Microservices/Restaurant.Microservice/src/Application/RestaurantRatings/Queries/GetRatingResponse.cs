@@ -10,5 +10,6 @@ public sealed record GetRatingResponse(
     DateTime? UpdatedAt,
     bool IsDisable,
     DateTime? DisableAt,
-    string? DisableBy
+    string? DisableBy,
+    string? ImageUrl
 );
