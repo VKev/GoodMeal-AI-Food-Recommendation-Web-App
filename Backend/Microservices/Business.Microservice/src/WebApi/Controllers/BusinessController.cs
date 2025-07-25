@@ -239,7 +239,7 @@ public class BusinessController : ApiController
         var getRestaurantsResult = await _mediator.Send(new GetBusinessRestaurantsQuery(businessId), cancellationToken);
 
         var aggregatedResult = ResultAggregator.AggregateWithNumbers(
-            (addResult, false),
+            (addResult, true),
             (saveResult, false),
             (getRestaurantsResult, true)
         );

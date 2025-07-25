@@ -90,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             const idTokenResult = await user.getIdTokenResult();
 
+            console.log('idTokenResult:', idTokenResult);
             const claims = idTokenResult.claims;
             
             // Prioritize roles from backend, then from Firebase claims, then default
@@ -102,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 finalRoles = ['user']; // Default role
                 console.log('Using default role: user');
             }
-            
             const tokenData: TokenData = {
                 email: user.email || '',
                 name: user.displayName || '',

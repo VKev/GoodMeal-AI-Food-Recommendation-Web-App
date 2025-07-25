@@ -180,6 +180,21 @@ namespace WebApi.Controllers
             return Ok(result);
         }
 
+        [HttpGet("payment-status")]
+        [ApiGatewayUser]
+        public async Task<IActionResult> GetAllSubscriptionPaymentStatus(CancellationToken cancellationToken)
+        {
+            var query = new Application.UserSubscriptions.Queries.GetAllSubscriptionPaymentStatusQuery.GetAllSubscriptionPaymentStatusQuery();
+            var result = await _mediator.Send(query, cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return HandleFailure(result);
+            }
+
+            return Ok(result);
+        }
+
         [HttpGet("health")]
         public async Task<IActionResult> Health()
         {
