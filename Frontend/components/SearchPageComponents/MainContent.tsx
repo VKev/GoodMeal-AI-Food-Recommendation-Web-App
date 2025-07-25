@@ -176,7 +176,7 @@ const MainContent: React.FC<MainContentProps> = ({ selectedChat }) => {
 
 
                 <Dropdown
-                    overlay={filterMenu}
+                    popupRender={() => filterMenu}
                     trigger={['click']}
                     placement="bottomRight"
                 >

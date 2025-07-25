@@ -115,27 +115,21 @@ export const createPromptSession = async (idToken: string, userId: string): Prom
         if (!userId) {
             console.warn('No User ID provided');
             return null;
-        }        console.log('Creating session with userId:', userId);
+        }
+
+        console.log('Creating session for userId:', userId);
         
         const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:2406/';
         
-        // API only needs userId - it will generate a new session ID automatically
-        const requestBody = {
-            userId: userId
-        };
-        
-        console.log('Request body:', requestBody);
-          const response = await fetch(`${baseUrl}api/prompt/PromptSession/create`, {
+        const response = await fetch(`${baseUrl}api/prompt/PromptSession/create`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${idToken}`,
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
+            }
         });
 
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
 
         if (!response.ok) {
             let errorText = '';
@@ -148,28 +142,15 @@ export const createPromptSession = async (idToken: string, userId: string): Prom
             throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
         }
 
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-        
-        // Parse JSON
-        const data: CreateSessionResponse = JSON.parse(responseText);
+        const data: CreateSessionResponse = await response.json();
         console.log('Create session response:', data);
-        console.log('Response structure:', JSON.stringify(data, null, 2));
 
         if (data.isSuccess && data.value.results.length > 0) {
             const sessionResult = data.value.results[0];
             console.log('Session result:', sessionResult);
-            console.log('Session result data:', sessionResult.data);
-            console.log('Session result data keys:', Object.keys(sessionResult.data || {}));
             
             if (sessionResult.isSuccess && sessionResult.data) {
                 console.log('Session created successfully:', sessionResult.data);
-                
-                // Log all properties of the session data
-                for (const [key, value] of Object.entries(sessionResult.data)) {
-                    console.log(`${key}:`, value);
-                }
-                
                 return sessionResult.data;
             }
         }
@@ -481,6 +462,55 @@ export const deletePromptSession = async (
         return false;
     } catch (error) {
         console.error('Error deleting prompt session:', error);
+        return false;
+    }
+};
+
+export const deleteAllPromptSessions = async (
+    idToken: string
+): Promise<boolean> => {
+    try {
+        if (!idToken) {
+            console.warn('No ID token provided');
+            return false;
+        }
+
+        console.log('Deleting all sessions for current user');
+
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:2406/';
+        const response = await fetch(`${baseUrl}api/prompt/PromptSession/delete-all`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+            }
+        });
+
+        console.log('Delete all sessions response status:', response.status);
+
+        if (!response.ok) {
+            let errorText = '';
+            try {
+                errorText = await response.text();
+                console.log('Error response body:', errorText);
+            } catch (e) {
+                console.log('Could not read error response body');
+            }
+            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Delete all sessions response:', data);
+
+        // Check if deletion was successful
+        if (data.isSuccess) {
+            console.log('Successfully deleted all sessions');
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error('Error deleting all prompt sessions:', error);
         return false;
     }
 };

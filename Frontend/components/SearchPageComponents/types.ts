@@ -21,6 +21,7 @@ export interface SidebarProps {
     onCreateSession: () => void;
     isCreatingSession?: boolean;
     onDeleteSession?: (sessionId: string) => void;
+    onDeleteAllSessions?: () => void;
 }
 
 export interface ChatHistoryProps {
@@ -40,6 +41,8 @@ export interface SidebarHeaderProps {
     isCreatingSession?: boolean;
     currentSessionId?: string;
     onSendMessage?: (message: string, sessionId: string) => void;
+    onDeleteAllSessions?: () => void;
+    chatHistoryCount?: number;
 }
 
 export interface InputAreaProps {

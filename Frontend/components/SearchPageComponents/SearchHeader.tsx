@@ -7,8 +7,8 @@ import {
     Avatar,
     Dropdown,
     Menu,
-    message,
-    Button
+    Button,
+    App
 } from 'antd';
 import {
     UserOutlined,
@@ -28,6 +28,7 @@ interface SearchHeaderProps {
 }
 
 const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed, sessionName }) => {
+    const { message: messageApi } = App.useApp();
     const router = useRouter();
     const { authUser } = useAuth();
 
@@ -40,11 +41,11 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed, sessionName }) =
             case 'logout':
                 try {
                     await logOut();
-                    message.success('Đăng xuất thành công!');
+                    messageApi.success('Đăng xuất thành công!');
                     router.push('/sign-in');
                 } catch (error) {
                     console.error('Logout error:', error);
-                    message.error('Có lỗi xảy ra khi đăng xuất');
+                    messageApi.error('Có lỗi xảy ra khi đăng xuất');
                 }
                 break;
             default:
@@ -135,7 +136,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({ collapsed, sessionName }) =
                 {authUser ? (
                     // Authenticated user - show avatar dropdown
                     <Dropdown
-                        overlay={userMenu}
+                        popupRender={() => userMenu}
                         trigger={['click']}
                         placement="bottomRight"
                     >

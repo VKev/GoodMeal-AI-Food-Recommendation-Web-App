@@ -6,7 +6,7 @@ using Domain.Common;
 using Domain.Entities;
 using Domain.Repositories;
 using Infrastructure.Common;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
@@ -26,5 +26,19 @@ public class PromptSessionRepository : Repository<PromptSession>, IPromptSession
         entity.IsDeleted = true;
         entity.DeletedAt = DateTime.UtcNow;
         entity.DeletedBy = userId;
+    }
+
+    public async Task SoftDeleteAllByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var entities = await _context.PromptSessions
+            .Where(x => x.UserId == userId && !x.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        foreach (var entity in entities)
+        {
+            entity.IsDeleted = true;
+            entity.DeletedAt = DateTime.UtcNow;
+            entity.DeletedBy = userId;
+        }
     }
 }

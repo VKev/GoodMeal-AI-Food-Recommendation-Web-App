@@ -22,7 +22,7 @@ const UpgradeSection: React.FC = () => {
           border: "1px solid rgba(255, 122, 0, 0.2)",
           borderRadius: "8px",
         }}
-        bodyStyle={{ padding: "16px" }}
+        styles={{ body: { padding: "16px" } }}
       >
         <Flex align="center" gap={12} style={{ marginBottom: "8px" }}>
           <CrownOutlined style={{ color: "#ff7a00", fontSize: "20px" }} />

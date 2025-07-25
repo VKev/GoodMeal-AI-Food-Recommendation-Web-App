@@ -5,8 +5,8 @@ import {
   theme,
   ConfigProvider,
   Spin,
-  message,
   Typography,
+  App,
 } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
 import { onAuthStateChanged } from "firebase/auth";
@@ -14,30 +14,36 @@ import { FirebaseAuth } from "../../firebase/firebase";
 
 // Import components
 import Sidebar from "./Sidebar";
-import SearchHeader from "./SearchHeader";
 import ChatArea from "./ChatArea";
+import SearchHeader from "./SearchHeader";
+import MainContent from "./MainContent";
 import LocationPrompt from "./LocationPrompt";
-
-// Import hooks
 import { useGeolocation, LocationData } from "../../hooks/useGeolocation";
+import { locationPromptUtils } from "../../utils/locationPromptUtils";
+import { checkAuthorization } from "../../services/Auth";
 
 // Import services
 import {
   getPromptSessions,
-  formatTime,
   createPromptSession,
+  formatTime,
   deletePromptSession,
   PromptSession,
+  deleteAllPromptSessions,
 } from "../../services/PromptService";
-import { checkAuthorization } from "../../services/Auth";
+
+// Import types
 import { ChatItem } from "./types";
-import locationPromptUtils from "../../utils/locationPromptUtils";
+
+const { Text } = Typography;
 
 interface SearchPageProps {
   initialSessionId?: string;
 }
 
-const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
+// Inner component that can use useApp hook
+const SearchPageContent: React.FC<SearchPageProps> = ({ initialSessionId }) => {
+  const { message: messageApi } = App.useApp();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatItem[]>([]);
@@ -58,67 +64,59 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
     
   } = useGeolocation();
 
-  // Listen to auth state changes
+  const effectiveSessionName = sessions.find(s => s.id === selectedChat)?.sessionName;
+
+  // Check authentication on mount
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      FirebaseAuth,
-      async (firebaseUser) => {
-        if (firebaseUser) {
-          setUser(firebaseUser);
-          try {
-            const idToken = await firebaseUser.getIdToken();
-            const authResponse = await checkAuthorization(idToken);
-            if (authResponse?.user) {
-             
-              setUserId(authResponse.user.userId);
-              // Load prompt sessions after getting userId
-              await loadPromptSessions(idToken, authResponse.user.userId);
-            }
-          } catch (error) {
-            console.error("Error getting user info:", error);
-            message.error("Failed to load user information");
-          } finally {
-            setLoading(false);
-          }
-        } else {
-          setUser(null);
-          setUserId(null);
-          setChatHistory([]);
-          setUserLocation(null);
-          setShowLocationPermission(false);
-          
-          // Handle logout - reset "once" choices but keep "always" choices
-          locationPromptUtils.handleLogout();
-          
-          setLoading(false);
-        }
+    const unsubscribe = onAuthStateChanged(FirebaseAuth, async (user) => {
+             if (user) {
+         try {
+           const idToken = await user.getIdToken();
+           const isAuthorized = await checkAuthorization(idToken);
+           if (isAuthorized) {
+             setUser(user);
+             setUserId(user.uid);
+           } else {
+             setUser(null);
+             setUserId(null);
+           }
+         } catch (error) {
+           console.error("Error checking authorization:", error);
+           messageApi.error("Failed to load user information");
+           setUser(null);
+           setUserId(null);
+         }
+      } else {
+        setUser(null);
+        setUserId(null);
       }
-    );
+      setLoading(false);
+    });
 
     return () => unsubscribe();
-  }, []); // Remove permission and hasLocation dependencies to prevent unnecessary re-runs
+  }, [messageApi]);
 
-  // Update user location when geolocation changes
+  // Load sessions when user changes
   useEffect(() => {
-    if (location) {
+    if (user && userId) {
+      user.getIdToken().then((idToken: string) => {
+        loadPromptSessions(idToken, userId);
+      });
+    } else {
+      setChatHistory([]);
+      setSessions([]);
+    }
+  }, [user, userId]);
+
+  // Handle location permission on mount
+  useEffect(() => {
+    const locationPermission = localStorage.getItem('goodmeal_location_permission');
+    if (locationPermission === 'granted' && hasLocation && location) {
       setUserLocation(location);
+         } else if (user && locationPromptUtils.shouldShowPrompt(hasLocation, permission)) {
+      setShowLocationPermission(true);
     }
-  }, [location]);
-
-  // Handle location permission modal display
-  useEffect(() => {
-    if (user && userId && permission !== 'unavailable') {
-    
-      
-      if (locationPromptUtils.shouldShowPrompt(hasLocation, permission)) {
-        const timer = setTimeout(() => {
-          setShowLocationPermission(true);
-        }, 2000); // Delay to let user see the interface first
-        
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [user, userId, permission, hasLocation]);
+  }, [user, hasLocation, location]);
 
   // Set initial session from URL parameter
   useEffect(() => {
@@ -166,86 +164,63 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
       
     } catch (error) {
       console.error("Error loading prompt sessions:", error);
-      message.error("Failed to load chat history");
+      messageApi.error("Failed to load chat history");
     } finally {
       setLoading(false);
     }
   };
 
- // Create new session function
+  // Create new session function
   const handleCreateSession = async () => {
-    console.log("handleCreateSession called");
-    console.log("Current user:", user);
-    console.log("Current userId:", userId);
-
     if (!user) {
-      message.error("Please log in to create a new session");
+      messageApi.error("Please log in to create a new session");
       return;
     }
 
     if (!userId) {
-      message.error("User ID not available");
+      messageApi.error("User ID not available");
       return;
     }
 
     try {
       setIsCreatingSession(true);
       const idToken = await user.getIdToken();
-      console.log("About to create session with userId:", userId);
+      
+      console.log('About to create session with userId:', userId);
       const newSession = await createPromptSession(idToken, userId);
-      
-      console.log("New session response:", newSession);
-      console.log("New session ID:", newSession?.id);
-      console.log("All properties of newSession:", Object.keys(newSession || {}));
-      
-      // Try different possible ID field names
-      const sessionData = newSession as any;
-      const sessionId = sessionData?.id || sessionData?.Id || sessionData?.sessionId || sessionData?.promptSessionId;
-      console.log("Extracted session ID:", sessionId);
+      console.log('Created session:', newSession);
 
-      if (newSession && sessionId) {
-        message.success("New session created successfully");
-        
-        // Set the new session as selected immediately (smooth transition)
-        setSelectedChat(sessionId);
-        setNewlyCreatedSessionId(sessionId);
-        
-        // Update URL without navigation (no page reload)
-        window.history.pushState({}, '', `/c/${sessionId}`);
-        
-        // Refresh chat history to include the new session
-        await loadPromptSessions(idToken, userId);
-        
-        // Clear the newly created indicator after animation
+      if (newSession && newSession.id) {
+        messageApi.success("Đã tạo cuộc trò chuyện mới thành công");
+
+        // Set the selected chat to the new session
+        setSelectedChat(newSession.id);
+        setNewlyCreatedSessionId(newSession.id);
+
+        // Update URL to show the new session
+        window.history.pushState({}, '', `/c/${newSession.id}`);
+
+        // Refresh chat history to show the new session
+        await loadPromptSessions(idToken, userId, false);
+
+        // Clear newlyCreatedSessionId after animation
         setTimeout(() => {
           setNewlyCreatedSessionId(null);
         }, 2000);
-      } else if (newSession && (newSession as any).isSuccess === true) {
-        // API returned success but no session data - refresh list and select newest
-        console.log("Session created but no ID returned, refreshing list...");
-        message.success("New session created successfully");
-        
-        // Create a temporary session ID to avoid /c/undefined
-        const tempSessionId = 'temp-' + Date.now();
-        setSelectedChat(tempSessionId);
-        window.history.pushState({}, '', `/c/${tempSessionId}`);
-        
-        // Refresh chat history and auto-select newest session
-        await loadPromptSessions(idToken, userId, true);
       } else {
-        console.error("Failed to create session - no ID returned:", newSession);
-        message.error("Failed to create new session - no session ID returned");
+        console.error('No session returned or invalid session:', newSession);
+        messageApi.error("Không thể tạo cuộc trò chuyện mới. Vui lòng thử lại.");
       }
     } catch (error) {
-      console.error("Error creating session:", error);
-      message.error("Failed to create new session");
+      console.error("Error creating new session:", error);
+      messageApi.error("Không thể tạo cuộc trò chuyện mới. Vui lòng thử lại.");
     } finally {
       setIsCreatingSession(false);
     }
   };  // Delete session function
   const handleDeleteSession = async (sessionId: string) => {
     if (!user) {
-      message.error("Please log in to delete a session");
+      messageApi.error("Please log in to delete a session");
       return;
     }
 
@@ -254,7 +229,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
       const success = await deletePromptSession(idToken, sessionId);
 
       if (success) {
-        message.success("Session deleted successfully");
+        messageApi.success("Session deleted successfully");
 
         // If the deleted session was selected, clear selection
         if (selectedChat === sessionId) {
@@ -267,14 +242,45 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
           await loadPromptSessions(idToken, userId);
         }
       } else {
-        message.error("Failed to delete session");
+        messageApi.error("Failed to delete session");
       }
     } catch (error) {
       console.error("Error deleting session:", error);
-      message.error("Failed to delete session");
+      messageApi.error("Failed to delete session");
     }
   };
   
+  // Delete all sessions function
+  const handleDeleteAllSessions = async () => {
+    if (!user) {
+      messageApi.error("Vui lòng đăng nhập để xóa cuộc trò chuyện");
+      return;
+    }
+
+    try {
+      const idToken = await user.getIdToken();
+      const success = await deleteAllPromptSessions(idToken);
+
+      if (success) {
+        messageApi.success("Đã xóa tất cả cuộc trò chuyện thành công");
+
+        // Clear current selection since all sessions are deleted
+        setSelectedChat(null);
+        window.history.pushState({}, '', '/c');
+
+        // Refresh chat history to show empty state
+        if (userId) {
+          await loadPromptSessions(idToken, userId);
+        }
+      } else {
+        messageApi.error("Không thể xóa cuộc trò chuyện");
+      }
+    } catch (error) {
+      console.error("Error deleting all sessions:", error);
+      messageApi.error("Không thể xóa cuộc trò chuyện");
+    }
+  };
+
   // Location permission handlers
   const handleLocationGranted = (location: LocationData, rememberChoice: boolean) => {
     setUserLocation(location);
@@ -288,7 +294,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
     
     // Always save the actual location permission
     localStorage.setItem('goodmeal_location_permission', 'granted');
-    message.success("Đã cập nhật vị trí của bạn để có gợi ý chính xác hơn!");
+    messageApi.success("Đã cập nhật vị trí của bạn để có gợi ý chính xác hơn!");
   };
 
   const handleLocationDenied = (rememberChoice: boolean) => {
@@ -297,10 +303,10 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
     if (rememberChoice) {
       locationPromptUtils.setStatus('always_denied');
       localStorage.setItem('goodmeal_location_permission', 'denied');
-      message.info("Đã lưu lựa chọn. Bạn có thể thay đổi trong cài đặt trình duyệt.");
+      messageApi.info("Đã lưu lựa chọn. Bạn có thể thay đổi trong cài đặt trình duyệt.");
     } else {
       locationPromptUtils.setStatus('once_denied');
-      message.info("Sẽ hỏi lại sau 24 giờ. Bạn có thể bật quyền truy cập vị trí bất cứ lúc nào.");
+      messageApi.info("Sẽ hỏi lại sau 24 giờ. Bạn có thể bật quyền truy cập vị trí bất cứ lúc nào.");
     }
   };
 
@@ -321,23 +327,17 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
             : session
         )
       );
+
       setChatHistory(prevHistory =>
         prevHistory.map(chat =>
-          chat.id === selectedChat
-            ? { ...chat, title }
+          chat.id === selectedChat && (chat.title === "New chat" || chat.title === "newchat")
+            ? { ...chat, title: title }
             : chat
         )
       );
     }
   };
 
-  // Use only currentSession.sessionName for the header
-  const currentSession = sessions.find(s => s.id === selectedChat);
-  const effectiveSessionName = currentSession?.sessionName;
-  
- 
-
-  // Show loading spinner while fetching data
   if (loading) {
     return (
       <ConfigProvider
@@ -345,43 +345,33 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
           algorithm: theme.darkAlgorithm,
           token: {
             colorPrimary: "#ff7a00",
+            colorBgContainer: "#1f1f23",
+            colorBgElevated: "#262629",
+            colorBorder: "#ff7a0033",
+            colorText: "#ffffff",
+            colorTextSecondary: "#b3b3b3",
           },
         }}
       >
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
             height: "100vh",
             background:
               "linear-gradient(135deg, #1a1a1d 0%, #16161a 50%, #0f0f12 100%)",
-            color: "#ffffff",
           }}
         >
-          <Spin size="large" style={{ marginBottom: "16px" }} />
-          <Typography.Text style={{ color: "#ffffff", fontSize: "16px" }}>
-            Đang tải lịch sử trò chuyện...
-          </Typography.Text>
+          <Spin size="large" />
+          <Text style={{ marginLeft: "16px", color: "#ffffff" }}>
+            Đang tải...
+          </Text>
         </div>
       </ConfigProvider>
     );
   }
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: "#ff7a00",
-          colorBgContainer: "#1f1f23",
-          colorBgElevated: "#262629",
-          colorBorder: "#ff7a0033",
-          colorText: "#ffffff",
-          colorTextSecondary: "#b3b3b3",
-        },
-      }}
-    >
       <Layout
         style={{
           height: "100vh",
@@ -400,6 +390,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
                     onCreateSession={handleCreateSession}
                     isCreatingSession={isCreatingSession}
                     onDeleteSession={handleDeleteSession}
+                    onDeleteAllSessions={handleDeleteAllSessions}
                 />
         {/* Main Content */}
         <Layout
@@ -463,6 +454,28 @@ const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
           />
         )}
       </Layout>
+  );
+};
+
+// Main component that provides App context
+const SearchPage: React.FC<SearchPageProps> = ({ initialSessionId }) => {
+  return (
+    <ConfigProvider
+      theme={{
+        algorithm: theme.darkAlgorithm,
+        token: {
+          colorPrimary: "#ff7a00",
+          colorBgContainer: "#1f1f23",
+          colorBgElevated: "#262629",
+          colorBorder: "#ff7a0033",
+          colorText: "#ffffff",
+          colorTextSecondary: "#b3b3b3",
+        },
+      }}
+    >
+      <App>
+        <SearchPageContent initialSessionId={initialSessionId} />
+      </App>
     </ConfigProvider>
   );
 };
