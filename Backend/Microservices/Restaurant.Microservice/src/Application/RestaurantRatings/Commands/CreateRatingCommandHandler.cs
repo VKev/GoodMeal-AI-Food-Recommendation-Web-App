@@ -10,9 +10,10 @@ using SharedLibrary.Contracts.RatingPrompt;
 namespace Application.RestaurantRatings.Commands;
 
 public sealed record CreateRatingCommand(
-    Guid RestaurantId,
-    Guid UserId,
+    Guid? RestaurantId,
+    Guid? UserId,
     string Comment,
+    float? Rating,
     string? ImageUrl
 ) : ICommand;
 
@@ -34,17 +35,25 @@ internal sealed class CreateFoodCommandHandler : ICommandHandler<CreateRatingCom
     {
         var restaurantRating = _mapper.Map<RestaurantRating>(command);
         restaurantRating.CreatedAt = DateTime.UtcNow;
-        await _restaurantRatingRepository.AddAsync(restaurantRating, cancellationToken);
-        var correlationId = Guid.NewGuid();
-        await _publishEndpoint.Publish(new RatingCreatedSagaStart
+        restaurantRating.IsDisable = false;
+        if (restaurantRating.Rating != null)
         {
-            CorrelationId = correlationId,
-            RatingId = restaurantRating.Id,
-            UserId = restaurantRating.UserId,
-            RestaurantId = restaurantRating.RestaurantId,
-            Comment = restaurantRating.Comment,
-            CreatedAt = restaurantRating.CreatedAt
-        }, cancellationToken);
+            await _restaurantRatingRepository.AddAsync(restaurantRating, cancellationToken);
+        }
+        else
+        {
+
+            var correlationId = Guid.NewGuid();
+            await _publishEndpoint.Publish(new RatingCreatedSagaStart
+            {
+                CorrelationId = correlationId,
+                UserId = restaurantRating.UserId,
+                RestaurantId = restaurantRating.RestaurantId,
+                Comment = restaurantRating.Comment,
+                ImageUrl = restaurantRating.ImageUrl
+            }, cancellationToken);
+        }
+
         // await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

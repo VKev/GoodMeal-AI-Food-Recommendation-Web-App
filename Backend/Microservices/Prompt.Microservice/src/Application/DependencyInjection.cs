@@ -1,10 +1,13 @@
 using Application.Behaviors;
 using Application.Common.GeminiApi;
+using Application.Consumers;
 using FluentValidation;
+using Infrastructure.Configs;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using SharedLibrary.Common;
 using Infrastructure.Repositories;
+using MassTransit;
 using SharedLibrary.Common.Messaging.Commands;
 
 namespace Application
@@ -42,7 +45,22 @@ namespace Application
                 options.Configuration = config;
                 options.InstanceName = "FoodApp:";
             });
-
+            using var serviceProvider = services.BuildServiceProvider();
+            var config = serviceProvider.GetRequiredService<EnvironmentConfig>();
+            services.AddMassTransit(busConfigurator =>
+            {
+                busConfigurator.AddConsumer<ProcessRatingConsumer>();
+                busConfigurator.SetKebabCaseEndpointNameFormatter();
+                busConfigurator.UsingRabbitMq((context, configurator) =>
+                {
+                    configurator.Host(new Uri($"rabbitmq://{config.RabbitMqHost}:{config.RabbitMqPort}/"), h =>
+                    {
+                        h.Username(config.RabbitMqUser);
+                        h.Password(config.RabbitMqPassword);
+                    });
+                    configurator.ConfigureEndpoints(context);
+                });
+            });
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<GoogleSearchBuilder>();

@@ -1,165 +1,232 @@
 using Domain.Repositories;
-using VNPAY.NET;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Http;
-using VNPAY.NET.Enums;
-using VNPAY.NET.Models;
 using System.Text;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Net;
+using System.Globalization;
+using Infrastructure.Configs;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using VNPAY.NET;
+using VNPAY.NET.Models;
 
 namespace Infrastructure.Services;
 
 public class VnpayRepository : IVnpayRepository
 {
+    private readonly HttpClient _httpClient;
+    private readonly SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
+    private readonly ILogger<VnpayRepository> _logger;
+    private readonly IOptions<AppConfig> _appConfig;
     private readonly IVnpay _vnpay;
-    private readonly IConfiguration _configuration;
 
-    public VnpayRepository(IVnpay vnpay, IConfiguration configuration)
+    public VnpayRepository(HttpClient httpClient, ILogger<VnpayRepository> logger, IOptions<AppConfig> appConfig,
+        IVnpay vnpay)
     {
+        _httpClient = httpClient;
+        _logger = logger;
+        _appConfig = appConfig;
+
         _vnpay = vnpay;
-        _configuration = configuration;
-
-        var tmnCode = Environment.GetEnvironmentVariable("VNPAYTMNCODE");
-        var hashSecret = Environment.GetEnvironmentVariable("VNPAYHASHSECRET");
-        var baseUrl = Environment.GetEnvironmentVariable("VNPAYBASEURL");
-        var returnUrl = Environment.GetEnvironmentVariable("VNPAYRETURNURL");
-
-        _vnpay.Initialize(tmnCode!, hashSecret!, baseUrl!, returnUrl!);
+        _vnpay.Initialize(_appConfig.Value.TmnCode, _appConfig.Value.HashSecret, _appConfig.Value.VnpayApiUrl,
+            _appConfig.Value.VnpayCallBackUrl);
     }
 
-    public string CreatePaymentUrl(decimal amount, string orderDescription, string orderId, string ipAddress)
+
+    public (string, string) CreatePaymentUrl(decimal amount, string orderDescription, string orderId, string ipAddress)
     {
-        var request = new PaymentRequest
+        string date = DateTime.Now.ToString("yyyyMMddHHmmss");
+        AddRequestData("vnp_Version", "2.1.0");
+        AddRequestData("vnp_Command", "pay");
+        AddRequestData("vnp_TmnCode", _appConfig.Value.TmnCode);
+        AddRequestData("vnp_Amount", MumberToString(amount));
+        AddRequestData("vnp_BankCode", "");
+        AddRequestData("vnp_CreateDate", date);
+        AddRequestData("vnp_CurrCode", "VND");
+        AddRequestData("vnp_IpAddr", ipAddress);
+        AddRequestData("vnp_Locale", "vn");
+        AddRequestData("vnp_OrderInfo", "Payment for " + orderId);
+        AddRequestData("vnp_OrderType", "other");
+        AddRequestData("vnp_ReturnUrl", $"{_appConfig.Value.VnpayCallBackUrl}&orderId={orderId}");
+        AddRequestData("vnp_TxnRef", orderId);
+
+        string paymentUrl = CreateRequestUrl(_appConfig.Value.VnpayApiUrl, _appConfig.Value.HashSecret);
+        return (paymentUrl, date);
+    }
+
+    public async Task<PaymentResult> GetPaymentResult(string orderId, string transactionDate)
+    {
+        _requestData.Clear();
+        string requestId = DateTime.Now.Ticks.ToString();
+        string createDate = DateTime.Now.ToString("yyyyMMddHHmmss");
+        string clientIp = GetClientIPAddress();
+
+        AddRequestData("vnp_RequestId", requestId);
+        AddRequestData("vnp_Version", "2.1.0");
+        AddRequestData("vnp_Command", "querydr");
+        AddRequestData("vnp_TmnCode", _appConfig.Value.TmnCode);
+        AddRequestData("vnp_TxnRef", orderId);
+        AddRequestData("vnp_OrderInfo", $"Query transaction {orderId}");
+        AddRequestData("vnp_TransactionDate", transactionDate);
+        AddRequestData("vnp_CreateDate", createDate);
+        AddRequestData("vnp_IpAddr", clientIp);
+
+        // Create hash according to VNPAY documentation
+        string data =
+            $"{requestId}|2.1.0|querydr|{_appConfig.Value.TmnCode}|{orderId}|{transactionDate}|{createDate}|{clientIp}|Query transaction {orderId}";
+        string secureHash = HmacSHA512(_appConfig.Value.HashSecret, data);
+
+        // Create the request body as a dictionary
+        var requestBody = new Dictionary<string, string>
         {
-            PaymentId = DateTime.UtcNow.Ticks,
-            Money = (double)amount,
-            Description = orderDescription,
-            IpAddress = ipAddress,
-            BankCode = BankCode.ANY,
-            CreatedDate = DateTime.UtcNow,
-            Currency = Currency.VND,
-            Language = DisplayLanguage.Vietnamese
+            { "vnp_RequestId", requestId },
+            { "vnp_Version", "2.1.0" },
+            { "vnp_Command", "querydr" },
+            { "vnp_TmnCode", _appConfig.Value.TmnCode },
+            { "vnp_TxnRef", orderId },
+            { "vnp_OrderInfo", $"Query transaction {orderId}" },
+            { "vnp_TransactionDate", transactionDate },
+            { "vnp_CreateDate", createDate },
+            { "vnp_IpAddr", clientIp },
+            { "vnp_SecureHash", secureHash }
         };
 
-        return _vnpay.GetPaymentUrl(request);
-    }
+        var content = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json"
+        );
 
-    public PaymentResult GetPaymentResult(IQueryCollection queryCollection)
-    {
-        return _vnpay.GetPaymentResult(queryCollection);
-    }
+        _logger.LogInformation("Sending VNPAY QueryDr request for order {OrderId}: {Request}", orderId,
+            JsonSerializer.Serialize(requestBody));
 
-    public async Task<PaymentStatusResult> QueryPaymentStatusAsync(string orderId, string transactionDate)
-    {
+        var response =
+            await _httpClient.PostAsync("https://sandbox.vnpayment.vn/merchant_webapi/api/transaction", content);
+        var result = await response.Content.ReadAsStringAsync();
+
         try
         {
-            var tmnCode = Environment.GetEnvironmentVariable("VNPAYTMNCODE");
-            var hashSecret = Environment.GetEnvironmentVariable("VNPAYHASHSECRET");
-            var queryUrl = Environment.GetEnvironmentVariable("VNPAYQUERYURL") ?? "https://sandbox.vnpayment.vn/querydr/PaymentVerify.aspx";
+            var jsonDoc = JsonDocument.Parse(result);
+            var root = jsonDoc.RootElement;
 
-            if (string.IsNullOrEmpty(tmnCode) || string.IsNullOrEmpty(hashSecret))
+            string resultCode = "99"; // Default error code
+            string message = "Unknown response";
+            long vnpayTransactionId = 0;
+
+            if (root.TryGetProperty("vnp_ResponseCode", out var responseCodeElement))
             {
-                return new PaymentStatusResult(
-                    IsSuccess: false,
-                    Status: "CONFIG_ERROR",
-                    Message: "VnPay configuration is missing",
-                    Amount: null,
-                    TransactionId: null,
-                    TransactionDate: null
-                );
+                resultCode = responseCodeElement.GetString() ?? "99";
             }
 
-            var requestData = new Dictionary<string, string>
+            if (root.TryGetProperty("vnp_Message", out var messageElement))
             {
-                ["vnp_RequestId"] = Guid.NewGuid().ToString(),
-                ["vnp_Version"] = "2.1.0",
-                ["vnp_Command"] = "querydr",
-                ["vnp_TmnCode"] = tmnCode,
-                ["vnp_TxnRef"] = orderId,
-                ["vnp_OrderInfo"] = $"Query payment status for order {orderId}",
-                ["vnp_TransactionNo"] = "",
-                ["vnp_TransactionDate"] = transactionDate,
-                ["vnp_CreateDate"] = DateTime.UtcNow.ToString("yyyyMMddHHmmss"),
-                ["vnp_IpAddr"] = "127.0.0.1"
+                message = messageElement.GetString() ?? "Unknown response";
+            }
+
+            if (root.TryGetProperty("vnp_TransactionNo", out var transactionElement))
+            {
+                long.TryParse(transactionElement.GetString(), out vnpayTransactionId);
+            }
+
+            _logger.LogInformation("VNPAY API response for order {OrderId}: {Response}", orderId, result);
+
+            return new PaymentResult
+            {
+                PaymentId = 0,
+                IsSuccess = resultCode == "00",
+                Description = message,
+                Timestamp = DateTime.UtcNow,
+                VnpayTransactionId = vnpayTransactionId,
+                PaymentMethod = "VNPAY"
             };
-
-            // Create signature
-            var sortedParams = requestData.OrderBy(x => x.Key).ToList();
-            var queryString = string.Join("&", sortedParams.Select(x => $"{x.Key}={x.Value}"));
-            var signature = CreateSignature(queryString, hashSecret);
-            requestData["vnp_SecureHash"] = signature;
-
-            // Make HTTP request to VnPay
-            using var httpClient = new HttpClient();
-            var formData = new FormUrlEncodedContent(requestData);
-            
-            var response = await httpClient.PostAsync(queryUrl, formData);
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            // Parse response (VnPay returns form-encoded response)
-            var responseData = ParseVnPayResponse(responseContent);
-
-            if (responseData.ContainsKey("vnp_ResponseCode") && responseData["vnp_ResponseCode"] == "00")
-            {
-                var isSuccess = responseData.ContainsKey("vnp_TransactionStatus") && responseData["vnp_TransactionStatus"] == "00";
-                decimal? amount = null;
-                if (responseData.ContainsKey("vnp_Amount") && decimal.TryParse(responseData["vnp_Amount"], out var amountValue))
-                {
-                    amount = amountValue / 100; // VnPay returns amount in smallest unit
-                }
-
-                DateTime? transactionDateTime = null;
-                if (responseData.ContainsKey("vnp_PayDate") && DateTime.TryParseExact(responseData["vnp_PayDate"], "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None, out var payDate))
-                {
-                    transactionDateTime = payDate;
-                }
-
-                return new PaymentStatusResult(
-                    IsSuccess: isSuccess,
-                    Status: isSuccess ? "SUCCESS" : "FAILED",
-                    Message: responseData.GetValueOrDefault("vnp_Message", "Payment status queried successfully"),
-                    Amount: amount,
-                    TransactionId: responseData.GetValueOrDefault("vnp_TransactionNo"),
-                    TransactionDate: transactionDateTime
-                );
-            }
-            else
-            {
-                return new PaymentStatusResult(
-                    IsSuccess: false,
-                    Status: "QUERY_FAILED",
-                    Message: responseData.GetValueOrDefault("vnp_Message", "Failed to query payment status"),
-                    Amount: null,
-                    TransactionId: null,
-                    TransactionDate: null
-                );
-            }
         }
         catch (Exception ex)
         {
-            return new PaymentStatusResult(
-                IsSuccess: false,
-                Status: "ERROR",
-                Message: $"Error querying payment status: {ex.Message}",
-                Amount: null,
-                TransactionId: null,
-                TransactionDate: null
-            );
+            _logger.LogError(ex, "Error parsing VNPAY API response: {Response}", result);
+            return new PaymentResult
+            {
+                PaymentId = 0,
+                IsSuccess = false,
+                Description = $"Error parsing response: {ex.Message}",
+                Timestamp = DateTime.UtcNow,
+                VnpayTransactionId = 0,
+                PaymentMethod = "VNPAY"
+            };
         }
     }
 
-    private string CreateSignature(string data, string secretKey)
+    private void AddRequestData(string key, string value)
     {
-        using var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(secretKey));
-        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
-        return Convert.ToHexString(hash).ToLower();
+        if (!String.IsNullOrEmpty(value))
+        {
+            _requestData[key] = value;
+        }
+    }
+
+    private string CreateRequestUrl(string baseUrl, string vnp_HashSecret)
+    {
+        StringBuilder data = new StringBuilder();
+        foreach (KeyValuePair<string, string> kv in _requestData)
+        {
+            if (!String.IsNullOrEmpty(kv.Value))
+            {
+                data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
+            }
+        }
+
+        string queryString = data.ToString();
+
+        baseUrl += "?" + queryString;
+        String signData = queryString;
+        if (signData.Length > 0)
+        {
+            signData = signData.Remove(data.Length - 1, 1);
+        }
+
+        string vnp_SecureHash = HmacSHA512(vnp_HashSecret, signData);
+        baseUrl += "vnp_SecureHash=" + vnp_SecureHash;
+
+        return baseUrl;
+    }
+
+    private string GetClientIPAddress()
+    {
+        try
+        {
+            string hostName = Dns.GetHostName();
+            IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+            IPAddress? ipv4Address =
+                addresses.FirstOrDefault(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+            return ipv4Address?.ToString() ?? "127.0.0.1";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting client IP address");
+            return "127.0.0.1";
+        }
+    }
+
+    private static string HmacSHA512(string key, string inputData)
+    {
+        var hash = new StringBuilder();
+        byte[] keyBytes = Encoding.UTF8.GetBytes(key);
+        byte[] inputBytes = Encoding.UTF8.GetBytes(inputData);
+        using (var hmac = new HMACSHA512(keyBytes))
+        {
+            byte[] hashValue = hmac.ComputeHash(inputBytes);
+            foreach (var theByte in hashValue)
+            {
+                hash.Append(theByte.ToString("x2"));
+            }
+        }
+
+        return hash.ToString();
     }
 
     private Dictionary<string, string> ParseVnPayResponse(string response)
     {
         var result = new Dictionary<string, string>();
-        
+
         try
         {
             var jsonDoc = JsonDocument.Parse(response);
@@ -170,6 +237,7 @@ public class VnpayRepository : IVnpayRepository
         }
         catch
         {
+            // If it's not valid JSON, try parsing as form-encoded
             var pairs = response.Split('&');
             foreach (var pair in pairs)
             {
@@ -182,5 +250,23 @@ public class VnpayRepository : IVnpayRepository
         }
 
         return result;
+    }
+
+    static string MumberToString(decimal value)
+    {
+        int roundedValue = (int)Math.Round(value) * 100;
+        return roundedValue.ToString();
+    }
+}
+
+public class VnPayCompare : IComparer<string>
+{
+    public int Compare(string x, string y)
+    {
+        if (x == y) return 0;
+        if (x == null) return -1;
+        if (y == null) return 1;
+        var vnpCompare = CompareInfo.GetCompareInfo("en-US");
+        return vnpCompare.Compare(x, y, CompareOptions.Ordinal);
     }
 }

@@ -31,8 +31,4 @@
         </AssemblyAttribute>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Consumers\" />
-    </ItemGroup>
-
 </Project>

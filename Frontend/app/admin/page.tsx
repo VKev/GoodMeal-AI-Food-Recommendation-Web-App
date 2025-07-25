@@ -9,7 +9,6 @@ import {
     Layout, 
     Menu, 
     Button, 
-    Typography, 
     Space, 
     Spin
 } from 'antd';
@@ -23,7 +22,6 @@ import {
 } from '@ant-design/icons';
 
 const { Content, Sider } = Layout;
-const { Title, Text } = Typography;
 
 export default function AdminPage() {
     const { isAdmin, loading, authenticated, logout } = useAuth();

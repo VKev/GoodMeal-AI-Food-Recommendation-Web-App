@@ -1,66 +1,67 @@
-const RESTAURANT_API_BASE = 'http://localhost:2406/api/restaurant';
+const RESTAURANT_API_BASE = "http://localhost:2406/api/restaurant";
+import { FirebaseAuth } from "@/firebase/firebase";
 
 export interface RestaurantPlace {
-    business_id: string;
-    name: string;
-    full_address: string;
-    phone_number: string | null;
-    latitude: number;
-    longitude: number;
-    rating: number;
-    review_count: number;
-    place_link: string;
-    place_id: string;
-    website: string | null;
-    timezone: string;
-    city: string;
-    state: string | null;
-    price_level: string | null;
-    types: string[];
-    description: string[];
-    photos: Array<{
-        src: string;
-        max_width: number;
-        max_height: number;
-        min_width: number;
-        min_height: number;
-    }>;
-    working_hours: Record<string, string[]>;
+  business_id: string;
+  name: string;
+  full_address: string;
+  phone_number: string | null;
+  latitude: number;
+  longitude: number;
+  rating: number;
+  review_count: number;
+  place_link: string;
+  place_id: string;
+  website: string | null;
+  timezone: string;
+  city: string;
+  state: string | null;
+  price_level: string | null;
+  types: string[];
+  description: string[];
+  photos: Array<{
+    src: string;
+    max_width: number;
+    max_height: number;
+    min_width: number;
+    min_height: number;
+  }>;
+  working_hours: Record<string, string[]>;
 }
 
 export interface NearbyRestaurantsRequest {
-    query: string;
-    Lat: number;
-    Lng: number;
+  query: string;
+  Lat: number;
+  Lng: number;
 }
 
 export interface NearbyRestaurantsResponse {
-    value: RestaurantPlace[];
-    isSuccess: boolean;
-    isFailure: boolean;
-    error: {
-        code: string;
-        description: string;
-    };
+  value: RestaurantPlace[];
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    description: string;
+  };
 }
 
 export interface GeocodingRequest {
-    query: string;
+  query: string;
 }
 
 export interface GeocodingResponse {
-    value: {
-        address: string;
-        latitude: number;
-        longitude: number;
-        timezone: string;
-    };
-    isSuccess: boolean;
-    isFailure: boolean;
-    error: {
-        code: string;
-        description: string;
-    };
+  value: {
+    address: string;
+    latitude: number;
+    longitude: number;
+    timezone: string;
+  };
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    description: string;
+  };
 }
 
 // Restaurant Detail API interfaces and functions
@@ -170,137 +171,125 @@ export interface RestaurantPhotoResponse {
   };
 }
 
+// ================= FOOD CRUD APIs =================
+
+export interface Food {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  isAvailable: boolean;
+  restaurantId: string;
+  imageUrl?: string;
+  isDisable?: boolean;
+  disableAt?: string;
+}
+
+// Lấy danh sách món ăn
+export const getFoods = async (idToken?: string): Promise<Food[]> => {
+  console.log('getFoods idToken:', idToken); // Log idToken để debug
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'GET',
+    headers
+  });
+  if (!response.ok) throw new Error('Không thể lấy danh sách món ăn');
+  const data = await response.json();
+  // Nếu API trả về { value: [...] } thì lấy .value, nếu trả về mảng thì trả luôn
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.value)) return data.value;
+  return [];
+};
+
+// Lấy danh sách món ăn theo nhà hàng
+export const getFoodsByRestaurantId = async (restaurantId: string, idToken?: string): Promise<Food[]> => {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food/restaurant/${restaurantId}`, {
+    method: 'GET',
+    headers
+  });
+  if (!response.ok) throw new Error('Không thể lấy danh sách món ăn theo nhà hàng');
+  const data = await response.json();
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.value)) return data.value;
+  return [];
+};
+
+// Lấy chi tiết món ăn
+export const getFoodById = async (id: string, idToken?: string): Promise<Food> => {
+  console.log('getFoodById idToken:', idToken);
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food/${id}`, {
+    method: 'GET',
+    headers
+  });
+  if (!response.ok) throw new Error('Không thể lấy chi tiết món ăn');
+  return await response.json();
+};
+
+// Tạo món ăn mới
+export const createFood = async (food: Omit<Food, 'id'>, idToken?: string): Promise<Food> => {
+  console.log('createFood idToken:', idToken);
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(food)
+  });
+  if (!response.ok) throw new Error('Không thể tạo món ăn');
+  return await response.json();
+};
+
+// Cập nhật món ăn
+export const updateFood = async (food: Food, idToken?: string): Promise<Food> => {
+  console.log('updateFood idToken:', idToken);
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(food)
+  });
+  if (!response.ok) throw new Error('Không thể cập nhật món ăn');
+  return await response.json();
+};
+
+// Xóa món ăn
+export const deleteFood = async (id: string, idToken?: string): Promise<void> => {
+  console.log('deleteFood idToken:', idToken);
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+  const response = await fetch(`${RESTAURANT_API_BASE}/Food`, {
+    method: 'DELETE',
+    headers,
+    body: JSON.stringify({ id })
+  });
+  if (!response.ok) throw new Error('Không thể xóa món ăn');
+};
+
 // Get nearby restaurants using coordinates
 export const getNearbyRestaurants = async (
-    query: string,
-    lat: number,
-    lng: number
+  idToken: string,
+  query: string,
+  lat: number,
+  lng: number
 ): Promise<NearbyRestaurantsResponse> => {
-    try {
-        const response = await fetch(`${RESTAURANT_API_BASE}/place/nearby`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query,
-                Lat: lat,
-                Lng: lng
-            } as NearbyRestaurantsRequest)
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching nearby restaurants:', error);
-        throw error;
-    }
-};
-
-// Get coordinates from location name/query
-export const getLocationCoordinates = async (
-    query: string
-): Promise<GeocodingResponse> => {
-    try {
-        const response = await fetch(`${RESTAURANT_API_BASE}/place/geocoding`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query
-            } as GeocodingRequest)
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching location coordinates:', error);
-        throw error;
-    }
-};
-
-// Main function to find restaurants - handles both cases
-export const findRestaurantsForFood = async (
-    foodName: string,
-    userLocation?: { latitude: number; longitude: number } | null,
-    specificLocation?: string
-): Promise<NearbyRestaurantsResponse> => {
-    try {
-        let coordinates: { lat: number; lng: number };
-
-        if (specificLocation && specificLocation !== 'null' && specificLocation.trim()) {
-            // Case 1: User specified a location (e.g., "phở ở Hà Nội")
-            console.log('Using specific location:', specificLocation);
-            const geoResponse = await getLocationCoordinates(specificLocation);
-            
-            if (!geoResponse.isSuccess || !geoResponse.value) {
-                throw new Error('Failed to get coordinates for specified location');
-            }
-            
-            coordinates = {
-                lat: geoResponse.value.latitude,
-                lng: geoResponse.value.longitude
-            };
-        } else if (userLocation) {
-            // Case 2: Use user's current location
-            console.log('Using user location:', userLocation);
-            coordinates = {
-                lat: userLocation.latitude,
-                lng: userLocation.longitude
-            };
-        } else {
-            // Case 3: Default to Vietnam (fallback)
-            console.log('Using default location (Vietnam)');
-            const geoResponse = await getLocationCoordinates('Vietnam');
-            
-            if (!geoResponse.isSuccess || !geoResponse.value) {
-                // Fallback coordinates for Vietnam (Ho Chi Minh City)
-                coordinates = {
-                    lat: 10.8231,
-                    lng: 106.6297
-                };
-            } else {
-                coordinates = {
-                    lat: geoResponse.value.latitude,
-                    lng: geoResponse.value.longitude
-                };
-            }
-        }
-
-        // Now get nearby restaurants using the coordinates
-        console.log('Searching restaurants with coordinates:', coordinates);
-        return await getNearbyRestaurants(foodName, coordinates.lat, coordinates.lng);
-
-    } catch (error) {
-        console.error('Error in findRestaurantsForFood:', error);
-        throw error;
-    }
-};
-
-// Get restaurant detail
-export const getRestaurantDetail = async (
-  businessId: string,
-  placeId: string
-): Promise<RestaurantDetailResponse> => {
   try {
-    const response = await fetch(`${RESTAURANT_API_BASE}/place/detail`, {
-      method: 'POST',
+    const response = await fetch(`${RESTAURANT_API_BASE}/place/nearby`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
-        Business_id: businessId,
-        Place_id: placeId
-      } as RestaurantDetailRequest)
+        query,
+        Lat: lat,
+        Lng: lng,
+      } as NearbyRestaurantsRequest),
     });
 
     if (!response.ok) {
@@ -310,21 +299,158 @@ export const getRestaurantDetail = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching restaurant detail:', error);
+    console.error("Error fetching nearby restaurants:", error);
+    throw error;
+  }
+};
+
+// Get coordinates from location name/query
+export const getLocationCoordinates = async (
+  idToken: string,
+  query: string
+): Promise<GeocodingResponse> => {
+  try {
+    if (!idToken) throw new Error("No idToken provided");
+    const response = await fetch(`${RESTAURANT_API_BASE}/place/geocoding`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching location coordinates:", error);
+    throw error;
+  }
+};
+
+// Main function to find restaurants - handles both cases
+export const findRestaurantsForFood = async (
+  foodName: string,
+  userLocation?: { latitude: number; longitude: number } | null,
+  specificLocation?: string
+): Promise<NearbyRestaurantsResponse> => {
+  try {
+    let coordinates: { lat: number; lng: number };
+    // Lấy idToken một lần ở đầu hàm
+    const user = FirebaseAuth.currentUser;
+    const idToken = user ? await user.getIdToken() : "";
+
+    // console.log("findRestaurantsForFood - user:", user);
+    // console.log("findRestaurantsForFood - idToken:", idToken);
+
+    if (
+      specificLocation &&
+      specificLocation !== "null" &&
+      specificLocation.trim()
+    ) {
+      // Case 1: User specified a location (e.g., "phở ở Hà Nội")
+      // console.log('Using specific location:', specificLocation);
+      // console.log('token:', idToken);
+
+      const geoResponse = await getLocationCoordinates(
+        idToken,
+        specificLocation
+      );
+
+      if (!geoResponse.isSuccess || !geoResponse.value) {
+        throw new Error("Failed to get coordinates for specified location");
+      }
+
+      coordinates = {
+        lat: geoResponse.value.latitude,
+        lng: geoResponse.value.longitude,
+      };
+    } else if (userLocation) {
+      // Case 2: Use user's current location
+      coordinates = {
+        lat: userLocation.latitude,
+        lng: userLocation.longitude,
+      };
+    } else {
+      // Case 3: Default to Vietnam (fallback)
+      console.log("Using default location (Vietnam)");
+      const geoResponse = await getLocationCoordinates(idToken, "Vietnam");
+
+      if (!geoResponse.isSuccess || !geoResponse.value) {
+        // Fallback coordinates for Vietnam (Ho Chi Minh City)
+        coordinates = {
+          lat: 10.8231,
+          lng: 106.6297,
+        };
+      } else {
+        coordinates = {
+          lat: geoResponse.value.latitude,
+          lng: geoResponse.value.longitude,
+        };
+      }
+    }
+
+    // Now get nearby restaurants using the coordinates
+    return await getNearbyRestaurants(
+      idToken,
+      foodName,
+      coordinates.lat,
+      coordinates.lng
+    );
+  } catch (error) {
+    console.error("Error in findRestaurantsForFood:", error);
+    throw error;
+  }
+};
+
+// Get restaurant detail
+export const getRestaurantDetail = async (
+  idToken: string,
+  businessId: string,
+  placeId: string
+): Promise<RestaurantDetailResponse> => {
+  try {
+    if (!idToken) throw new Error("No idToken provided");
+    const response = await fetch(`${RESTAURANT_API_BASE}/place/detail`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({
+        Business_id: businessId,
+        Place_id: placeId,
+      } as RestaurantDetailRequest),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching restaurant detail:", error);
     throw error;
   }
 };
 
 // Get restaurant reviews
 export const getRestaurantReviews = async (
+  idToken: string,
   businessId: string,
   placeId: string,
   cursor?: string
 ): Promise<RestaurantReviewResponse> => {
   try {
+    if (!idToken) throw new Error("No idToken provided");
     const requestBody: RestaurantReviewRequest = {
       Business_id: businessId,
-      Place_id: placeId
+      Place_id: placeId,
     };
 
     if (cursor) {
@@ -332,11 +458,12 @@ export const getRestaurantReviews = async (
     }
 
     const response = await fetch(`${RESTAURANT_API_BASE}/place/review`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -346,26 +473,29 @@ export const getRestaurantReviews = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching restaurant reviews:', error);
+    console.error("Error fetching restaurant reviews:", error);
     throw error;
   }
 };
 
 // Get restaurant photos
 export const getRestaurantPhotos = async (
+  idToken: string,
   businessId: string,
   placeId: string
 ): Promise<RestaurantPhotoResponse> => {
   try {
+    if (!idToken) throw new Error("No idToken provided");
     const response = await fetch(`${RESTAURANT_API_BASE}/place/photo`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         Business_id: businessId,
-        Place_id: placeId
-      } as RestaurantPhotoRequest)
+        Place_id: placeId,
+      } as RestaurantPhotoRequest),
     });
 
     if (!response.ok) {
@@ -375,7 +505,7 @@ export const getRestaurantPhotos = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching restaurant photos:', error);
+    console.error("Error fetching restaurant photos:", error);
     throw error;
   }
 };
