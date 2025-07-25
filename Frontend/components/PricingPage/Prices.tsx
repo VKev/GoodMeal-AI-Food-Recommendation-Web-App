@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
 import {
   Row,
   Col,
@@ -36,8 +38,7 @@ const Prices: React.FC = () => {
   const [processingSubscription, setProcessingSubscription] =
     useState<boolean>(false);
   const [correlationId, setCorrelationId] = useState<string | null>(null);
-  const [paymentUrlPollingInterval, setPaymentUrlPollingInterval] =
-    useState<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [paymentModalVisible, setPaymentModalVisible] =
     useState<boolean>(false);
@@ -84,21 +85,24 @@ const Prices: React.FC = () => {
   // Clean up intervals when component unmounts
   useEffect(() => {
     return () => {
-      if (paymentUrlPollingInterval) {
-        clearInterval(paymentUrlPollingInterval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [paymentUrlPollingInterval]);
+  }, []);
 
   // Set up polling when correlationId changes
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    
     console.log("correlationId effect triggered:", correlationId);
 
     // Clear any existing interval first
-    if (paymentUrlPollingInterval) {
+    if (intervalRef.current) {
       console.log("Clearing existing interval");
-      clearInterval(paymentUrlPollingInterval);
-      setPaymentUrlPollingInterval(null);
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
 
     // Only set up polling if we have a correlationId
@@ -128,14 +132,14 @@ const Prices: React.FC = () => {
               setPaymentUrl(paymentUrlData.paymentUrl);
 
               // Clear polling interval once URL is received
-              if (paymentUrlPollingInterval) {
+              if (intervalRef.current) {
                 console.log("Clearing polling interval");
-                clearInterval(paymentUrlPollingInterval);
-                setPaymentUrlPollingInterval(null);
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
               }
 
               // Open payment URL in a new tab
-              if (!paymentWindowOpened) {
+              if (!paymentWindowOpened && typeof window !== "undefined") {
                 console.log("Opening payment URL in new tab");
                 window.open(paymentUrlData.paymentUrl, "_blank");
                 setPaymentWindowOpened(true);
@@ -156,9 +160,9 @@ const Prices: React.FC = () => {
       const interval = setInterval(() => {
         console.log("Polling interval triggered");
         pollPaymentUrlWithIDs();
-      }, 1000);
+      }, 2000);
 
-      setPaymentUrlPollingInterval(interval);
+      intervalRef.current = interval;
 
       return () => {
         console.log("Cleaning up polling interval");
@@ -168,12 +172,13 @@ const Prices: React.FC = () => {
   }, [
     correlationId,
     currentUser,
-    paymentUrlPollingInterval,
     paymentWindowOpened,
-  ]); // Include all dependencies
+  ]);
 
   // Poll for payment URL
   const pollPaymentUrl = async () => {
+    if (typeof window === "undefined") return;
+    
     console.log("Polling for payment URL...", { correlationId });
     if (!currentUser || !correlationId) {
       console.warn("Missing currentUser or correlationId for polling");
@@ -197,14 +202,14 @@ const Prices: React.FC = () => {
           setPaymentUrl(paymentUrlData.paymentUrl);
 
           // Clear polling interval once URL is received
-          if (paymentUrlPollingInterval) {
+          if (intervalRef.current) {
             console.log("Clearing polling interval");
-            clearInterval(paymentUrlPollingInterval);
-            setPaymentUrlPollingInterval(null);
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
           }
 
           // Open payment URL in a new tab
-          if (!paymentWindowOpened) {
+          if (!paymentWindowOpened && typeof window !== "undefined") {
             console.log("Opening payment URL in new tab");
             window.open(paymentUrlData.paymentUrl, "_blank");
             setPaymentWindowOpened(true);
@@ -436,7 +441,7 @@ const Prices: React.FC = () => {
                 <Button
                   type="link"
                   onClick={() => {
-                    if (paymentUrl) {
+                    if (paymentUrl && typeof window !== "undefined") {
                       window.open(paymentUrl, "_blank");
                       setPaymentWindowOpened(true);
                     }
