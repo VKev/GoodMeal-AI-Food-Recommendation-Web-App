@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter();    const extractTokenData = async (user: User): Promise<TokenData | null> => {
         try {
             const idToken = await user.getIdToken();
-            // console.log(idToken);
+            console.log(idToken);
 
             // Call the check-authorization API with timeout
             let rolesFromBackend: string[] = [];
@@ -117,7 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 exp: typeof claims.exp === 'number' ? claims.exp : undefined,
             };
 
-            console.log('Token data extracted:', tokenData);
             return tokenData;
         } catch (error) {
             console.error('Error extracting token data:', error);
@@ -216,7 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             if (shouldRedirect) {
                 // Add a small delay to ensure all state is updated
-                setTimeout(() => {
+                setTimeout(() => {  
                     navigateByRole();
                 }, 100);
             }

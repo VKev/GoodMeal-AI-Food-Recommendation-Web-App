@@ -25,18 +25,27 @@ public class GoogleSearchBuilder
     /// <returns>URL query chuẩn hóa</returns>
     public string BuildSearchUrl(string query)
     {
-        var enhancedQuery = $"{query} Vietnamese traditional dish food  authentic photo";
 
-        return $"{BaseUrl}?" +
-               $"q={Uri.EscapeDataString(enhancedQuery)}" +
+        const string BlockedSites =
+            "-site:instagram.com -site:www.instagram.com " +
+            "-site:tiktok.com -site:www.tiktok.com " +
+            "-site:facebook.com -site:m.facebook.com -site:www.facebook.com " +
+            "-site:pinterest.com -site:www.pinterest.com " +
+            "-site:twitter.com -site:x.com";
+
+
+        var enhancedQuery = $"{query} Vietnamese traditional dish food authentic photo {BlockedSites}";
+
+        return $"{BaseUrl}?q={Uri.EscapeDataString(enhancedQuery)}" +
                $"&searchType=image" +
-               $"&imgType=photo" +
+               $"&imgType=photo" +        // Ảnh chụp (loại bỏ clipart, tranh vẽ)
                $"&safe=active" +
                $"&imgSize=large" +
                $"&num=1" +
                $"&key={_apiKey}" +
                $"&cx={_cx}";
     }
+
 
     /// <summary>
     /// </summary>
