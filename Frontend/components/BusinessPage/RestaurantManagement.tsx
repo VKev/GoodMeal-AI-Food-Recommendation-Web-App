@@ -38,6 +38,8 @@ import {
     Restaurant, 
     CreateRestaurantRequest 
 } from '@/services/BusinessService';
+import { getFoods } from '@/services/RestaurantService';
+import { useRouter } from 'next/navigation';
 
 const { Title, Text } = Typography;
 
@@ -54,9 +56,12 @@ export function RestaurantManagement({ business }: RestaurantManagementProps) {
     const [submitting, setSubmitting] = useState(false);
     const [form] = Form.useForm();
     const [api, contextHolder] = notification.useNotification();
+    const router = useRouter();
 
     const loadRestaurants = useCallback(async () => {
-        if (!business) return;
+        if (!business) {
+            return;
+        }
         try {
             setLoading(true);
             const data = await businessService.getBusinessRestaurants(business.id);
@@ -105,17 +110,24 @@ export function RestaurantManagement({ business }: RestaurantManagementProps) {
     // };
 
     // Filter restaurants based on search
-    const filteredRestaurants = restaurants.filter(restaurant => {
-        if (!restaurant) return false;
-        const name = typeof restaurant.name === 'string' ? restaurant.name : '';
-        const address = typeof restaurant.address === 'string' ? restaurant.address : '';
-        const phone = typeof restaurant.phone === 'string' ? restaurant.phone : '';
-        return (
-            name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            phone.includes(searchTerm)
-        );
-    });
+    const filteredRestaurants = restaurants
+        .filter(restaurant => {
+            if (!restaurant) return false;
+            const name = typeof restaurant.name === 'string' ? restaurant.name : '';
+            const address = typeof restaurant.address === 'string' ? restaurant.address : '';
+            const phone = typeof restaurant.phone === 'string' ? restaurant.phone : '';
+            return (
+                name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                phone.includes(searchTerm)
+            );
+        })
+        .sort((a, b) => {
+            // Sort by createdAt descending (newest first)
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return dateB - dateA;
+        });
 
     const handleSubmit = async (values: CreateRestaurantRequest) => {
         if (!business) return;
@@ -130,7 +142,7 @@ export function RestaurantManagement({ business }: RestaurantManagementProps) {
             setShowModal(false);
             setEditingRestaurant(null);
             form.resetFields();
-            await loadRestaurants();
+            await loadRestaurants(); // Gọi lại API để cập nhật danh sách và số liệu
         } catch (error: any) {
             console.error('Error saving restaurant:', error);
             let description = 'Không thể lưu thông tin nhà hàng';
@@ -173,31 +185,38 @@ export function RestaurantManagement({ business }: RestaurantManagementProps) {
         setShowModal(true);
     };
 
+    const handleViewFoods = async (restaurant: Restaurant) => {
+        // Chuyển trang sang /bussiness/{restaurantId}/foods
+        router.push(`/bussiness/${restaurant.restaurantId}/foods`);
+    };
+
     // Define table columns
     const columns = [
         {
             title: 'Nhà hàng',
             key: 'restaurant',
             width: 350,
-            render: (record: Restaurant) => (
-                <Space>
-                    <Avatar 
-                        size="large" 
-                        style={{ backgroundColor: '#52c41a' }}
-                        icon={<BankOutlined />}
-                    >
-                        {(typeof record.name === 'string' && record.name.length > 0) ? record.name.charAt(0).toUpperCase() : '?'}
-                    </Avatar>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: '16px', wordBreak: 'break-word' }}>
-                            {record.name || '(Không tên)'}
+            render: (record: Restaurant) => {
+                return (
+                    <Space>
+                        <Avatar 
+                            size="large" 
+                            style={{ backgroundColor: '#52c41a' }}
+                            icon={<BankOutlined />}
+                        >
+                            {(typeof record.name === 'string' && record.name.length > 0) ? record.name.charAt(0).toUpperCase() : '?'}
+                        </Avatar>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontWeight: 600, fontSize: '16px', wordBreak: 'break-word' }}>
+                                {record.name || '(Không tên)'}
+                            </div>
+                            <Text type="secondary" style={{ wordBreak: 'break-word' }}>
+                                Mã nhà hàng: {record.restaurantId}
+                            </Text>
                         </div>
-                        <Text type="secondary" style={{ wordBreak: 'break-word' }}>
-                            ID: {record.id}
-                        </Text>
-                    </div>
-                </Space>
-            ),
+                    </Space>
+                );
+            },
         },
         {
             title: 'Thông tin liên hệ',
@@ -237,38 +256,11 @@ export function RestaurantManagement({ business }: RestaurantManagementProps) {
         {
             title: 'Thao tác',
             key: 'actions',
-            width: 150,
-            fixed: 'right' as const,
+            width: 120,
             render: (record: Restaurant) => (
-                <Space direction="vertical" size="small">
-                    <Button 
-                        type="primary" 
-                        icon={<EditOutlined />} 
-                        size="small"
-                        block
-                        onClick={() => handleEdit(record)}
-                        disabled
-                    >
-                        Sửa
-                    </Button>
-                    <Popconfirm
-                        title="Xóa nhà hàng"
-                        description="Bạn có chắc chắn muốn xóa nhà hàng này?"
-                        onConfirm={() => handleDelete(record.id)}
-                        okText="Có"
-                        cancelText="Không"
-                    >
-                        <Button 
-                            danger 
-                            icon={<DeleteOutlined />} 
-                            size="small"
-                            block
-                            disabled
-                        >
-                            Xóa
-                        </Button>
-                    </Popconfirm>
-                </Space>
+                <Button type="link" onClick={() => handleViewFoods(record)}>
+                    Xem món ăn
+                </Button>
             ),
         },
     ];

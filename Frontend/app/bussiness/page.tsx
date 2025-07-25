@@ -77,11 +77,6 @@ export default function BusinessPage() {
             label: 'Quản lý Nhà hàng',
         },
         {
-            key: 'foods',
-            icon: <CoffeeOutlined />,
-            label: 'Quản lý Món ăn',
-        },
-        {
             type: 'divider' as const,
         },
         {

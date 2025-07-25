@@ -32,6 +32,7 @@ interface UpdateBusinessRequest {
 }
 
 interface Restaurant {
+    restaurantId: ReactNode;
     id: string;
     name: string;
     address: string;
@@ -143,8 +144,12 @@ class BusinessService {
     // Restaurant Management APIs
     async getBusinessRestaurants(businessId: string): Promise<Restaurant[]> {
         const res = await this.makeRequest<any>(`api/Business/${businessId}/restaurants`, { method: 'GET' });
-        if (res && Array.isArray(res.value)) return res.value;
-        if (res && res.value && !Array.isArray(res.value)) return [res.value];
+        // API trả về { value: { restaurants: [...] } }
+        if (res && res.value && Array.isArray(res.value.restaurants)) {
+            return res.value.restaurants
+                .map((item: any) => item.restaurant ? { ...item.restaurant, id: item.id, restaurantId: item.restaurantId, isDisable: item.isDisable } : null)
+                .filter(Boolean);
+        }
         return [];
     }
 

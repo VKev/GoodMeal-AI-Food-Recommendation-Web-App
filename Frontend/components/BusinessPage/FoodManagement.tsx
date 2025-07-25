@@ -41,6 +41,7 @@ import {
     deleteFood,
     Food
 } from '@/services/RestaurantService';
+import { FirebaseAuth } from '@/firebase/firebase';
 import { businessService, Restaurant } from '@/services/BusinessService';
 
 const { Title, Text } = Typography;
@@ -61,7 +62,9 @@ export function FoodManagement({ businessId }: { businessId: string }) {
     const fetchFoods = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await getFoods();
+            const user = FirebaseAuth.currentUser;
+            const idToken = user ? await user.getIdToken() : undefined;
+            const data = await getFoods(idToken);
             setFoods(data);
         } catch (error) {
             api.error({ message: 'Không thể tải danh sách món ăn' });
@@ -88,19 +91,22 @@ export function FoodManagement({ businessId }: { businessId: string }) {
     const handleSubmit = async (values: any) => {
         try {
             setLoading(true);
-            // Chuẩn bị dữ liệu gửi lên API
+            const user = FirebaseAuth.currentUser;
+            const idToken = user ? await user.getIdToken() : undefined;
+            // Chuẩn bị dữ liệu gửi lên API, loại bỏ preparationTime và isSpicy
+            const { preparationTime, isSpicy, ...rest } = values;
             const foodData = {
-                ...values,
-                price: Number(values.price),
-                isAvailable: values.isAvailable !== undefined ? values.isAvailable : true,
-                imageUrl: values.imageUrl || '',
-                restaurantId: values.restaurantId,
+                ...rest,
+                price: Number(rest.price),
+                isAvailable: rest.isAvailable !== undefined ? rest.isAvailable : true,
+                imageUrl: rest.imageUrl || '',
+                restaurantId: rest.restaurantId,
             };
             if (editingFood) {
-                await updateFood({ ...editingFood, ...foodData });
+                await updateFood({ ...editingFood, ...foodData }, idToken);
                 api.success({ message: 'Cập nhật món ăn thành công' });
             } else {
-                await createFood(foodData);
+                await createFood(foodData, idToken);
                 api.success({ message: 'Tạo món ăn mới thành công' });
             }
             setShowModal(false);
@@ -117,7 +123,9 @@ export function FoodManagement({ businessId }: { businessId: string }) {
     const handleDelete = async (id: string) => {
         try {
             setLoading(true);
-            await deleteFood(id);
+            const user = FirebaseAuth.currentUser;
+            const idToken = user ? await user.getIdToken() : undefined;
+            await deleteFood(id, idToken);
             api.success({ message: 'Xóa món ăn thành công' });
             fetchFoods();
         } catch (error) {
@@ -381,7 +389,7 @@ export function FoodManagement({ businessId }: { businessId: string }) {
                                 name="price"
                                 rules={[{ required: true, message: 'Vui lòng nhập giá!' }]}
                             >
-                                                                    <InputNumber 
+                                                                <InputNumber 
                                         placeholder="50000"
                                         style={{ width: '100%' }}
                                         min={0}
@@ -438,4 +446,4 @@ export function FoodManagement({ businessId }: { businessId: string }) {
             </Modal>
         </div>
     );
-}
+} 
