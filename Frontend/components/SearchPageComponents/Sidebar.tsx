@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Layout } from 'antd';
 import SidebarHeader from './SidebarHeader';
 import ChatHistory from './ChatHistory';
-import UpgradeSection from './UpgradeSection';
+import SubscriptionSection from './SubscriptionSection';
 import { SidebarProps } from './types';
 
 const { Sider } = Layout;
@@ -69,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     />
                 </div>
 
-                <UpgradeSection />
+                <SubscriptionSection />
             </div>
         </Sider>
     );
