@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Table, Button, Modal, Form, Input, InputNumber, Space, Typography, Tag, Popconfirm, notification } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined } from "@ant-design/icons";
@@ -20,7 +21,7 @@ export default function FoodsPage() {
   const [api, contextHolder] = notification.useNotification();
   const [authLoading, setAuthLoading] = useState(true);
 
-  const fetchFoods = async () => {
+  const fetchFoods = useCallback(async () => {
     setLoading(true);
     try {
       const user = FirebaseAuth.currentUser;
@@ -37,7 +38,7 @@ export default function FoodsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [restaurantId, api]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(FirebaseAuth, (user) => {
@@ -47,7 +48,7 @@ export default function FoodsPage() {
       }
     });
     return () => unsubscribe();
-  }, [restaurantId]);
+  }, [restaurantId, fetchFoods]);
 
   const handleSubmit = async (values: any) => {
     try {

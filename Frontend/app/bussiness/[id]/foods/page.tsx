@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Card, Button, Modal, Form, Input, InputNumber, Space, Typography, Tag, Popconfirm, notification, Row, Col } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, StopOutlined } from "@ant-design/icons";
 import { getFoods, createFood, updateFood, deleteFood, Food, getFoodsByRestaurantId } from "@/services/RestaurantService";
 import { FirebaseAuth } from "@/firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import Image from "next/image";
 
 const { Title } = Typography;
 
@@ -19,7 +21,7 @@ export default function FoodsPage() {
   const [form] = Form.useForm();
   const [api, contextHolder] = notification.useNotification();
 
-  const fetchFoods = async () => {
+  const fetchFoods = useCallback(async () => {
     setLoading(true);
     try {
       const user = FirebaseAuth.currentUser;
@@ -37,7 +39,7 @@ export default function FoodsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, api]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(FirebaseAuth, (user) => {
@@ -46,7 +48,7 @@ export default function FoodsPage() {
       }
     });
     return () => unsubscribe();
-  }, [id]);
+  }, [id, fetchFoods]);
 
   const handleSubmit = async (values: any) => {
     try {
@@ -112,10 +114,12 @@ export default function FoodsPage() {
               <Card
                 hoverable
                 cover={
-                  <img
+                  <Image
                     alt={food.name}
                     src={food.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}
-                    style={{ height: 200, objectFit: 'cover' }}
+                    width={300}
+                    height={200}
+                    style={{ height: 200, objectFit: 'cover', width: '100%' }}
                   />
                 }
                 actions={[

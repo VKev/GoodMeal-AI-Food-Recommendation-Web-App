@@ -32,7 +32,7 @@ interface UpdateBusinessRequest {
 }
 
 interface Restaurant {
-    restaurantId: ReactNode;
+    restaurantId: string;
     id: string;
     name: string;
     address: string;
