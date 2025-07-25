@@ -133,6 +133,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
   const hasSetStreamTitle = useRef(false);
 
+  // Debug sessionId prop changes
+  useEffect(() => {
+    console.log("ChatArea received sessionId:", sessionId);
+  }, [sessionId]);
+
   const handleLoadMore = (messageId: string) => {
     setVisibleFoodCounts((prev) => ({
       ...prev,
@@ -173,26 +178,43 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     const loadMessages = async () => {
       // Handle session transition with smooth effect
       if (prevSessionId !== sessionId) {
-        setIsTransitioning(true);
-
-        // Clear messages immediately for new session or when switching
+        console.log('SessionId changed from', prevSessionId, 'to', sessionId);
+        
+        // Clear messages immediately for any session change
         setMessages([]);
         
         // Reset stream title flag for new session
         hasSetStreamTitle.current = false;
 
-        // Small delay for smooth transition
-        await new Promise((resolve) => setTimeout(resolve, 150));
+        // Only show transition if we're switching between existing sessions
+        // Don't show transition for new sessions or when going to/from null
+        const shouldTransition = sessionId && prevSessionId && !sessionId.startsWith('temp-');
+
+        if (shouldTransition) {
+          setIsTransitioning(true);
+          // Small delay for smooth transition only for existing sessions
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
 
         setPrevSessionId(sessionId);
-        setIsTransitioning(false);
+        
+        if (shouldTransition) {
+          setIsTransitioning(false);
+        }
       }
 
-      if (!sessionId || !currentUser) return;
+      // If no sessionId or user, return early
+      if (!sessionId || !currentUser) {
+        console.log('No sessionId or currentUser, returning early');
+        return;
+      }
 
       try {
+        console.log('Loading messages for session:', sessionId);
         const idToken = await currentUser.getIdToken();
         const sessionMessages = await getSessionMessages(idToken, sessionId);
+        
+        console.log('Loaded messages:', sessionMessages.length);
 
         // Convert API messages to our Message format
         const convertedMessages: Message[] = [];
@@ -268,15 +290,16 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         convertedMessages.sort(
           (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
         );
+        
+        console.log('Setting converted messages:', convertedMessages.length);
         setMessages(convertedMessages);
       } catch (error) {
         console.error("Error loading session messages:", error);
-        // Don't show error message to user, just log it
+        // For new sessions, this is expected and normal (no messages yet)
+        console.log('New session with no messages - this is normal');
       }
     };
 
-    // Clear messages when sessionId changes
-    setMessages([]);
     loadMessages();
   }, [sessionId, currentUser, prevSessionId]);
 
@@ -312,7 +335,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           lng: userLocation.longitude,
         }),
       };
-
 
       let hasError = false;
       let isFirstMessage = true;
@@ -527,7 +549,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           gap: "16px",
           opacity: isTransitioning ? 0 : 1,
           transform: isTransitioning ? "translateY(10px)" : "translateY(0)",
-          transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out",
+          transition: "opacity 0.15s ease-in-out, transform 0.15s ease-in-out",
         }}
       >
         {messages.map((msg, index) => (

@@ -20,10 +20,9 @@ public class PromptSessionController : ApiController
 
     [HttpPost("create")]
     [ApiGatewayUser]
-    public async Task<IActionResult> Create([FromBody] CreatePromptSessionCommand request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> Create(CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(request, cancellationToken);
+        var result = await _mediator.Send(new CreatePromptSessionCommand(), cancellationToken);
         var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
         var aggregateResult = ResultAggregator.AggregateWithNumbers(
             (result, true),
@@ -91,6 +90,23 @@ public class PromptSessionController : ApiController
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(request, cancellationToken);
+        var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
+        var aggregateResult = ResultAggregator.AggregateWithNumbers(
+            (result, true),
+            (save, false));
+        if (aggregateResult.IsFailure)
+        {
+            return HandleFailure(aggregateResult);
+        }
+
+        return Ok(aggregateResult);
+    }
+
+    [HttpDelete("delete-all")]
+    [ApiGatewayUser]
+    public async Task<IActionResult> DeleteAll(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new DeleteAllPromptSessionsCommand(), cancellationToken);
         var save = await _mediator.Send(new SaveChangesCommand(), cancellationToken);
         var aggregateResult = ResultAggregator.AggregateWithNumbers(
             (result, true),

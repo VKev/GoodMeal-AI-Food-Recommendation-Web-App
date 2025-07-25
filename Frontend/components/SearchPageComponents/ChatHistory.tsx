@@ -83,7 +83,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
                                     : 'none',
                                 cursor: 'pointer'
                             }}
-                            bodyStyle={{ padding: '12px' }}
+                            styles={{ body: { padding: '12px' } }}
                         >
                             <Flex justify="space-between" align="flex-start">
                                 <div 

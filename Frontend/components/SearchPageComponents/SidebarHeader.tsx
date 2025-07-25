@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Input } from 'antd';
-import { SearchOutlined, PlusOutlined, MenuOutlined, CloseOutlined } from '@ant-design/icons';
+import { Button, Input, Popconfirm } from 'antd';
+import { SearchOutlined, PlusOutlined, MenuOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 import { SidebarHeaderProps } from './types';
 
 const SidebarHeader: React.FC<SidebarHeaderProps> = ({
@@ -9,7 +9,9 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
     searchMode,
     setSearchMode,
     onCreateSession,
-    isCreatingSession
+    isCreatingSession,
+    onDeleteAllSessions,
+    chatHistoryCount = 0
 }) => {
     return (
         <div style={{ 
@@ -42,7 +44,7 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
                     />
                 </div>
             ) : (
-                // Normal mode - 3 buttons
+                // Normal mode - buttons row
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Button
                         type="text"
@@ -56,7 +58,28 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
                             icon={<SearchOutlined />}
                             onClick={() => setSearchMode(true)}
                             style={{ color: '#b3b3b3' }}
-                        />                        <Button
+                        />
+                        {chatHistoryCount > 0 && onDeleteAllSessions && (
+                            <Popconfirm
+                                title="Xóa tất cả cuộc trò chuyện"
+                                description={`Bạn có chắc chắn muốn xóa tất cả ${chatHistoryCount} cuộc trò chuyện?`}
+                                onConfirm={onDeleteAllSessions}
+                                okText="Xóa tất cả"
+                                cancelText="Hủy"
+                                placement="bottom"
+                            >
+                                <Button
+                                    type="text"
+                                    icon={<DeleteOutlined />}
+                                    style={{ 
+                                        color: '#ff4d4f',
+                                        fontSize: '14px'
+                                    }}
+                                    title="Xóa tất cả cuộc trò chuyện"
+                                />
+                            </Popconfirm>
+                        )}
+                        <Button
                             type="text"
                             icon={<PlusOutlined />}
                             onClick={onCreateSession}

@@ -15,11 +15,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     chatHistory,
     onCreateSession,
     isCreatingSession,
-    onDeleteSession
+    onDeleteSession,
+    onDeleteAllSessions
 }) => {
     const [searchMode, setSearchMode] = useState(false);
 
-    return (        <Sider
+    return (
+        <Sider
             width={320}
             collapsed={collapsed}
             onCollapse={setCollapsed}
@@ -34,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             }}
             breakpoint="lg"
         >
-            <div style={{ 
+            <div style={{
                 height: '100%', 
                 display: 'flex', 
                 flexDirection: 'column',
@@ -48,6 +50,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     setSelectedChat={setSelectedChat}
                     onCreateSession={onCreateSession}
                     isCreatingSession={isCreatingSession}
+                    onDeleteAllSessions={onDeleteAllSessions}
+                    chatHistoryCount={chatHistory.length}
                 />
 
                 <div style={{ 

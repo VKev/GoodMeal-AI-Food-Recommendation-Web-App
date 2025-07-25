@@ -13,7 +13,9 @@ import {
   Space,
   Input,
   Dropdown,
-  message,
+  App,
+  ConfigProvider,
+  theme,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -32,7 +34,9 @@ import Image from "next/image";
 const { Content, Header } = Layout;
 const { Title, Text } = Typography;
 
-const RestaurantsPage: React.FC = () => {
+// Inner component that can use useApp hook
+const RestaurantsPageContent: React.FC = () => {
+  const { message: messageApi } = App.useApp();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { location: userLocation } = useGeolocation();
@@ -103,20 +107,23 @@ const RestaurantsPage: React.FC = () => {
   // Show error message if query fails
   useEffect(() => {
     if (error) {
-      message.error("Không thể tải danh sách nhà hàng");
+      messageApi.error("Không thể tải danh sách nhà hàng");
     }
-  }, [error]);
+  }, [error, messageApi]);
 
   // Filter and sort restaurants
   const filteredAndSortedRestaurants = useMemo(() => {
     let filtered = restaurants.filter((restaurant) => {
+      // Add null/undefined checks to prevent errors
+      const restaurantName = restaurant.name || '';
+      const restaurantAddress = restaurant.full_address || '';
+      const restaurantTypes = restaurant.types || [];
+      
       const matchesSearch =
-        restaurant.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        restaurant.full_address
-          .toLowerCase()
-          .includes(searchText.toLowerCase()) ||
-        restaurant.types.some((s) =>
-          s.toLowerCase().includes(searchText.toLowerCase())
+        restaurantName.toLowerCase().includes(searchText.toLowerCase()) ||
+        restaurantAddress.toLowerCase().includes(searchText.toLowerCase()) ||
+        restaurantTypes.some((s) =>
+          s && s.toLowerCase().includes(searchText.toLowerCase())
         );
 
       return matchesSearch;
@@ -365,7 +372,7 @@ const RestaurantsPage: React.FC = () => {
                         transition: "all 0.3s ease",
                         boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
                       }}
-                      bodyStyle={{ padding: "0", height: "100%" }}
+                                             styles={{ body: { padding: "0", height: "100%" } }}
                     >
                       <Row style={{ height: "100%" }}>
                         <Col xs={24} sm={10}>
@@ -438,16 +445,16 @@ const RestaurantsPage: React.FC = () => {
                                 marginBottom: "12px",
                               }}
                             >
-                              <Title
-                                level={4}
-                                style={{
-                                  color: "#ffffff",
-                                  margin: 0,
-                                  fontSize: "18px",
-                                }}
-                              >
-                                {restaurant.name}
-                              </Title>
+                                                             <Title
+                                 level={4}
+                                 style={{
+                                   color: "#ffffff",
+                                   margin: 0,
+                                   fontSize: "18px",
+                                 }}
+                               >
+                                 {restaurant.name || 'Tên nhà hàng'}
+                               </Title>
                             </div>
                             <Space
                               direction="vertical"
@@ -460,21 +467,21 @@ const RestaurantsPage: React.FC = () => {
                                   alignItems: "center",
                                 }}
                               >
-                                <Rate
-                                  disabled
-                                  defaultValue={restaurant.rating}
-                                  style={{ fontSize: "16px" }}
-                                />
-                                <Text
-                                  style={{
-                                    color: "rgba(255, 255, 255, 0.8)",
-                                    marginLeft: "8px",
-                                    fontSize: "14px",
-                                  }}
-                                >
-                                  {restaurant.rating} ({restaurant.review_count}{" "}
-                                  đánh giá)
-                                </Text>
+                                                                 <Rate
+                                   disabled
+                                   defaultValue={restaurant.rating || 0}
+                                   style={{ fontSize: "16px" }}
+                                 />
+                                                               <Text
+                                   style={{
+                                     color: "rgba(255, 255, 255, 0.8)",
+                                     marginLeft: "8px",
+                                     fontSize: "14px",
+                                   }}
+                                 >
+                                   {restaurant.rating || 0} ({restaurant.review_count || 0}{" "}
+                                   đánh giá)
+                                 </Text>
                               </div>
 
                               <div
@@ -489,14 +496,14 @@ const RestaurantsPage: React.FC = () => {
                                     marginRight: "8px",
                                   }}
                                 />
-                                <Text
-                                  style={{
-                                    color: "rgba(255, 255, 255, 0.7)",
-                                    fontSize: "13px",
-                                  }}
-                                >
-                                  {restaurant.full_address}
-                                </Text>
+                                                                 <Text
+                                   style={{
+                                     color: "rgba(255, 255, 255, 0.7)",
+                                     fontSize: "13px",
+                                   }}
+                                 >
+                                   {restaurant.full_address || 'Địa chỉ không có sẵn'}
+                                 </Text>
                               </div>
 
                               {restaurant.phone_number && (
@@ -512,14 +519,14 @@ const RestaurantsPage: React.FC = () => {
                                       marginRight: "8px",
                                     }}
                                   />
-                                  <Text
-                                    style={{
-                                      color: "rgba(255, 255, 255, 0.7)",
-                                      fontSize: "13px",
-                                    }}
-                                  >
-                                    {restaurant.phone_number}
-                                  </Text>
+                                                                       <Text
+                                       style={{
+                                         color: "rgba(255, 255, 255, 0.7)",
+                                         fontSize: "13px",
+                                       }}
+                                     >
+                                       {restaurant.phone_number || 'Không có số điện thoại'}
+                                     </Text>
                                 </div>
                               )}
 
@@ -536,26 +543,26 @@ const RestaurantsPage: React.FC = () => {
                                 </Text>
                               )}
 
-                              <div style={{ marginTop: "12px" }}>
-                                {restaurant.types
-                                  .slice(0, 3)
-                                  .map((type, index) => (
-                                    <Tag
-                                      key={index}
-                                      style={{
-                                        background: "rgba(255, 163, 102, 0.2)",
-                                        border:
-                                          "1px solid rgba(255, 163, 102, 0.4)",
-                                        color: "#ffa366",
-                                        marginBottom: "4px",
-                                        borderRadius: "12px",
-                                        fontSize: "12px",
-                                      }}
-                                    >
-                                      {type}
-                                    </Tag>
-                                  ))}
-                              </div>
+                                                             <div style={{ marginTop: "12px" }}>
+                                 {(restaurant.types || [])
+                                   .slice(0, 3)
+                                   .map((type, index) => (
+                                     <Tag
+                                       key={index}
+                                       style={{
+                                         background: "rgba(255, 163, 102, 0.2)",
+                                         border:
+                                           "1px solid rgba(255, 163, 102, 0.4)",
+                                         color: "#ffa366",
+                                         marginBottom: "4px",
+                                         borderRadius: "12px",
+                                         fontSize: "12px",
+                                       }}
+                                     >
+                                       {type || 'Loại hình'}
+                                     </Tag>
+                                   ))}
+                               </div>
                             </Space>
 
                             <div
@@ -636,6 +643,29 @@ const RestaurantsPage: React.FC = () => {
         </div>
       </Content>
     </Layout>
+  );
+};
+
+// Main component that provides App context
+const RestaurantsPage: React.FC = () => {
+  return (
+    <ConfigProvider
+      theme={{
+        algorithm: theme.darkAlgorithm,
+        token: {
+          colorPrimary: "#ff7a00",
+          colorBgContainer: "#1f1f23",
+          colorBgElevated: "#262629",
+          colorBorder: "#ff7a0033",
+          colorText: "#ffffff",
+          colorTextSecondary: "#b3b3b3",
+        },
+      }}
+    >
+      <App>
+        <RestaurantsPageContent />
+      </App>
+    </ConfigProvider>
   );
 };
 

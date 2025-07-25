@@ -533,3 +533,52 @@ export const deletePromptSession = async (
     return false;
   }
 };
+
+export const deleteAllPromptSessions = async (
+    idToken: string
+): Promise<boolean> => {
+    try {
+        if (!idToken) {
+            console.warn('No ID token provided');
+            return false;
+        }
+
+        console.log('Deleting all sessions for current user');
+
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:2406/';
+        const response = await fetch(`${baseUrl}api/prompt/PromptSession/delete-all`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+                'Content-Type': 'application/json',
+            }
+        });
+
+        console.log('Delete all sessions response status:', response.status);
+
+        if (!response.ok) {
+            let errorText = '';
+            try {
+                errorText = await response.text();
+                console.log('Error response body:', errorText);
+            } catch (e) {
+                console.log('Could not read error response body');
+            }
+            throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Delete all sessions response:', data);
+
+        // Check if deletion was successful
+        if (data.isSuccess) {
+            console.log('Successfully deleted all sessions');
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error('Error deleting all prompt sessions:', error);
+        return false;
+    }
+};

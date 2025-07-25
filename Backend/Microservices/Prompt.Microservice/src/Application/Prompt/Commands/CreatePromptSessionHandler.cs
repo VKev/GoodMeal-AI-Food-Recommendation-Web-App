@@ -7,13 +7,14 @@ using Domain.Repositories;
 using Infrastructure;
 using Microsoft.AspNetCore.Http;
 using SharedLibrary.Common;
+using Application.Prompt.Queries;
 
 namespace Application.Prompt.Commands;
 
 public sealed record CreatePromptSessionCommand(
-) : ICommand;
+) : ICommand<GetPromptSessionResponse>;
 
-internal sealed class CreatePromptSessionHandler : ICommandHandler<CreatePromptSessionCommand>
+internal sealed class CreatePromptSessionHandler : ICommandHandler<CreatePromptSessionCommand, GetPromptSessionResponse>
 {
     private readonly IPromptSessionRepository _promptSessionRepository;
     private readonly IMapper _mapper;
@@ -27,20 +28,28 @@ internal sealed class CreatePromptSessionHandler : ICommandHandler<CreatePromptS
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<Result> Handle(CreatePromptSessionCommand request, CancellationToken cancellationToken)
+    public async Task<Result<GetPromptSessionResponse>> Handle(CreatePromptSessionCommand request, CancellationToken cancellationToken)
     {
         var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim is null)
         {
-            return Result.Failure(new Error("Auth.Unauthoried", "User is not authenticated"));
+            return Result.Failure<GetPromptSessionResponse>(new Error("Auth.Unauthorized", "User is not authenticated"));
         }
 
         var userId = userIdClaim.Value;
-        var promptSession = _mapper.Map<PromptSession>(request);
-        promptSession.CreatedAt = DateTime.UtcNow;
-        promptSession.CreatedBy = userId;
-        promptSession.UserId = userId;
+        var promptSession = new PromptSession
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId,
+            SessionName = "New chat",
+            IsDeleted = false
+        };
+        
         await _promptSessionRepository.AddAsync(promptSession, cancellationToken);
-        return Result.Success();
+        
+        var response = _mapper.Map<GetPromptSessionResponse>(promptSession);
+        return Result.Success(response);
     }
 }

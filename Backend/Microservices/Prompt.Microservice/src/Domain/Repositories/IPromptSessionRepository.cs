@@ -10,4 +10,5 @@ namespace Domain.Repositories;
 public interface IPromptSessionRepository : IRepository<PromptSession>
 {
     public Task SoftDeleteByIdAsync(Guid id, string userId, CancellationToken cancellationToken = default);
+    public Task SoftDeleteAllByUserIdAsync(string userId, CancellationToken cancellationToken = default);
 }
