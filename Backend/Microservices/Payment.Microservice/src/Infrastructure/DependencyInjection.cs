@@ -21,9 +21,18 @@ namespace Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddSingleton<EnvironmentConfig>();
-
-            services.AddScoped<IVnpay, Vnpay>();
+            services.AddHttpClient();
+            
             services.AddScoped<IVnpayRepository, VnpayRepository>();
+            services.AddSingleton<IVnpay, Vnpay>();
+            
+            services.Configure<AppConfig>(config => {
+                config.BaseUrl = Environment.GetEnvironmentVariable("VNPAYTMNCODE") ?? "default";
+                config.TmnCode = Environment.GetEnvironmentVariable("VNPAYTMNCODE") ?? "default";
+                config.HashSecret = Environment.GetEnvironmentVariable("VNPAYHASHSECRET") ?? "default";
+                config.VnpayApiUrl = Environment.GetEnvironmentVariable("VNPAYBASEURL") ?? "default";
+                config.VnpayCallBackUrl = Environment.GetEnvironmentVariable("VNPAYRETURNURL") ?? "default";
+            });
 
             services.AddScoped<EventBuffer>();
             services.AddScoped<IEventBuffer>(sp => sp.GetRequiredService<EventBuffer>());
@@ -53,6 +62,7 @@ namespace Infrastructure
             services.AddMassTransit(busConfigurator =>
             {
                 busConfigurator.AddConsumer<CreateSubscriptionPaymentUrlConsumer>();
+                busConfigurator.AddConsumer<CheckSubscriptionPaymentStatusConsumer>();
 
                 busConfigurator.SetKebabCaseEndpointNameFormatter();
                 busConfigurator.UsingRabbitMq((context, configurator) =>

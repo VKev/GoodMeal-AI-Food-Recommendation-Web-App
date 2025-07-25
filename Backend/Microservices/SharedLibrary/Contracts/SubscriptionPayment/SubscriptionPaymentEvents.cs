@@ -32,6 +32,7 @@ public class SubscriptionPaymentUrlCreatedEvent
     public Guid CorrelationId { get; set; }
     public string PaymentUrl { get; set; } = string.Empty;
     public string OrderId { get; set; } = string.Empty;
+    public string UrlCreatedAt { get; set; } = string.Empty;
 }
 
 // Failure event from Payment microservice - payment URL creation failed
@@ -93,4 +94,25 @@ public class UserSubscriptionActivationFailedEvent
     public string UserId { get; set; } = string.Empty;
     public Guid SubscriptionId { get; set; }
     public string Reason { get; set; } = string.Empty;
+}
+
+// Event to check payment status in Payment microservice
+public class CheckSubscriptionPaymentStatusEvent
+{
+    public Guid CorrelationId { get; set; }
+    public string OrderId { get; set; } = string.Empty;
+    public string TransactionDate { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
+    public Guid SubscriptionId { get; set; }
+    public decimal Amount { get; set; }
+}
+
+// Event returned from Payment microservice with payment status
+public class SubscriptionPaymentStatusCheckedEvent
+{
+    public Guid CorrelationId { get; set; }
+    public string OrderId { get; set; } = string.Empty;
+    public bool IsCompleted { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public DateTime CheckedAt { get; set; } = DateTime.UtcNow;
 } 

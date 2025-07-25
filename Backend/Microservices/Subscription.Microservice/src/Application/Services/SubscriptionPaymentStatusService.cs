@@ -1,3 +1,4 @@
+using System.Globalization;
 using Domain.Entities;
 using Domain.Repositories;
 using Microsoft.Extensions.Logging;
@@ -10,7 +11,7 @@ public interface ISubscriptionPaymentStatusService
     Task CreateInitialStatusAsync(Guid correlationId, string userId, Guid subscriptionId, decimal amount,
         string currency, string orderId, CancellationToken cancellationToken = default);
 
-    Task UpdatePaymentUrlCreatedAsync(Guid correlationId, string paymentUrl,
+    Task UpdatePaymentUrlCreatedAsync(Guid correlationId, string paymentUrl, string urlCreatedAt,
         CancellationToken cancellationToken = default);
 
     Task UpdatePaymentUrlFailedAsync(Guid correlationId, string reason, CancellationToken cancellationToken = default);
@@ -85,7 +86,7 @@ public class SubscriptionPaymentStatusService : ISubscriptionPaymentStatusServic
         }
     }
 
-    public async Task UpdatePaymentUrlCreatedAsync(Guid correlationId, string paymentUrl,
+    public async Task UpdatePaymentUrlCreatedAsync(Guid correlationId, string paymentUrl, string urlCreatedAt,
         CancellationToken cancellationToken = default)
     {
         try
@@ -102,7 +103,8 @@ public class SubscriptionPaymentStatusService : ISubscriptionPaymentStatusServic
             status.PaymentUrlCreated = true;
             status.CurrentState = "PaymentPending";
             status.UpdatedAt = DateTime.UtcNow;
-
+            status.TransactionId = urlCreatedAt;
+            
             _repository.Update(status);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
