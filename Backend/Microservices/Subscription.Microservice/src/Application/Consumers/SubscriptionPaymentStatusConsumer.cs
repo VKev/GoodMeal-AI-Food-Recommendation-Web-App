@@ -31,6 +31,16 @@ public class SubscriptionPaymentStatusConsumer :
         _logger.LogInformation("Creating initial payment status for CorrelationId {CorrelationId}", context.Message.CorrelationId);
         
         var orderId = $"SUB_{context.Message.CorrelationId:N}";
+        
+        // Check if a record already exists (could have been created by RegisterSubscriptionCommand or by URL event)
+        var existingStatus = await _statusService.GetByCorrelationIdAsync(context.Message.CorrelationId);
+        if (existingStatus != null)
+        {
+            _logger.LogInformation("Payment status record already exists for CorrelationId {CorrelationId}, skipping creation", 
+                context.Message.CorrelationId);
+            return;
+        }
+        
         await _statusService.CreateInitialStatusAsync(
             context.Message.CorrelationId,
             context.Message.UserId,

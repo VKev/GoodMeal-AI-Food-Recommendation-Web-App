@@ -258,3 +258,63 @@ export const getPaymentUrl = async (idToken: string, correlationId: string) => {
     return null;
   }
 }; 
+
+export interface AllPaymentStatusResponse {
+  value: {
+    paymentStatuses: Array<{
+      correlationId: string;
+      subscriptionId: string;
+      amount: number;
+      currency: string;
+      orderId: string;
+      currentState: string;
+      paymentUrl: string | null;
+      paymentUrlCreated: boolean;
+      paymentCompleted: boolean;
+      subscriptionActivated: boolean;
+      transactionId: string | null;
+      failureReason: string | null;
+      completedAt: string | null;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+  };
+  isSuccess: boolean;
+  isFailure: boolean;
+  error: {
+    code: string;
+    description: string;
+  };
+}
+
+export const getAllPaymentStatuses = async (idToken: string) => {
+  try {
+    if (!idToken) {
+      console.warn("No ID token provided");
+      return { success: false, data: [] };
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "http://localhost:2406/";
+    const response = await fetch(`${baseUrl}api/subscription/payment-status`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data: AllPaymentStatusResponse = await response.json();
+    
+    return {
+      success: data.isSuccess,
+      data: data.value?.paymentStatuses || []
+    };
+  } catch (error) {
+    console.error("Error fetching payment statuses:", error);
+    return { success: false, data: [] };
+  }
+}; 

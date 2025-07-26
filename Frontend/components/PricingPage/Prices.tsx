@@ -95,7 +95,7 @@ const Prices: React.FC = () => {
   // Set up polling when correlationId changes
   useEffect(() => {
     if (typeof window === "undefined") return;
-    
+
     console.log("correlationId effect triggered:", correlationId);
 
     // Clear any existing interval first
@@ -131,18 +131,18 @@ const Prices: React.FC = () => {
               console.log("Payment URL received:", paymentUrlData.paymentUrl);
               setPaymentUrl(paymentUrlData.paymentUrl);
 
+              // Open payment URL in a new tab if not already opened
+              if (!paymentWindowOpened && typeof window !== "undefined") {
+                console.log("Opening payment URL in new tab");
+                window.open(paymentUrlData.paymentUrl, "_blank");
+                setPaymentWindowOpened(true);
+              }
+
               // Clear polling interval once URL is received
               if (intervalRef.current) {
                 console.log("Clearing polling interval");
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
-              }
-
-              // Open payment URL in a new tab
-              if (!paymentWindowOpened && typeof window !== "undefined") {
-                console.log("Opening payment URL in new tab");
-                window.open(paymentUrlData.paymentUrl, "_blank");
-                setPaymentWindowOpened(true);
               }
             } else {
               console.log("Payment URL not yet created, continuing to poll");
@@ -169,16 +169,12 @@ const Prices: React.FC = () => {
         clearInterval(interval);
       };
     }
-  }, [
-    correlationId,
-    currentUser,
-    paymentWindowOpened,
-  ]);
+  }, [correlationId, currentUser, paymentWindowOpened]);
 
   // Poll for payment URL
   const pollPaymentUrl = async () => {
     if (typeof window === "undefined") return;
-    
+
     console.log("Polling for payment URL...", { correlationId });
     if (!currentUser || !correlationId) {
       console.warn("Missing currentUser or correlationId for polling");
@@ -201,18 +197,18 @@ const Prices: React.FC = () => {
           console.log("Payment URL received:", paymentUrlData.paymentUrl);
           setPaymentUrl(paymentUrlData.paymentUrl);
 
+          // Open payment URL in a new tab if not already opened
+          if (!paymentWindowOpened && typeof window !== "undefined") {
+            console.log("Opening payment URL in new tab");
+            window.open(paymentUrlData.paymentUrl, "_blank");
+            setPaymentWindowOpened(true);
+          }
+
           // Clear polling interval once URL is received
           if (intervalRef.current) {
             console.log("Clearing polling interval");
             clearInterval(intervalRef.current);
             intervalRef.current = null;
-          }
-
-          // Open payment URL in a new tab
-          if (!paymentWindowOpened && typeof window !== "undefined") {
-            console.log("Opening payment URL in new tab");
-            window.open(paymentUrlData.paymentUrl, "_blank");
-            setPaymentWindowOpened(true);
           }
         } else {
           console.log("Payment URL not yet created, continuing to poll");
@@ -286,16 +282,20 @@ const Prices: React.FC = () => {
       console.log("Registration result:", result);
 
       if (result.success && result.data) {
-        const newCorrelationId = result.data.correlationId;
-        console.log("Setting correlationId:", newCorrelationId);
+        // Reset all payment related states first
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
 
-        // Reset states
         setPaymentUrl(null);
         setPaymentWindowOpened(false);
         setPaymentStatus("Đang xử lý");
         setPaymentModalVisible(true);
 
         // Set correlationId last, which will trigger the useEffect
+        const newCorrelationId = result.data.correlationId;
+        console.log("Setting correlationId:", newCorrelationId);
         setCorrelationId(newCorrelationId);
       } else {
         message.error("Không thể đăng ký gói dịch vụ. Vui lòng thử lại sau.");
@@ -403,6 +403,8 @@ const Prices: React.FC = () => {
         open={paymentModalVisible}
         onCancel={() => {
           console.log("Payment modal closing...");
+          // Reset paymentWindowOpened when closing modal
+          setPaymentWindowOpened(false);
           // Just hide the modal but keep polling
           setPaymentModalVisible(false);
         }}
@@ -451,7 +453,8 @@ const Prices: React.FC = () => {
                 </Button>
               </Paragraph>
               <Paragraph>
-                Sau khi thanh toán, hãy quay lại đây và nhấn nút &quot;Xác nhận đã thanh toán&quot;.
+                Sau khi thanh toán, hãy quay lại đây và nhấn nút &quot;Xác nhận
+                đã thanh toán&quot;.
               </Paragraph>
             </>
           )}
