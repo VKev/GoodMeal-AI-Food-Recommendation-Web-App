@@ -26,6 +26,8 @@ public interface ISubscriptionPaymentStatusService
 
     Task UpdateSubscriptionActivationFailedAsync(Guid correlationId, string reason,
         CancellationToken cancellationToken = default);
+        
+    Task<SubscriptionPaymentStatus?> GetByCorrelationIdAsync(Guid correlationId, CancellationToken cancellationToken = default);
 }
 
 public class SubscriptionPaymentStatusService : ISubscriptionPaymentStatusService
@@ -54,6 +56,24 @@ public class SubscriptionPaymentStatusService : ISubscriptionPaymentStatusServic
             {
                 _logger.LogWarning("SubscriptionPaymentStatus already exists for CorrelationId {CorrelationId}",
                     correlationId);
+                
+                // Check if this is a temporary record created by the URL event
+                if (existing.UserId == "pending" && existing.SubscriptionId == Guid.Empty)
+                {
+                    _logger.LogInformation("Updating temporary payment status record with complete information for CorrelationId {CorrelationId}", correlationId);
+                    
+                    // Update the temporary record with the complete information
+                    existing.UserId = userId;
+                    existing.SubscriptionId = subscriptionId;
+                    existing.Amount = amount;
+                    existing.Currency = currency;
+                    existing.OrderId = orderId;
+                    existing.UpdatedAt = DateTime.UtcNow;
+                    
+                    _repository.Update(existing);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                }
+                
                 return;
             }
 
@@ -94,8 +114,34 @@ public class SubscriptionPaymentStatusService : ISubscriptionPaymentStatusServic
             var status = await _repository.GetByCorrelationIdAsync(correlationId, cancellationToken);
             if (status == null)
             {
-                _logger.LogWarning("SubscriptionPaymentStatus not found for CorrelationId {CorrelationId}",
+                _logger.LogWarning("SubscriptionPaymentStatus not found for CorrelationId {CorrelationId}, creating a temporary record",
                     correlationId);
+                
+                // Create a temporary status record since the initial event hasn't been processed yet
+                status = new SubscriptionPaymentStatus
+                {
+                    Id = Guid.NewGuid(),
+                    CorrelationId = correlationId,
+                    // We don't have user and subscription info yet, will be updated when initial event arrives
+                    UserId = "pending",
+                    SubscriptionId = Guid.Empty,
+                    Amount = 0,
+                    Currency = "VND",
+                    OrderId = $"SUB_{correlationId:N}",
+                    CurrentState = "PaymentPending",
+                    PaymentUrlCreated = true,
+                    PaymentUrl = paymentUrl,
+                    PaymentCompleted = false,
+                    SubscriptionActivated = false,
+                    TransactionId = urlCreatedAt,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                
+                await _repository.AddAsync(status, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                
+                _logger.LogInformation("Created temporary payment status for CorrelationId {CorrelationId} with URL", correlationId);
                 return;
             }
 
@@ -258,6 +304,19 @@ public class SubscriptionPaymentStatusService : ISubscriptionPaymentStatusServic
         {
             _logger.LogError(ex, "Error updating subscription activation failed for CorrelationId {CorrelationId}",
                 correlationId);
+        }
+    }
+
+    public async Task<SubscriptionPaymentStatus?> GetByCorrelationIdAsync(Guid correlationId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _repository.GetByCorrelationIdAsync(correlationId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting payment status for CorrelationId {CorrelationId}", correlationId);
+            return null;
         }
     }
 }

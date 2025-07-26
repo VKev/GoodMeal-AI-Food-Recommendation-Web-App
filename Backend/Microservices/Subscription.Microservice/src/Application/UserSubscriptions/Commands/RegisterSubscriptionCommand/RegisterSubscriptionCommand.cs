@@ -10,6 +10,8 @@ using SharedLibrary.Common;
 using SharedLibrary.Common.Event;
 using SharedLibrary.Contracts.SubscriptionPayment;
 using SharedLibrary.Utils;
+using Microsoft.Extensions.DependencyInjection;
+using Application.Services;
 
 namespace Application.UserSubscriptions.Commands.RegisterSubscriptionCommand;
 
@@ -36,6 +38,7 @@ internal sealed class
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IEventUnitOfWork _events;
+    private readonly ISubscriptionPaymentStatusService statusService;
 
     public RegisterSubscriptionCommandHandler(
         ILogger<RegisterSubscriptionCommandHandler> logger,
@@ -43,7 +46,7 @@ internal sealed class
         ISubscriptionRepository subscriptionRepository,
         IMapper mapper,
         IHttpContextAccessor httpContextAccessor,
-        IEventUnitOfWork events)
+        IEventUnitOfWork events, ISubscriptionPaymentStatusService statusService)
     {
         _logger = logger;
         _userSubscriptionRepository = userSubscriptionRepository;
@@ -51,6 +54,7 @@ internal sealed class
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
         _events = events;
+        this.statusService = statusService;
     }
 
     public async Task<Result<RegisterSubscriptionResponse>> Handle(RegisterSubscriptionCommand request,
@@ -112,6 +116,19 @@ internal sealed class
             // Get client IP address
             var ipAddress = GetClientIpAddress();
 
+            // Create the order ID
+            var orderId = $"SUB_{correlationId:N}";
+
+            // Create initial payment status record directly to ensure it exists before any other events are processed
+            await statusService.CreateInitialStatusAsync(
+                correlationId,
+                userId,
+                request.SubscriptionId,
+                amount,
+                "VND",
+                orderId,
+                cancellationToken);
+
             // Start subscription payment saga
             _events.Add(new SubscriptionPaymentSagaStart
             {
@@ -131,7 +148,7 @@ internal sealed class
                 request.SubscriptionId,
                 amount,
                 "VND",
-                $"SUB_{correlationId:N}",
+                orderId,
                 "Subscription registration process started. Payment URL will be created."
             );
 
