@@ -34,6 +34,7 @@ import {
     Subscription
 } from '@/services/SubscriptionService';
 import SubscriptionCard from '../PricingPage/SubscriptionCard';
+import { pricingPlans } from '../PricingPage/PricingData';
 
 interface SubscriptionData {
     id: string;
@@ -201,41 +202,470 @@ const MySubscriptionPage: React.FC = () => {
     }
 
     if (!subscription) {
+        // Lấy gói cơ bản từ PricingData
+        const freePlan = pricingPlans.find(plan => plan.id === 'free');
+        
         return (
-            <div style={{ 
+            <div style={{
                 minHeight: '100vh',
                 background: '#000000',
-                padding: '100px 24px 40px',
-                fontFamily: "'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '24px',
-                textAlign: 'center'
+                fontFamily: "'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif"
             }}>
-                <h2 style={{ color: '#ffffff', fontSize: '28px' }}>
-                    Bạn chưa có gói đăng ký nào
-                </h2>
-                <p style={{ color: '#b3b3b3', fontSize: '16px' }}>
-                    Hãy đăng ký một gói dịch vụ để trải nghiệm đầy đủ tính năng
-                </p>
-                <Button 
-                    type="primary"
-                    size="large"
-                    onClick={() => router.push('/pricing')}
-                    style={{
-                        background: 'linear-gradient(135deg, #ff8c42 0%, #ff6b1a 100%)',
-                        border: 'none',
-                        borderRadius: '8px',
-                        height: '48px',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        padding: '0 32px'
-                    }}
-                >
-                    Xem các gói đăng ký
-                </Button>
+                {/* Netflix-style Header */}
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 1000,
+                    background: 'linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 70%, transparent 100%)',
+                    padding: '16px 0',
+                    backdropFilter: 'blur(10px)'
+                }}>
+                    <div style={{
+                        maxWidth: '1400px',
+                        margin: '0 auto',
+                        padding: '0 24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <Button
+                                type="text"
+                                icon={<ArrowLeftOutlined />}
+                                onClick={handleBackClick}
+                                style={{
+                                    color: '#ff8c42',
+                                    fontSize: '18px',
+                                    marginRight: '20px',
+                                    border: 'none',
+                                    background: 'none'
+                                }}
+                            />
+                            <h1 style={{
+                                color: '#ffffff',
+                                fontSize: '28px',
+                                fontWeight: '700',
+                                margin: 0,
+                                letterSpacing: '0.5px'
+                            }}>
+                                Gói đăng ký của bạn
+                            </h1>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <Tooltip title="Cài đặt tài khoản">
+                                <Button
+                                    type="text"
+                                    icon={<SettingOutlined />}
+                                    style={{
+                                        color: '#ffffff',
+                                        fontSize: '18px'
+                                    }}
+                                />
+                            </Tooltip>
+                            <Tooltip title="Hỗ trợ">
+                                <Button
+                                    type="text"
+                                    icon={<QuestionCircleOutlined />}
+                                    style={{
+                                        color: '#ffffff',
+                                        fontSize: '18px'
+                                    }}
+                                />
+                            </Tooltip>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div style={{
+                    paddingTop: '100px',
+                    padding: '100px 24px 40px',
+                    maxWidth: '1400px',
+                    margin: '0 auto'
+                }}>
+                    {/* Hero Section with Free Plan Card */}
+                    <div style={{
+                        position: 'relative',
+                        background: 'linear-gradient(135deg, #1a0a00 0%, #000000 50%, #0a0a0a 100%)',
+                        borderRadius: '12px',
+                        padding: '48px',
+                        marginBottom: '40px',
+                        overflow: 'hidden',
+                        border: '1px solid rgba(255, 140, 66, 0.2)'
+                    }}>
+                        {/* Background Pattern */}
+                        <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            width: '60%',
+                            height: '100%',
+                            background: `radial-gradient(ellipse at top right, rgba(255, 140, 66, 0.1) 0%, transparent 70%)`,
+                            pointerEvents: 'none'
+                        }} />
+                        
+                        <Row gutter={[48, 32]} align="middle">
+                            <Col xs={24} lg={12}>
+                                {freePlan && (
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, rgba(82, 196, 26, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)',
+                                        border: '2px solid rgba(82, 196, 26, 0.3)',
+                                        borderRadius: '16px',
+                                        padding: '32px',
+                                        position: 'relative',
+                                        overflow: 'hidden'
+                                    }}>
+                                        {/* Plan Badge */}
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '16px',
+                                            right: '16px',
+                                            background: 'rgba(82, 196, 26, 0.2)',
+                                            color: '#52c41a',
+                                            padding: '4px 12px',
+                                            borderRadius: '20px',
+                                            fontSize: '12px',
+                                            fontWeight: '600',
+                                            border: '1px solid rgba(82, 196, 26, 0.3)'
+                                        }}>
+                                            Gói hiện tại
+                                        </div>
+                                        
+                                        {/* Plan Header */}
+                                        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                                            <div style={{
+                                                fontSize: '48px',
+                                                marginBottom: '8px'
+                                            }}>
+                                                {freePlan.icon}
+                                            </div>
+                                            <h3 style={{
+                                                color: '#ffffff',
+                                                fontSize: '28px',
+                                                fontWeight: '700',
+                                                margin: '0 0 8px 0'
+                                            }}>
+                                                {freePlan.name}
+                                            </h3>
+                                            <p style={{
+                                                color: 'rgba(255, 255, 255, 0.7)',
+                                                fontSize: '16px',
+                                                margin: 0
+                                            }}>
+                                                {freePlan.description}
+                                            </p>
+                                        </div>
+                                        
+                                        {/* Price */}
+                                        <div style={{
+                                            textAlign: 'center',
+                                            marginBottom: '32px',
+                                            padding: '24px',
+                                            background: 'rgba(82, 196, 26, 0.1)',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(82, 196, 26, 0.2)'
+                                        }}>
+                                            <div style={{
+                                                color: '#52c41a',
+                                                fontSize: '48px',
+                                                fontWeight: '700',
+                                                marginBottom: '8px'
+                                            }}>
+                                                {freePlan.monthlyPrice}
+                                            </div>
+                                            <div style={{
+                                                color: 'rgba(255, 255, 255, 0.6)',
+                                                fontSize: '16px'
+                                            }}>
+                                                / tháng
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Features */}
+                                        <div style={{ marginBottom: '24px' }}>
+                                            <h4 style={{
+                                                color: '#ffffff',
+                                                fontSize: '18px',
+                                                fontWeight: '600',
+                                                marginBottom: '16px'
+                                            }}>
+                                                Tính năng bao gồm:
+                                            </h4>
+                                            <ul style={{
+                                                listStyle: 'none',
+                                                padding: 0,
+                                                margin: 0
+                                            }}>
+                                                {freePlan.features.slice(0, 5).map((feature, index) => (
+                                                    <li key={index} style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        marginBottom: '12px',
+                                                        color: 'rgba(255, 255, 255, 0.8)',
+                                                        fontSize: '14px'
+                                                    }}>
+                                                        <CheckCircleOutlined style={{
+                                                            color: '#52c41a',
+                                                            marginRight: '12px',
+                                                            fontSize: '16px'
+                                                        }} />
+                                                        {feature}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                )}
+                            </Col>
+                            
+                            <Col xs={24} lg={12}>
+                                <div>
+                                    <h3 style={{
+                                        color: '#ffffff',
+                                        fontSize: '20px',
+                                        fontWeight: '600',
+                                        marginBottom: '20px'
+                                    }}>
+                                        Thông tin gói cơ bản
+                                    </h3>
+                                    
+                                    {/* Free Plan Details */}
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        flexDirection: 'column', 
+                                        gap: '16px',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        padding: '24px',
+                                        borderRadius: '12px'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span style={{ color: '#b3b3b3' }}>Loại gói:</span>
+                                            <span style={{ color: '#52c41a', fontWeight: '600' }}>Miễn phí</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span style={{ color: '#b3b3b3' }}>Trạng thái:</span>
+                                            <Tag
+                                                style={{
+                                                    background: 'rgba(82, 196, 26, 0.2)',
+                                                    border: '1px solid rgba(82, 196, 26, 0.3)',
+                                                    color: '#52c41a',
+                                                    padding: '2px 12px',
+                                                    borderRadius: '20px',
+                                                }}
+                                            >
+                                                Đang hoạt động
+                                            </Tag>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span style={{ color: '#b3b3b3' }}>Giới hạn:</span>
+                                            <span style={{ color: '#ffffff' }}>3 cuộc trò chuyện/ngày</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span style={{ color: '#b3b3b3' }}>Lưu trữ:</span>
+                                            <span style={{ color: '#ffffff' }}>5 món ăn yêu thích</span>
+                                        </div>
+                                        
+                                        {/* Usage Progress */}
+                                        <div style={{ marginTop: '16px' }}>
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                marginBottom: '12px'
+                                            }}>
+                                                <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600' }}>
+                                                    Sử dụng hôm nay
+                                                </span>
+                                                <span style={{ color: '#52c41a', fontSize: '16px', fontWeight: '600' }}>
+                                                    0/3 cuộc trò chuyện
+                                                </span>
+                                            </div>
+                                            <div style={{
+                                                background: 'rgba(255, 255, 255, 0.1)',
+                                                borderRadius: '12px',
+                                                height: '8px',
+                                                overflow: 'hidden'
+                                            }}>
+                                                <div style={{
+                                                    background: 'linear-gradient(90deg, #52c41a 0%, #389e0d 100%)',
+                                                    height: '100%',
+                                                    width: '0%',
+                                                    borderRadius: '12px',
+                                                    boxShadow: '0 0 12px rgba(82, 196, 26, 0.5)',
+                                                    transition: 'all 0.3s ease'
+                                                }} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Col>
+                        </Row>
+                        
+                        {/* Action Buttons */}
+                        <div style={{
+                            marginTop: '40px',
+                            display: 'flex',
+                            gap: '16px',
+                            flexWrap: 'wrap',
+                            justifyContent: 'center'
+                        }}>
+                            <Button
+                                type="primary"
+                                size="large"
+                                icon={<CrownOutlined />}
+                                style={{
+                                    background: 'linear-gradient(135deg, #ff8c42 0%, #ff6b1a 100%)',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    height: '48px',
+                                    fontSize: '16px',
+                                    fontWeight: '600',
+                                    padding: '0 32px',
+                                    boxShadow: '0 4px 16px rgba(255, 140, 66, 0.3)',
+                                    transition: 'all 0.3s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 140, 66, 0.4)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(255, 140, 66, 0.3)';
+                                }}
+                                onClick={() => router.push('/pricing')}
+                            >
+                                Nâng cấp lên Pro
+                            </Button>
+                            
+                            <Button
+                                size="large"
+                                icon={<StarFilled />}
+                                style={{
+                                    background: 'transparent',
+                                    border: '2px solid #52c41a',
+                                    color: '#52c41a',
+                                    borderRadius: '8px',
+                                    height: '48px',
+                                    fontSize: '16px',
+                                    fontWeight: '600',
+                                    padding: '0 32px'
+                                }}
+                                onClick={() => router.push('/pricing')}
+                            >
+                                Xem tất cả gói
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Stats Cards Row */}
+                    <Row gutter={[24, 24]} style={{ marginBottom: '40px' }}>
+                        <Col xs={24} sm={8}>
+                            <div style={{
+                                background: 'linear-gradient(135deg, rgba(82, 196, 26, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)',
+                                border: '1px solid rgba(82, 196, 26, 0.2)',
+                                borderRadius: '12px',
+                                padding: '24px',
+                                textAlign: 'center'
+                            }}>
+                                <CalendarOutlined style={{ 
+                                    fontSize: '32px', 
+                                    color: '#52c41a',
+                                    marginBottom: '12px'
+                                }} />
+                                <div style={{ color: '#ffffff', fontSize: '24px', fontWeight: '700' }}>
+                                    3
+                                </div>
+                                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                                    Cuộc trò chuyện/ngày
+                                </div>
+                            </div>
+                        </Col>
+                        
+                        <Col xs={24} sm={8}>
+                            <div style={{
+                                background: 'linear-gradient(135deg, rgba(46, 204, 113, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)',
+                                border: '1px solid rgba(46, 204, 113, 0.2)',
+                                borderRadius: '12px',
+                                padding: '24px',
+                                textAlign: 'center'
+                            }}>
+                                <CreditCardOutlined style={{ 
+                                    fontSize: '32px', 
+                                    color: '#2ecc71',
+                                    marginBottom: '12px'
+                                }} />
+                                <div style={{ color: '#ffffff', fontSize: '24px', fontWeight: '700' }}>
+                                    0
+                                </div>
+                                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                                    Thanh toán thành công
+                                </div>
+                            </div>
+                        </Col>
+                        
+                        <Col xs={24} sm={8}>
+                            <div style={{
+                                background: 'linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)',
+                                border: '1px solid rgba(52, 152, 219, 0.2)',
+                                borderRadius: '12px',
+                                padding: '24px',
+                                textAlign: 'center'
+                            }}>
+                                <DownloadOutlined style={{ 
+                                    fontSize: '32px', 
+                                    color: '#3498db',
+                                    marginBottom: '12px'
+                                }} />
+                                <div style={{ color: '#ffffff', fontSize: '24px', fontWeight: '700' }}>
+                                    5
+                                </div>
+                                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                                    Món ăn yêu thích
+                                </div>
+                            </div>
+                        </Col>
+                    </Row>
+
+                    {/* Payment History Section */}
+                    <div style={{
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 140, 66, 0.1)',
+                        borderRadius: '12px',
+                        padding: '32px',
+                        marginBottom: '40px'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginBottom: '24px'
+                        }}>
+                            <HistoryOutlined style={{ 
+                                color: '#ff8c42', 
+                                fontSize: '24px',
+                                marginRight: '12px'
+                            }} />
+                            <h2 style={{
+                                color: '#ffffff',
+                                fontSize: '24px',
+                                fontWeight: '700',
+                                margin: 0
+                            }}>
+                                Lịch sử thanh toán
+                            </h2>
+                        </div>
+                        
+                        <div style={{ 
+                            textAlign: 'center', 
+                            padding: '32px', 
+                            color: '#b3b3b3',
+                            fontSize: '16px'
+                        }}>
+                            Không có lịch sử thanh toán
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
